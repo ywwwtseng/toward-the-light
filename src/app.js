@@ -613,8 +613,9 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x050505);scene.fog=new THREE.Fog(0x050505,4,14);
   scene.add(new THREE.HemisphereLight(0x666666,0x080808,.3));scene.add(ground(0x0c0c0c));
   const dm=M(0x2a2a2a);scene.add(box(1.8,.05,.8,dm,0,.74,0),box(.05,.72,.7,dm,-.85,.36,0),box(.05,.72,.7,dm,.85,.36,0));
-  scene.add(box(.7,.42,.03,M(0x111111),.1,1.03,-.25),box(.06,.2,.06,M(0x111111),.1,.84,-.25));
-  const screen=new THREE.Mesh(new THREE.PlaneGeometry(.64,.36),B(0xe8e8e8));screen.position.set(.1,1.04,-.233);scene.add(screen);
+  // monitor sits low on the desk with no visible stand (only a flat foot hidden behind it)
+  scene.add(box(.7,.42,.03,M(0x111111),.1,.985,-.25),box(.22,.012,.14,M(0x111111),.1,.771,-.33),box(.08,.2,.03,M(0x111111),.1,.86,-.285));
+  const screen=new THREE.Mesh(new THREE.PlaneGeometry(.64,.36),B(0xe8e8e8));screen.position.set(.1,.995,-.233);scene.add(screen);
   const glowL=new THREE.PointLight(0xffffff,1.1,4);glowL.position.set(.1,1.05,.25);scene.add(glowL);
   const r=rng(19);for(let i=0;i<5;i++)scene.add(box(.3,.03+r()*.08,.22,M(0xd0d0d0),-.55+r()*.15,.79+i*.0,.05+r()*.1));
   const cup=new THREE.Mesh(new THREE.CylinderGeometry(.045,.035,.11,7),M(0xdddddd));cup.position.set(.62,.82,.08);scene.add(cup);
