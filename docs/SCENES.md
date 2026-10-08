@@ -7,9 +7,9 @@ Light/dark is the `dark(t)` value. It drives caption colour and the strength of 
 | # | key | L/D | Caption | What happens | Camera |
 |---|---|---|---|---|---|
 | 0 | `title` | D→L | (none; `#bigTitle` shows TOWARD, then THE LIGHT + 獻給每個獨自打拼的人) | Letter-spaced title on black flips to white halfway | — |
-| 1 | `arrive` | L | 帶著一只行李箱和一點勇氣，我來到這座城市 | White avenue between towers in falling snow; he stands still with a suitcase while the street slides toward the camera | Behind him, slowly rising |
-| 2 | `crack` | L | 每天走同一條路，低著頭趕時間 | Low shot on the pavement; he stands still while the pavement and a small daisy in its crack slide by | Ground level, static-ish |
-| 3 | `office` | D | 走廊的燈一盞盞熄了，只剩我還沒下班 | Endless dark office corridor with pools of light every 5 m; he stands still with his suitcase while the corridor slides past | Down the corridor axis |
+| 1 | `arrive` | L | 帶著一只行李箱和一點勇氣，我來到這座城市 | White avenue between towers in falling snow; he walks in place with a suitcase while the street slides toward the camera, footprints appearing in the snow | Behind him, slowly rising |
+| 2 | `crack` | L | 每天走同一條路，低著頭趕時間 | Low shot on the pavement; his legs walk in place while the pavement and a small daisy in its crack slide by | Ground level, static-ish |
+| 3 | `office` | D | 走廊的燈一盞盞熄了，只剩我還沒下班 | Endless dark office corridor with pools of light every 5 m; he walks in place with his suitcase while the corridor slides past | Down the corridor axis |
 | 4 | `desk` | D | 深夜的辦公桌，只有螢幕還亮著陪我 | Seated at a desk, screen glow, paper stacks, a cup with a tiny daisy | Orbits from wide to a close shot near the cup |
 | 5 | `skyline` | L | 城市好大，大到沒有人知道我的名字 | At an overpass railing, over-the-shoulder view of a hazy skyline | Pushes past his shoulder |
 | 6 | `grid` | D | 萬家燈火，沒有一盞在等我 | Top-down night city whose windows light up block by block, with glowing street grid | High, tilting |

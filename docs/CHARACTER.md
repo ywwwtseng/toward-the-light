@@ -33,7 +33,8 @@ The torso is an inner group `up` at y = 0.88. It is not exposed, so **the spine 
 
 ## Built-in poses
 
-- `walk(phase, amp=.45)`: legs, knees and arms swing with a slight bob. **Currently unused:** William asked (2026-10-08) that the hero never walks. He stands still and the scene moves past him (see `worldGroup` in ART-DIRECTION).
+- `walk(phase, amp=.45)`: legs, knees and arms swing with a slight bob. Old, mechanical gait; no longer used by the hero.
+- `stroll(dist, {amp=.34, carry=false, gaze=.05})` (hero only): the current walk. It walks in place, with the phase driven by how far the ground has moved, so the planted foot moves with the ground and never slides. The stance phase is linear and the swing phase is an arc with an early knee lift. The body drops so the lower sole stays at y=0. Shoulders counter-rotate and the arms swing with a small lag. `carry` gives the right arm a small swing, as if holding something heavy, and `gaze` sets the head pitch.
 - `sit()`: thighs at −1.5, knees at 1.45, arms resting forward. Seat height offset: the hero's origin sits about 0.95 below the seat top, so place him at `seatY - .95`.
 - `float(time)`: loose, drifting limbs, used in `drift`.
 
