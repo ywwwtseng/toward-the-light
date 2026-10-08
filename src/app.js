@@ -620,7 +620,14 @@ const SCENES=[
   const cup=new THREE.Mesh(new THREE.CylinderGeometry(.045,.035,.11,7),M(0xdddddd));cup.position.set(.62,.82,.08);scene.add(cup);
   const d=makeDaisy({r:.06,stem:.13});d.position.set(.62,.98,.08);d.userData.head.rotation.x=.5;scene.add(d);
   scene.add(box(.5,.05,.45,M(0x1a1a1a),0,.47,.62),box(.5,.55,.05,M(0x1a1a1a),0,.75,.86));
-  const me=makePerson();me.userData.sit();me.rotation.y=Math.PI;me.position.set(0,-.48,.62);/* forearms rest flat on the desktop (y .765): shoulder at y .88, upper arm .3 → elbow at y .82, forearm horizontal, palms down */me.userData.arms.forEach(a=>a.rotation.x=-1.37);me.userData.elbows.forEach(e=>e.rotation.x=-.2);me.userData.hands?.forEach(h=>{h.rotation.y=0;h.userData.grip(.3)});me.userData.head.rotation.x=.35;scene.add(me);
+  const me=makePerson();me.userData.sit();me.rotation.y=Math.PI;me.position.set(0,-.48,.62);/* hands on the keyboard: elbows at y ~.835 so the forearms clear the desk, arms turned slightly in so both hands land on the keys, palms down */
+  me.userData.arms.forEach((a,i)=>a.rotation.set(-1.42,0,i?-.2:.2));me.userData.elbows.forEach(e=>e.rotation.x=-.15);me.userData.hands?.forEach(h=>{h.rotation.y=0;h.userData.grip(.35)});
+  { // keyboard under his hands: a thin dark slab with a grid of keys
+    const kb=new THREE.Group();kb.position.set(0,.765,-.07);kb.add(box(.46,.014,.16,M(0x1c1c1c),0,.007,0));
+    const kg=new THREE.BoxGeometry(.026,.008,.026),km=M(0x2e2e2e),keys=new THREE.InstancedMesh(kg,km,80),m4=new THREE.Matrix4();let n=0;
+    for(let r=0;r<5;r++)for(let c=0;c<14;c++){m4.makeTranslation(-.2+c*.031+(r%2)*.008,.018,-.062+r*.031);keys.setMatrixAt(n++,m4)}
+    m4.compose(V3(0,.018,.07),new THREE.Quaternion(),V3(6,1,1));keys.setMatrixAt(n++,m4); // space bar
+    keys.count=n;kb.add(keys);scene.add(kb)}me.userData.head.rotation.x=.35;scene.add(me);
   return{scene,update(t,time){
     screen.material.color.setScalar(.85+Math.sin(time*7)*.02);
     const a=lerp(2.5,.55,ease(t));camera.position.set(Math.sin(a)*lerp(3.2,1.1,t)+.3,lerp(1.7,1.05,t),Math.cos(a)*lerp(3.2,1.1,t));camera.lookAt(lerp(0,.6,t),lerp(1,.95,t),lerp(0,.08,t));
