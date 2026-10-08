@@ -806,7 +806,7 @@ const SCENES=[
   const cup=new THREE.Mesh(new THREE.CylinderGeometry(.045,.035,.11,7),M(0xdddddd));cup.position.set(.62,.82,.08);scene.add(cup);
   const d=makeDaisy({r:.06,stem:.13});d.position.set(.62,.98,.08);d.userData.head.rotation.x=.5;scene.add(d);
   scene.add(box(.5,.05,.45,M(0x1a1a1a),0,.47,.62),box(.5,.55,.05,M(0x1a1a1a),0,.75,.86));
-  const me=makePerson();me.userData.sit();me.rotation.y=Math.PI;me.position.set(0,-.48,.62);me.userData.arms.forEach(a=>a.rotation.x=-1.1);me.userData.elbows.forEach(e=>e.rotation.x=-.5);me.userData.head.rotation.x=.35;scene.add(me);
+  const me=makePerson();me.userData.sit();me.rotation.y=Math.PI;me.position.set(0,-.48,.62);/* forearms rest flat on the desktop (y .765): shoulder at y .88, upper arm .3 → elbow at y .82, forearm horizontal, palms down */me.userData.arms.forEach(a=>a.rotation.x=-1.37);me.userData.elbows.forEach(e=>e.rotation.x=-.2);me.userData.hands?.forEach(h=>{h.rotation.y=0;h.userData.grip(.3)});me.userData.head.rotation.x=.35;scene.add(me);
   return{scene,update(t,time){
     screen.material.color.setScalar(.85+Math.sin(time*7)*.02);
     const a=lerp(2.5,.55,ease(t));camera.position.set(Math.sin(a)*lerp(3.2,1.1,t)+.3,lerp(1.7,1.05,t),Math.cos(a)*lerp(3.2,1.1,t));camera.lookAt(lerp(0,.6,t),lerp(1,.95,t),lerp(0,.08,t));
