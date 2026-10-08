@@ -8,7 +8,7 @@ The owner asked for this direction ("低面數、更藝術感") after rejecting 
 
 ```js
 makePerson({ body, jacket, mat })
-// body   -> trouser colour (default 0x1a1a1a)
+// body   -> trouser colour (default 0x2a2a2a; the shoes are derived from it, half as bright and never above 0x101010, so the trousers always read one tone lighter than the shoes)
 // jacket -> coat colour (default 0x3a3a3a)
 // mat    -> override material for every part (used for the 'end' reflection and the dark copy in 'flip')
 ```
@@ -29,10 +29,12 @@ The hero faces +z in his own space. **Index 0 is his right side (local −x); in
 
 The torso is an inner group `up` at y = 0.88. It is not exposed, so **the spine cannot bend**. To make him curl or lean, rotate the whole group (`person.rotation.x`).
 
-**The coat** is a fixed seat piece plus two skirt panels, one per leg. Each panel overrides `updateMatrix` to copy its leg's swing:
+**The coat** is a fixed seat piece plus two skirt panels, one per leg. Each panel's pivot overrides `updateMatrix` to copy its leg's swing:
 - 50 % of the leg's rotation while walking (`userData.walking`, set by `stroll`), so the coat reads as one garment.
 - 80 % otherwise.
-- 92 % when the thigh is raised past −1 rad, so the leg doesn't poke through when sitting.
+- Past −1 rad (sitting, curling) the panel is hidden and two other pieces take over: a lap piece that hugs the thigh (100 % follow) and a short flap hinged on the knee group that hangs down the shin; the seat piece swaps to a short version ending at y .9, so nothing hangs under a chair seat. Both panels share one jitter seed and overlap at the centre line, so there is no split line down the back.
+
+A dark collar ring (coat tone × .55) stands on the sloped shoulders with a turtleneck in the inner tone inside it up to the jaw, so the neck never shows; the same dark tone makes the sleeve cuffs. Shoes are a six-sided plan (flat heel, flat toe) with the sole still .06 below the ankle pivot, which `stroll()` relies on.
 
 ## Hands
 
@@ -85,6 +87,6 @@ Both fetch `dist/test.html`, so run `./build.sh` and serve the repo root (`pytho
 ## Known limitations and ideas
 
 - **No spine or neck chain.** Curling, slumping and looking far up are approximations. `up` already exists; expose it in `userData` and offset the shoulders.
-- **The skirt panels are rigid.** In deep poses (curl, sit) they form a block. Options: hide the panels when the thigh angle is < −1.4, or give them a hinge at the knee.
+- **The skirt pieces are rigid.** Standing panels, seated lap pieces and knee flaps are each one loft; the switch is a hard threshold at −1 rad on the thigh, so a pose that crosses it while on screen would pop (no scene does).
 - **No arm IK.** Hand placement is solved per scene by hand (desk) or by moving the object to the hand (oars). A two-bone IK would make the phone, the pot and the keyboard exact.
 - **No idle breathing.** A subtle breathing or weight shift would help the standing scenes (no trembling).
