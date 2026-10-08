@@ -8,18 +8,27 @@ The bar is **"product-level and artistic, not a demo."** The owner judges by eye
   - Scenes alternate between almost-white (fog, snow, haze) and almost-black (night, void).
   - The dip between scenes uses the next scene's `bg`.
   - Colour is rare and muted by the film pass. Current colour: the yellow daisy centres and green stems in scenes 2, 4 and 17, the warm sun, and the cool/warm grade.
-- **Light is the protagonist of the second half.** The arc runs from city loneliness, through collapse (flip, drift, eclipse, shards, flood), to small comforts (rooftop, room, call). It then moves to sunrise, walking through the dark toward a light, and lights gathering around him.
+- **Light is the protagonist of the second half.** Visually the arc goes from a big city, through hard nights (flip, drift, eclipse, shards, flood), to small comforts (rooftop, room, call), then sunrise, a walk toward one light, and lights gathering around him. **The text never dwells on the hardship**: every caption frames its scene as a turning point (see Text below).
 - **Typography:**
-  - Jost for letter-spaced Latin display ("T O W A R D").
-  - Text is English now (see Language below); Noto TC fonts remain loaded as a fallback.
-  - No scene counter: William removed the "03 — 24" numbers (2026-10-08). Captions show text only.
-  - Captions are single centred lines, first person, quiet, never exclamatory.
+  - Jost for letter-spaced display ("T O W A R D", buttons, labels).
+  - Cormorant Garamond italic 400 for captions.
+  - Noto TC fonts are still loaded only as a fallback; the site has no Chinese text.
+  - No scene counter (the owner removed the "03 — 24" numbers). Captions show text only.
 - **Motion:**
   - Slow, eased and scroll-driven.
+  - **The hero walks in place; the world moves** (see ARCHITECTURE, "Walking in place"). He never translates through a scene.
   - Subtle handheld camera drift.
   - Idle motion (rain, flicker, breathing) is fine.
   - **Jitter and trembling are not** (owner: "不要抖動").
 - **Composition:** a small figure against a big world. He is often seen from behind or in silhouette.
+
+## Text
+
+- **English only**, everywhere on the site: captions, intro, scroll hint, loader, ending, About, aria labels (「文字最後都用英文」).
+- **Hopeful and poetic, never negative** (「文字 藝術一點 不要負面」). No words of loss, collapse or loneliness. Hard scenes become turning points: the fog is a view not yet seen, the shards are shaped into something new, the gap in the ring is room for the next light.
+- **No flower wording** anywhere, even though small daisies appear in three scenes.
+- Captions are one short line, first person or a gentle second person, quiet, never exclamatory.
+- The credit line stays: "Inspired by PEACEMINUSONE." No logo.
 
 ## Feedback history (chronological, 2026-10-08)
 
@@ -45,6 +54,17 @@ The bar is **"product-level and artistic, not a demo."** The owner judges by eye
 | 幫我新增到 25 格場景 | — | added store and call (later 24 after one removal) |
 | 文字都幫我改一下 | — | the current first-person caption set |
 | through-the-dark 名字幫我改掉 | — | renamed "Toward the Light 向光而行" |
+| 幫我做個影片 | — | `tools/record.js` + `encode.sh`; 1:52 walkthrough |
+| 角色不要走路，場景動 → 這幾幕加入走路，要藝術 | arrive, crack, office, field | **the hero walks in place and the world slides past**, with the `stroll()` gait; footprints in the snow |
+| 手根桿子分離了 | flood | oars are aimed from the hands every frame |
+| 要五隻手指 → 沒有銜接很好 | hands | five-finger hands; palm starts inside the cuff and covers finger bases |
+| 不需要小圈圈 | minusone | the thin ground ring under the lights was removed |
+| 手埋進桌子了 → 加上鍵盤 | desk | forearms rest above the desktop; a keyboard under the hands |
+| 支架太長 螢幕不該有支架 → 螢幕要有高度 → 需要支架 | desk | monitor at eye height on a stand hidden **behind** the panel, nothing in front of the screen |
+| 文字 藝術一點 不要負面 | all copy | hopeful, poetic captions and About text |
+| 每一幕 不用顯示 03 -24 數字 | captions | scene counter removed |
+| 走路 身體跟腳怪怪的 | walk | ankles (flat feet), smaller stride, coat panels at 50 %, tiny torso twist |
+| 文字最後都用英文 | all copy | **English only** |
 
 ## Practical rules distilled
 
@@ -54,15 +74,5 @@ The bar is **"product-level and artistic, not a demo."** The owner judges by eye
 4. Big, busy foreground geometry fights the caption. Keep the lower-middle of the frame calm while the caption is showing (t ∈ .12–.75).
 5. Check every pose in side, front and three-quarter views before shipping. Look for limbs through the coat, feet through the floor and heads in pillows.
 6. When the owner says "簡單一點" or "不要太複雜", remove things rather than restyling them.
-
-## The hero walks in place; the world moves (2026-10-08)
-William first said 「角色不要走路，場景動」, then 「這幾幕加入走路，要藝術」. In arrive, crack, office and field, the hero stays at a fixed spot and walks in place with `stroll()`. The environment slides past through `worldGroup(scene, keep)`, which moves every non-light child into one group animated from `t`. Pass `stroll` the same distance the world moved, so the feet stay planted. In arrive, footprints appear in the snow at each heel strike. In the end scene he stands still. Never use the old `walk()`, which William found mechanical.
-
-## Text tone (2026-10-08)
-William: 「文字 藝術一點 不要負面」. Captions and the About copy are poetic and hopeful. Avoid words of loss, collapse or loneliness (熄、撐下去、缺了、沒有人、黑暗…). Hard scenes are framed as turning points: the fog is scenery not yet seen, the shards become new shapes, the gap in the ring is space kept for the next light. There are still no flower words.
-
-## Language (2026-10-08)
-William: 「文字最後都用英文」. All visible text (captions, intro, hints, ending, About, aria labels) is in English, in the same hopeful, poetic tone. Captions are set in Cormorant Garamond italic.
-
-## Gait fixes (2026-10-08)
-William said the walking body and feet looked odd. Ankles now keep the soles flat while planted, the stride is calmer (amp about .27 to .3), coat panels follow the legs at only 50% while walking, and the torso twist is tiny so the coat doesn't break at the waist. Use tools/gait.html (serve the repo root) to check a gait sheet.
+7. Objects people use must be believable: a monitor stands at eye height on a stand behind it, hands grip what they hold, forearms rest on a desk rather than in it.
+8. Feedback often comes as a screenshot plus a few words, and sometimes the next message corrects the first (e.g. "no stand" then "needs a stand, at height"). Read the latest pair together and fix the underlying problem the screenshot shows.

@@ -8,9 +8,9 @@ Everything runs in one HTML page. `build.sh` stitches together `src/head.html`, 
 #intro (BEGIN button)
   -> click: startAudio(), show #loader
   -> runLoader(): spins a canvas loader; ~0.3s in, buildAll() builds every scene once and pre-compiles shaders
-  -> loader done: show #hint ("向下滾動"), unlock body scroll
+  -> loader done: show #hint ("Scroll down / walk with him toward the light"), unlock body scroll
   -> first scroll/wheel/touch: started = true, the 3D loop begins drawing scenes
-  -> last scene, t > .72: #ending overlay (title + 再走一次 + About button)
+  -> last scene, t > .72: #ending overlay (title + "Walk again" + About button)
   -> #about: slide-up panel (story, concept, credit line)
 ```
 
@@ -28,7 +28,7 @@ SCENES[i].inst.update(t, time);      // the scene moves its own camera and objec
 - **Handheld drift:** after `update`, the camera gets a small sinusoidal drift (x, y and roll). Keep `update` deterministic in `t`; `time` is only for idle motion (rain, flicker, walking).
 - **Dip between scenes:** the full-screen `#fade` div fades to the *next* scene's `bg` colour for t ∈ [.9, 1], and from the current `bg` for t ∈ [0, .1]. This is why each scene declares `bg`: pick the colour that dominates its first and last frames.
 - **Caption:** shown while t ∈ (.12, .75). It is swapped with a 450 ms delay so the CSS fade-out finishes first. The colour flips on `dark(t)`: white text with a dark halo, or black text with a white halo.
-- **Scene counter:** the `NN — NN` line above the caption.
+- **No scene counter.** The `NN — NN` line was removed at the owner's request; `#caption` holds only `.cap-t`.
 
 ## The scene contract
 
@@ -57,7 +57,7 @@ The scene renders into `RT` (multisampled on WebGL2). A full-screen `ShaderMater
 
 1. **Chromatic fringe**, growing with radius.
 2. **Glow:** 8 directions × 3 radii sampling pixels above 0.8 brightness. Strength 0.3; reduced in light scenes via `dark`.
-3. **Desaturation:** 25 %. This is why the few colours (daisy yellow, green stems, bright flowers) read as muted.
+3. **Desaturation:** 25 %. This is why the few colours (daisy yellow, green stems) read as muted.
 4. **S-curve and lifted blacks:** the `c*.95+.03` printed-film look.
 5. **Cool shadows and warm highlights.**
 6. **Vignette:** stronger when `dark`.
@@ -81,10 +81,11 @@ Uniforms: `tex`, `res`, `time`, `dark`. Pure white reads as `#f4f4f4`-ish after 
 | `rain(n, area, seed)` | line segments; animate `.position.y` |
 | `rng(seed)` | deterministic PRNG. Use it instead of `Math.random()` so scenes are identical every load. |
 | `canvasTex(w,h,draw)` | draw on a 2D canvas, get a texture (calendar pages, city-at-night window, etc.) |
+| `worldGroup(scene, keep=[])` | moves every non-light child of `scene` (except `keep`) into one group and returns it. Used by the walk-in-place scenes: animate the group, not the hero. |
 
 ## Loader, audio, About
 
-- **`runLoader`:** draws orbiting rings on `#loadCanvas`, alternates "Loading N%" with "為了最佳體驗 請戴上耳機", then wipes to white.
+- **`runLoader`:** draws orbiting rings on `#loadCanvas`, alternates "Loading N%" with "For the best experience, wear headphones", then wipes to white.
 - **Audio:** WebAudio only, no files. Four detuned oscillators (55, 82.4, 110.2 and 164.8 Hz) with slow LFOs go through a low-pass filter. `audioMood(dark)` moves the cutoff between 380 Hz in dark scenes and 1400 Hz in light ones. `#sound` toggles mute.
 - **About illustrations (`aboutShots`):** one offscreen render of the hero, plus a hand-drawn canvas phone/eclipse icon.
 
@@ -96,3 +97,17 @@ These are not referenced by the current story but are kept intentionally:
 - `forest`, `rock`: from the original snowy-forest replica.
 
 They can be deleted in a cleanup pass. Check with `grep` first.
+
+## Walking in place
+
+The hero never travels through the world. In `arrive`, `crack`, `office` and `field`, he stays at a fixed position and the environment moves:
+
+```js
+const world = worldGroup(scene, [me]);   // in build(), after the set is built
+// in update(t):
+const d = t * 22;                         // how far the ground has moved this scene
+world.position.z = d;                     // world slides toward the camera
+me.userData.stroll(d, {amp: .3});         // the gait phase comes from the same distance, so feet stay planted
+```
+
+Snow and rain usually stay outside the group so they keep falling around him. In `arrive`, footprints are placed in the world group at exact heel-strike positions and revealed as `d` grows.

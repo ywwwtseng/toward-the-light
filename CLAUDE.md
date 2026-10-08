@@ -1,18 +1,22 @@
 # Instructions for coding agents
 
-This repo is a single-page, scroll-driven three.js story. The owner (William, GitHub `ywwwtseng`) writes in Traditional Chinese and gives short visual feedback ("不像", "太呆", "很怪", "太醜了", "不要花"). Reply to him in Chinese. Code comments and docs stay in English.
+This repo is a single-page, scroll-driven three.js story. The owner (William, GitHub `ywwwtseng`) writes in Traditional Chinese and gives short visual feedback, often with a screenshot ("不像", "太呆", "很怪", "太醜了", "不要花", "沒有銜接很好"). Reply to him in Chinese. Code comments and docs stay in English, and **all text on the site is English**.
 
 ## Ground rules
 
 1. **Edit `src/`, never `dist/`.** Run `./build.sh` after every change. `dist/index.html` is the deliverable.
 2. **Keep it one file with no build tooling.** three.js r128 comes from cdnjs, and fonts come from Google Fonts. Everything else is generated in code: no image, model or audio files. If you need something new (a GLTF model, a newer three.js), raise it with the owner first. The page is also published as a claude.ai Artifact, which only allows scripts from cdnjs/jsdelivr/unpkg and stylesheets from Google Fonts.
-3. **Verify visually before saying something is done.** Use `tools/shots.js` and look at the PNGs. Most bugs here are visual: floating buildings, clipping limbs, invisible white-on-white objects, a caption over a busy area. See [docs/WORKFLOW.md](docs/WORKFLOW.md).
+3. **Verify visually before saying something is done.** Use `tools/shots.js` and look at the PNGs. Most bugs here are visual: floating buildings, clipping limbs, hands sinking into a desk, fingers detached from the palm, a hand not touching the object it holds, invisible white-on-white objects, a caption over a busy area. For poses and the walk, use `tools/pose.html` and `tools/gait.html`. See [docs/WORKFLOW.md](docs/WORKFLOW.md).
 4. **Respect the art direction** in [docs/ART-DIRECTION.md](docs/ART-DIRECTION.md). It records things the owner explicitly rejected, so don't reintroduce them:
    - realistic faces
-   - the flower motif in text
+   - flower wording in text, and negative wording (loss, collapse, loneliness)
+   - Chinese text on the site (it is English only)
+   - the "03 — 24" scene counter
    - grass in the dark-walk scene
    - the hero translating through the world (he walks in place with `stroll`; the scene moves past him)
    - jittery motion
+   - the old mechanical `walk()` gait
+   - a monitor stand that shows in front of the screen
 5. **The scene contract is small. Keep it.** A scene is `{key, bg, dark(t), build() -> {scene, update(t, time)}}`, and its caption is `CAPTIONS[key]`. Adding a scene means adding one object to `SCENES` plus one caption. The scroll track length follows `SCENES.length` automatically.
 6. **Performance budget:**
    - The page must stay smooth on a mid-range laptop.
@@ -26,11 +30,11 @@ Search for these banner comments:
 
 | Banner | Contents |
 |---|---|
-| `可編輯區` | `CAPTIONS`, plus `TITLE_A`, `TITLE_B` and `PRESENTS` |
+| `Editable` (top of file) | `CAPTIONS`, plus `TITLE_A`, `TITLE_B` and `PRESENTS` |
 | `utilities` | `clamp`, `lerp`, `ease`, `smooth`, `rng(seed)` and `V3` |
 | `renderer` | WebGL renderer, render target and the film-pass shader |
-| `materials & helpers` | `M`, `B`, `box`, `lights`, `canvasTex`, `gradTex`, `glow`, `stars` and `ground` |
-| `characters` | `loftGeo`, `makePerson` and `makeHero` (the protagonist), plus legacy face/father/child code |
+| `materials & helpers` | `M`, `B`, `box`, `lights`, `canvasTex`, `gradTex`, `glow`, `stars`, `worldGroup` and `ground` |
+| `characters` | `loftGeo`, `makePerson` and `makeHero` (the protagonist: hands, ankles, `stroll()` gait), plus legacy face/father/child code |
 | `city helpers` | `facadeTex`, `building`, `street`, `suitcase` and `rain` |
 | `daisies` | `petalGeo`, `centerGeo`, `leafGeo`, `makeDaisy` and `daisyGeo` |
 | `SCENES` | the 24 scene builders, numbered comments `/* N — ... */` |

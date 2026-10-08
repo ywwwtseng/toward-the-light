@@ -54,11 +54,10 @@ body.locked{overflow:hidden}
 
 /* Caption for each scene */
 #caption{position:fixed;left:50%;bottom:calc(10vh + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:4;text-align:center;width:min(88vw,620px);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:14px}
-#caption .cap-n{font:italic 300 13px/1 "Cormorant Garamond",Georgia,serif;letter-spacing:.3em;opacity:.55}
 #caption .cap-t{font:italic 400 clamp(18px,2vw,25px)/1.5 "Cormorant Garamond",Georgia,serif;letter-spacing:.05em;text-wrap:balance;max-width:min(88vw,720px)}
 #caption>*{opacity:0;transform:translateY(8px);filter:blur(6px);transition:opacity 1.1s ease,transform 1.4s cubic-bezier(.2,.7,.2,1),filter 1.1s ease}
 #caption.on>*{opacity:1;transform:none;filter:none}
-#caption.on .cap-n{opacity:.55;transition-delay:0s}#caption.on .cap-t{transition-delay:.18s}
+#caption.on .cap-t{transition-delay:.18s}
 
 /* Ending */
 #ending{z-index:4;flex-direction:column;justify-content:flex-end;padding:0 16px 5vh;color:#111;background:transparent;pointer-events:none}

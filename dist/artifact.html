@@ -59,11 +59,10 @@ body.locked{overflow:hidden}
 
 /* Caption for each scene */
 #caption{position:fixed;left:50%;bottom:calc(10vh + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:4;text-align:center;width:min(88vw,620px);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:14px}
-#caption .cap-n{font:italic 300 13px/1 "Cormorant Garamond",Georgia,serif;letter-spacing:.3em;opacity:.55}
 #caption .cap-t{font:italic 400 clamp(18px,2vw,25px)/1.5 "Cormorant Garamond",Georgia,serif;letter-spacing:.05em;text-wrap:balance;max-width:min(88vw,720px)}
 #caption>*{opacity:0;transform:translateY(8px);filter:blur(6px);transition:opacity 1.1s ease,transform 1.4s cubic-bezier(.2,.7,.2,1),filter 1.1s ease}
 #caption.on>*{opacity:1;transform:none;filter:none}
-#caption.on .cap-n{opacity:.55;transition-delay:0s}#caption.on .cap-t{transition-delay:.18s}
+#caption.on .cap-t{transition-delay:.18s}
 
 /* Ending */
 #ending{z-index:4;flex-direction:column;justify-content:flex-end;padding:0 16px 5vh;color:#111;background:transparent;pointer-events:none}
@@ -574,7 +573,7 @@ function makeHero({body,jacket,mat=null}={}){
     /* stroll: a slow, weighted walk in place, driven by how far the ground has moved under him (dist, scene units).
        Stance is linear so the planted foot travels with the ground (no foot sliding); swing is a soft arc with a knee lift.
        The whole figure drops so the lower sole always touches y=0. Shoulders counter-rotate, arms swing with a small lag,
-       the head stays steady. carry: the right hand holds something heavy (small swing). gaze: head pitch (+ down). */
+       the head stays steady. carry: the left hand (index 1, where suitcase() hangs the case) holds something heavy (small swing). gaze: head pitch (+ down). */
     stroll(dist,{amp=.34,carry=false,gaze=.05}={}){
       const step=2*Math.sin(amp),ph=dist/(2*step),TAU=Math.PI*2;
       const leg=u=>{u=((u%1)+1)%1;
@@ -1089,7 +1088,7 @@ const SCENES=[
     const ph=time*1.6,s=Math.sin(ph),pull=(1-s)/2;
     arms.forEach(a=>{a.rotation.x=lerp(-1.25,-.55,pull);a.rotation.z=0});elbows.forEach(e=>e.rotation.x=lerp(-.1,-1.25,pull));
     boat.updateMatrixWorld(true);
-    oars.forEach((o,i)=>{const el=elbows[1-i]; // hero faces +x, so his left hand (elbows[0]) is on the boat's +z side
+    oars.forEach((o,i)=>{const el=elbows[1-i]; // hero faces +x, so his right hand (elbows[0]) is on the boat's +z side
       grip.set(0,-.33,0);el.localToWorld(grip);boat.worldToLocal(grip);
       dir.copy(o.userData.lock).sub(grip).normalize();
       o.position.copy(grip);o.quaternion.setFromUnitVectors(Z,dir)});

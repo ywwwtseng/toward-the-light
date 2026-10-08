@@ -1,12 +1,13 @@
-# Toward the Light 向光而行
+# Toward the Light
 
-A scroll-driven 3D short story in the browser. One person, one suitcase, a city that doesn't know him: 24 scenes from the first day in town, through the last train, a 3 a.m. convenience store, shattering and flooding nights, to walking on through the dark toward a light.
+A scroll-driven 3D short story in the browser. One person, one suitcase, and a city slowly getting to know him: 24 scenes, from the first snowy day in town, past late-night desks, rain, fog and a flooded street he rows across, to a sunrise and a walk toward one light.
 
-一個人、一只行李箱、一座不認識他的城市。24 個場景，用滾動推進時間，陪他穿過黑暗，往有光的地方走。
+一個人、一只行李箱、一座正在認識他的城市。24 個場景，用滾動推進時間，陪他一步一步走向光。（網站上的文字全部是英文。）
 
 - **Tech:** plain HTML + CSS + JavaScript, [three.js r128](https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js) from cdnjs. No framework, no bundler, no assets: every model, texture and sound is generated in code.
 - **Output:** one self-contained HTML file (`dist/index.html`, ~95 KB).
 - **Look:** black-and-white low-poly film. A post-processing pass adds grain, glow, vignette and a silver tone curve.
+- **Text:** English only, hopeful and poetic, set in Cormorant Garamond italic. No scene numbers on screen.
 
 ![storyboard](assets/storyboard.jpg)
 
@@ -35,9 +36,9 @@ npm run video              # frame-by-frame capture + ffmpeg -> out/toward-the-l
 | `src/body.html` | DOM layers: intro, loader, scroll hint, caption, ending, sound toggle, About |
 | `src/app.js` | everything else: captions, renderer, film shader, character rig, scene builders, render loop, loader, audio |
 | `build.sh` | concatenates `src/` into `dist/` |
-| `tools/` | screenshot, contact-sheet, video and pose-sandbox tools |
+| `tools/` | screenshots, contact sheet, video, pose sandbox (`pose.html`) and walk-cycle sheet (`gait.html`) |
 | `docs/` | design and engineering notes for whoever (human or model) continues this |
-| `assets/` | reference images (storyboard, daisy model) |
+| `assets/` | reference images: `storyboard.jpg` (all 24 scenes, current) and `daisy.png` (the owner's daisy reference) |
 
 ## Docs
 
@@ -49,6 +50,7 @@ Start with **[AGENTS.md](AGENTS.md)** (also the CLAUDE.md). Then read:
 4. [docs/ART-DIRECTION.md](docs/ART-DIRECTION.md): the look, the owner's taste and the feedback history (what was rejected and why)
 5. [docs/WORKFLOW.md](docs/WORKFLOW.md): building, verifying with screenshots, recording video, publishing
 6. [docs/ROADMAP.md](docs/ROADMAP.md): known issues and the highest-value improvements
+7. [docs/CHANGELOG.md](docs/CHANGELOG.md): every published version and what changed, with the owner's words
 
 ## Credits
 

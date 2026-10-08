@@ -388,7 +388,7 @@ function makeHero({body,jacket,mat=null}={}){
     /* stroll: a slow, weighted walk in place, driven by how far the ground has moved under him (dist, scene units).
        Stance is linear so the planted foot travels with the ground (no foot sliding); swing is a soft arc with a knee lift.
        The whole figure drops so the lower sole always touches y=0. Shoulders counter-rotate, arms swing with a small lag,
-       the head stays steady. carry: the right hand holds something heavy (small swing). gaze: head pitch (+ down). */
+       the head stays steady. carry: the left hand (index 1, where suitcase() hangs the case) holds something heavy (small swing). gaze: head pitch (+ down). */
     stroll(dist,{amp=.34,carry=false,gaze=.05}={}){
       const step=2*Math.sin(amp),ph=dist/(2*step),TAU=Math.PI*2;
       const leg=u=>{u=((u%1)+1)%1;
@@ -903,7 +903,7 @@ const SCENES=[
     const ph=time*1.6,s=Math.sin(ph),pull=(1-s)/2;
     arms.forEach(a=>{a.rotation.x=lerp(-1.25,-.55,pull);a.rotation.z=0});elbows.forEach(e=>e.rotation.x=lerp(-.1,-1.25,pull));
     boat.updateMatrixWorld(true);
-    oars.forEach((o,i)=>{const el=elbows[1-i]; // hero faces +x, so his left hand (elbows[0]) is on the boat's +z side
+    oars.forEach((o,i)=>{const el=elbows[1-i]; // hero faces +x, so his right hand (elbows[0]) is on the boat's +z side
       grip.set(0,-.33,0);el.localToWorld(grip);boat.worldToLocal(grip);
       dir.copy(o.userData.lock).sub(grip).normalize();
       o.position.copy(grip);o.quaternion.setFromUnitVectors(Z,dir)});

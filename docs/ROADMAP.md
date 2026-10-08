@@ -6,12 +6,14 @@ Ordered roughly by value-for-effort. Anything visual should be checked with scre
 
 - **Spine and neck pivots.** Expose `up` as a spine joint (and add a neck) so the hero can slump, curl, look up and breathe. Scenes `shards`, `desk`, `room`, `call` and `skyline` all benefit.
 - **Skirt panels in deep poses.** They form a slab when the thighs are raised (`shards`, `sit`). Hide or fold them past a threshold, or hinge them.
-- **Two-bone arm IK** so hands can hold the phone, the cup and the pot precisely.
-- **Standing idle.** The hero no longer walks; a subtle breathing / weight-shift idle could make the still figure feel alive (no trembling).
+- **Two-bone arm IK** so hands can hold the phone, the pot and the keyboard precisely (today each scene is tuned by hand).
+- **Standing idle.** A subtle breathing or weight shift for the still scenes (`end`, `skyline`, `bloom`, `minusone`). No trembling.
+- **Gait polish.** Heel-to-toe roll (heel lifts before toe-off) would make `stroll()` more natural; keep the flat planted foot.
 
 ## 2. Scenes the owner may push back on
 
-- **`subway`:** the train barely reads. Add window light strips moving across the platform and a stronger headlight.
+- **`subway`:** the train barely reads. Add window light strips moving across the platform and a stronger headlight. Daisy petals still drift in the draft there; the owner removed flowers from most scenes, so consider removing them.
+- **`field`:** the hero is nearly black against the light; add a faint fill so his walk reads.
 - **`store`:** the shelves are blown out by glow. Lower the interior brightness to about 0.85 so products read, keeping the window bright.
 - **`towers`:** no hero. Consider a tiny figure at the bottom of the frame for scale.
 - **`end`:** the reflection is a mirrored copy. A real planar reflection (render target, or `Reflector` from three/examples) would be nicer.
@@ -37,5 +39,6 @@ Ordered roughly by value-for-effort. Anything visual should be checked with scre
 ## 4. Release checklist
 
 - Confirm rights for the PEACEMINUSONE inspiration credit before any public or commercial use. No official logos are used; the daisy is an original model.
-- Replace the `隱私權與條款` placeholder link in the intro and About footer with a real page, or remove it.
+- Re-render the video (`tools/record.js`): the existing one predates the English text, the walk and the desk changes.
+- Replace the "Privacy & Terms" placeholder link in the intro and About footer with a real page, or remove it.
 - Add OG/Twitter meta tags and a share image (render one with `tools/shots.js`).

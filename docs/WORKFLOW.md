@@ -28,6 +28,7 @@ Tips:
 - Shots are taken in order. Visiting nearby positions in sequence lags less than jumping around.
 - To check a scene's start, middle and end, shoot `i+.2`, `i+.5` and `i+.85`. Captions are only visible for t ∈ .12–.75.
 - For a character pose, use `tools/pose.html` (side/front/three-quarter) instead of the full page. It fetches `dist/test.html`, so serve the repo root first (`python3 -m http.server 8000`, then open http://localhost:8000/tools/pose.html?v=2); it does not work from file://.
+- For the walk cycle, use `tools/gait.html` (same server): eight phases of `stroll()` from the side and from behind. Check that feet are flat when planted and that the coat stays one piece from behind.
 - Look at the actual PNGs every time. The owner will notice floating buildings, clipping, invisible white objects and stiff limbs immediately.
 
 ## Record the video
@@ -54,9 +55,16 @@ Known quirk: CSS transitions (caption fade, `#fade`) still run on real time. Bec
 Captions:
 - They are at the top of `src/app.js` in the `CAPTIONS` object, one entry per scene key.
 - An empty string hides the caption for that scene.
-- Text rules: first person, one line, no flower wording.
+- Text rules: English only, one short line, hopeful and poetic, no negative wording, no flower wording. See [ART-DIRECTION.md](ART-DIRECTION.md#text).
 
 Titles:
 - `TITLE_A` / `TITLE_B` are the two halves of the big title in scene 0.
 - `PRESENTS` is the small line under it.
 - The same name appears in `src/head.html` (`<title>`) and in `src/body.html` (intro words, ending title, About footer). Change all of them together.
+- Other on-page copy (scroll hint, ending note, About paragraphs, aria labels) lives in `src/body.html`; the loader line is in `runLoader` in `src/app.js`.
+
+## Refresh the storyboard
+
+```bash
+node tools/shots.js --all && python3 tools/contact.py && cp out/contact.jpg assets/storyboard.jpg
+```
