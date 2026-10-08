@@ -327,13 +327,14 @@ function makeHero({body,jacket,mat=null}={}){
   /* hand: faceted palm, four two-joint fingers and a thumb. Palm faces the thigh (local -z); fingers curl toward it.
      hand.userData.grip(k): 0 = open, ~.15 = relaxed, 1 = closed around a handle. */
   const mkHand=sd=>{const hd=new THREE.Group(),ts=-sd;hd.position.y=-.255;hd.rotation.y=sd*Math.PI/2;
-    hd.add(L([[.012,.05,.028],[-.03,.074,.03],[-.068,.072,.026]],mSkin,4,Math.PI/4));
-    const F=[];[[.027,.036,.026],[.009,.04,.03],[-.009,.037,.027],[-.026,.029,.021]].forEach(([x,a,b])=>{
-      const p=new THREE.Group();p.position.set(ts*x,-.066,0);p.add(L([[0,.017,.018],[-a,.015,.016]],mSkin,4,Math.PI/4));
-      const m=new THREE.Group();m.position.y=-a;m.add(L([[0,.015,.016],[-b,.011,.012]],mSkin,4,Math.PI/4));p.add(m);hd.add(p);F.push([p,m])});
-    const th=new THREE.Group();th.position.set(ts*.032,-.022,-.01);th.rotation.z=ts*.25;th.add(L([[0,.02,.02],[-.03,.017,.017]],mSkin,4,Math.PI/4));
-    const tm=new THREE.Group();tm.position.y=-.03;tm.add(L([[0,.017,.017],[-.025,.012,.012]],mSkin,4,Math.PI/4));th.add(tm);hd.add(th);
-    hd.userData.grip=k=>{F.forEach(([p,m],i)=>{p.rotation.x=.18+k*1.3+i*.04;m.rotation.x=.22+k*1.35});th.rotation.x=.35+k*.75;tm.rotation.x=.15+k*.6};
+    // palm runs from inside the cuff (wrist) down to the knuckles; fingers and thumb start inside it, so there are no gaps
+    hd.add(L([[.035,.05,.03],[0,.058,.031],[-.035,.076,.032],[-.072,.08,.031],[-.08,.074,.026]],mSkin,4,Math.PI/4));
+    const F=[];[[.026,.036,.027],[.0085,.04,.031],[-.0085,.037,.028],[-.025,.03,.022]].forEach(([x,a,b])=>{
+      const p=new THREE.Group();p.position.set(ts*x,-.07,0);p.add(L([[.012,.016,.018],[-a*.5,.017,.018],[-a-.004,.015,.016]],mSkin,4,Math.PI/4));
+      const m=new THREE.Group();m.position.y=-a;m.add(L([[.008,.0145,.015],[-b*.5,.014,.0145],[-b,.011,.011]],mSkin,4,Math.PI/4));p.add(m);hd.add(p);F.push([p,m])});
+    const th=new THREE.Group();th.position.set(ts*.03,-.022,-.008);th.rotation.z=ts*.3;th.add(L([[.01,.02,.019],[-.016,.021,.019],[-.034,.017,.016]],mSkin,4,Math.PI/4));
+    const tm=new THREE.Group();tm.position.y=-.032;tm.add(L([[.006,.018,.018],[-.025,.012,.012]],mSkin,4,Math.PI/4));th.add(tm);hd.add(th);
+    hd.userData.grip=k=>{F.forEach(([p,m],i)=>{p.rotation.x=.18+k*1.3+i*.04;m.rotation.x=.22+k*1.35});th.rotation.x=.3+k*.25;th.rotation.z=ts*(.3-k*.5);tm.rotation.x=.15+k*.35};
     hd.userData.grip(.18);return hd};
   g.add(L([[.86,.28,.18],[1.0,.3,.19]],mPants,6,Math.PI/6));
   for(const sd of [-1,1]){
