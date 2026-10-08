@@ -509,7 +509,18 @@ function makeHero({body,jacket,mat=null}={}){
   let sd0=1;const g=new THREE.Group(),mm=c=>mat||M(c,{vertexColors:true});
   const mCoat=mm(C.coat),mPants=mm(C.pants),mSkin=mm(C.skin),mHair=mm(C.hair),mShoe=mm(C.shoe),mIn=mm(C.inner);
   const L=(secs,m,n=5,rot=0)=>new THREE.Mesh(loftGeo(secs,{sides:n,rot,jitter:.09,seed:sd0++}),m);
-  const legs=[],knees=[],arms=[],elbows=[],hipY=.98;
+  const legs=[],knees=[],arms=[],elbows=[],hands=[],hipY=.98;
+  /* hand: faceted palm, four two-joint fingers and a thumb. Palm faces the thigh (local -z); fingers curl toward it.
+     hand.userData.grip(k): 0 = open, ~.15 = relaxed, 1 = closed around a handle. */
+  const mkHand=sd=>{const hd=new THREE.Group(),ts=-sd;hd.position.y=-.255;hd.rotation.y=sd*Math.PI/2;
+    hd.add(L([[.012,.05,.028],[-.03,.074,.03],[-.068,.072,.026]],mSkin,4,Math.PI/4));
+    const F=[];[[.027,.036,.026],[.009,.04,.03],[-.009,.037,.027],[-.026,.029,.021]].forEach(([x,a,b])=>{
+      const p=new THREE.Group();p.position.set(ts*x,-.066,0);p.add(L([[0,.017,.018],[-a,.015,.016]],mSkin,4,Math.PI/4));
+      const m=new THREE.Group();m.position.y=-a;m.add(L([[0,.015,.016],[-b,.011,.012]],mSkin,4,Math.PI/4));p.add(m);hd.add(p);F.push([p,m])});
+    const th=new THREE.Group();th.position.set(ts*.032,-.022,-.01);th.rotation.z=ts*.25;th.add(L([[0,.02,.02],[-.03,.017,.017]],mSkin,4,Math.PI/4));
+    const tm=new THREE.Group();tm.position.y=-.03;tm.add(L([[0,.017,.017],[-.025,.012,.012]],mSkin,4,Math.PI/4));th.add(tm);hd.add(th);
+    hd.userData.grip=k=>{F.forEach(([p,m],i)=>{p.rotation.x=.18+k*1.3+i*.04;m.rotation.x=.22+k*1.35});th.rotation.x=.35+k*.75;tm.rotation.x=.15+k*.6};
+    hd.userData.grip(.18);return hd};
   g.add(L([[.86,.28,.18],[1.0,.3,.19]],mPants,6,Math.PI/6));
   for(const sd of [-1,1]){
     const hip=new THREE.Group();hip.position.set(sd*.08,hipY,0);
@@ -535,8 +546,8 @@ function makeHero({body,jacket,mat=null}={}){
     sh.add(L([[.03,.07,.1],[-.03,.12,.13],[-.3,.1,.1]],mCoat,5,Math.PI));
     const el=new THREE.Group();el.position.y=-.3;el.rotation.x=-.24;sh.add(el);
     el.add(L([[.02,.1,.1],[-.27,.09,.09]],mCoat,5,Math.PI));
-    const hand=L([[-.26,.06,.05],[-.33,.07,.035],[-.4,.02,.02]],mSkin,4,Math.PI/4);hand.rotation.y=sd*Math.PI/2;el.add(hand);
-    up.add(sh);arms.push(sh);elbows.push(el);
+    const hand=mkHand(sd);el.add(hand);
+    up.add(sh);arms.push(sh);elbows.push(el);hands.push(hand);
   }
   // head: gem-cut, faceless; a swept faceted hair shell with one sharp fringe plane
   const head=new THREE.Group();head.position.set(0,1.59-base,0);head.rotation.x=.05;up.add(head);
@@ -548,7 +559,7 @@ function makeHero({body,jacket,mat=null}={}){
   // relaxed default stance
   arms[1].rotation.x=.04;elbows[1].rotation.x=-.38;arms[0].rotation.x=-.05;elbows[0].rotation.x=-.3;
   legs[0].rotation.z=-.035;legs[1].rotation.z=.02;knees[1].rotation.x=.08;head.rotation.y=-.12;up.rotation.z=.015;
-  g.userData={legs,knees,arms,elbows,head,
+  g.userData={legs,knees,arms,elbows,head,hands,
     walk(ph,amp=.45){
       for(let i=0;i<2;i++){const p=ph+(i?Math.PI:0),sw=Math.sin(p);
         legs[i].rotation.x=-sw*amp;knees[i].rotation.x=Math.max(0,Math.cos(p))*amp*1.6;
@@ -638,7 +649,7 @@ function street(scene,{night=false,z0=12,z1=-90,gap=4.2,seed=1,minH=8,maxH=34}={
 function suitcase(person){
   const el=person.userData.elbows[1],c=new THREE.Group(),m=M(0x2a2a2a);
   c.add(box(.13,.44,.32,m,0,-.36,0),box(.03,.06,.03,M(0x111111),0,-.12,0),box(.08,.02,.03,M(0x111111),0,-.1,0));
-  c.position.set(0,-.3,.02);el.add(c);person.userData.arms[1].rotation.z=.12;return c;
+  c.position.set(0,-.3,.02);el.add(c);person.userData.arms[1].rotation.z=.12;person.userData.hands?.[1]?.userData.grip(1);return c;
 }
 const rain=(n,area,seed)=>{const r=rng(seed),p=[];for(let i=0;i<n;i++){const x=(r()-.5)*area,y=r()*14,z=(r()-.5)*area;p.push(x,y,z,x+.02,y-.45,z)}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));
@@ -1058,7 +1069,7 @@ const SCENES=[
     o.add(box(.035,.035,2.2,oarM,0,0,1.0),box(.035,.18,.42,oarM,0,0,2.0),box(.05,.05,.1,M(0x222222),0,0,.03));o.userData.lock=V3(.3,.42,sd*.5);
     boat.add(o);return o});
   boat.add(me,box(.05,.08,.05,M(0x222222),.3,.38,-.5),box(.05,.08,.05,M(0x222222),.3,.38,.5));scene.add(boat);
-  const {arms,elbows}=me.userData,grip=V3(),dir=V3(),Z=V3(0,0,1);
+  const {arms,elbows}=me.userData,grip=V3(),dir=V3(),Z=V3(0,0,1);me.userData.hands?.forEach(h=>h.userData.grip(1));
   return{scene,update(t,time){
     const x=lerp(-6,8,t);boat.position.set(x,Math.sin(time*1.3)*.04,0);boat.rotation.z=Math.sin(time*1.1)*.03;
     // stroke: reach forward with straight arms, then pull the hands in to the chest
@@ -1186,12 +1197,10 @@ const SCENES=[
   const N=60,dot=new THREE.SphereGeometry(.05,8,6),dm=B(0xffffff),L=[],r=rng(12);
   for(let i=0;i<N;i++){const m=new THREE.Mesh(dot,dm),g=glow(.55,.55);scene.add(m,g);
     L.push({m,g,a:(i+1)/(N+2)*Math.PI*2,R0:6+r()*8,y0:.5+r()*6,sp:3+r()*4,ph:r()*6})}
-  const ring=new THREE.Mesh(new THREE.RingGeometry(1.15,1.19,80),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.01;scene.add(ring);
   return{scene,update(t,time){
     const k=ease(clamp(t*1.25));
     L.forEach(({m,g,a,R0,y0,sp,ph})=>{const ang=a+(1-k)*(sp+time*.25),R=lerp(R0,1.6,k),y=lerp(y0,.35+Math.sin(time*1.5+ph)*.05,k);
       m.position.set(Math.sin(ang)*R,y,Math.cos(ang)*R);g.position.copy(m.position);g.material.opacity=.35+.25*Math.sin(time*3+ph)});
-    ring.material.opacity=smooth(.7,1,t)*.6;
     const ca=lerp(.3,0,k);camera.position.set(Math.sin(ca)*lerp(9,2.5,k),lerp(2.5,9,k),Math.cos(ca)*lerp(9,2.5,k));camera.lookAt(0,lerp(1.2,.3,k),0);
   }};
 }},

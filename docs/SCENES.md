@@ -28,7 +28,7 @@ Light/dark is the `dark(t)` value. It drives caption colour and the strength of 
 | 19 | `call` | D | 打給家裡，只說：「我很好，別擔心」 | Bus shelter in rain; seated, phone to ear (glowing phone follows the head), lit ad panel, passing headlight glows | Push in from across the road |
 | 20 | `bloom` | L | 太陽照樣升起，今天也要好好過 | Standing behind a rooftop parapet (roof at y=2, ground plane below); the sun rises behind the skyline | Behind him, looking up as the sun rises |
 | 21 | `field` | D | 在黑暗裡繼續往前走，光就在前面 | Pure darkness, no grass or flowers; he walks toward one small light high on the horizon that grows brighter and rim-lights him | Behind him, following |
-| 22 | `minusone` | D | 就算缺了一角，我也還在發光 | 60 small lights spiral in from the dark and settle into a ring around him with one gap; a thin ground ring fades in | Rises to top-down |
+| 22 | `minusone` | D | 就算缺了一角，我也還在發光 | 60 small lights spiral in from the dark and settle into a ring around him with one gap (no inner ground ring; William removed it) | Rises to top-down |
 | 23 | `end` | L | (none; `#ending` overlay: TOWARD THE LIGHT, 再走一次, note, About) | He walks on white with a soft reflection, the walk slowing to a stop | Pulls far back |
 
 ## Known weak spots (verified by screenshots)

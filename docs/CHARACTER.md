@@ -55,3 +55,6 @@ Use `tools/pose.html` to iterate on a pose. It shows a side, front or three-quar
 - **The skirt panels are rigid.** In deep poses (curl, sit) they form a block. Options: hide the panels when the thigh angle is < −1.4, or give them a hinge at the knee.
 - **No IK.** Hands can't reliably reach objects such as a phone, cup or flower pot. A simple two-bone IK for arms would let scenes place hands precisely.
 - **Animation is procedural sinusoids.** For richer motion, consider baked clips via a small keyframe helper (still in code, no files).
+
+## Hands (2026-10-08)
+William asked for five fingers (「要五隻手指」). Each hand (`userData.hands[0|1]`) has a faceted palm, four fingers with two joints each, and a two-segment thumb. The palm faces the thigh. Call `hand.userData.grip(k)` with 0 for open, about .18 for relaxed (the default), or 1 for closed around a handle. `suitcase()` closes the right hand, and the rowing scene closes both hands on the oars.

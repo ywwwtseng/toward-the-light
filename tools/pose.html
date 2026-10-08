@@ -9,7 +9,7 @@ const POSE = U => {   // U = person.userData (legs, knees, arms, elbows, head, w
 };
 fetch('../dist/test.html').then(r => r.text()).then(html => {
   // pull out just the helpers (utilities + materials/characters/daisies), not the renderer/flow
-  const js = html.split('<script>').pop().split('</script>')[0];
+  const js = html.split('<script>').pop().split('<\/script>')[0];
   const util = js.slice(js.indexOf('/* ---------- utilities'), js.indexOf('/* ---------- renderer'));
   const help = js.slice(js.indexOf('/* ---------- materials & helpers'), js.indexOf('const SCENES=['));
   (0, eval)(util + help + `
