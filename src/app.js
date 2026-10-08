@@ -465,10 +465,20 @@ function street(scene,{night=false,z0=12,z1=-90,gap=4.2,seed=1,minH=8,maxH=34}={
   for(const sd of [-1,1])for(let z=z0;z>z1;){const w=3+r()*5,d=4+r()*6,h=minH+r()*(maxH-minH);
     const b=building(w,h,d,night);b.position.x=sd*(gap+w/2+r()*1.2);b.position.z=z-d/2;scene.add(b);z-=d+.4+r()*1.5}
 }
+/* cabin case in the left hand: a chamfered hard shell (.2 wide × .46 tall × .34 long) with a rib line round it, a carry handle
+   (bar on two posts) that the closed fist wraps, two 6-sided wheels under the back edge and the trolley-handle caps on top; ~190
+   triangles. The group pivots at the bar, which sits inside the fist (hand-local y −.058, palm side), and hangs almost plumb while
+   the arm is pushed out a little so the shell clears the coat. Its wheels stay ≈ .2 above the ground at full swing. */
 function suitcase(person){
-  const el=person.userData.elbows[1],c=new THREE.Group(),m=M(0x2a2a2a);
-  c.add(box(.13,.44,.32,m,0,-.36,0),box(.03,.06,.03,M(0x111111),0,-.12,0),box(.08,.02,.03,M(0x111111),0,-.1,0));
-  c.position.set(0,-.3,.02);el.add(c);person.userData.arms[1].rotation.z=.12;person.userData.hands?.[1]?.userData.grip(1);return c;
+  const el=person.userData.elbows[1],c=new THREE.Group(),shell=M(0x454545),trim=M(0x5a5a5a),dark=M(0x141414),W=.2,H=.46,D=.34,b=.014;
+  const s=new THREE.Group();s.position.y=-(H+.055);c.add(s);
+  s.add(loft([[0,W-2*b,D-2*b,.1],[b,W,D,.3],[H-b,W,D,.3],[H,W-2*b,D-2*b,.1]],shell,{sides:8}));
+  s.add(loft([[H*.6,W+.012,D+.012,.3],[H*.6+.016,W+.012,D+.012,.3]],trim,{sides:8,caps:false})); // rib line round the shell
+  s.add(box(.02,.02,.15,dark,0,H+.055,0),box(.02,.05,.02,dark,0,H+.025,-.058),box(.02,.05,.02,dark,0,H+.025,.058)); // carry handle: bar on two posts
+  [-.06,.06].forEach(z=>s.add(box(.026,.014,.026,trim,-.05,H+.005,z))); // trolley-handle caps
+  const wg=new THREE.CylinderGeometry(.024,.024,.022,6,1);wg.rotateZ(Math.PI/2);
+  [-.12,.12].forEach(z=>{const w=new THREE.Mesh(wg,dark);w.position.set(-.055,.004,z);s.add(w)});
+  c.position.set(-.026,-.313,0);c.rotation.z=-.17;el.add(c);person.userData.arms[1].rotation.z=.2;person.userData.hands?.[1]?.userData.grip(1);return c;
 }
 const rain=(n,area,seed)=>{const r=rng(seed),p=[];for(let i=0;i<n;i++){const x=(r()-.5)*area,y=r()*14,z=(r()-.5)*area;p.push(x,y,z,x+.02,y-.45,z)}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));
@@ -772,8 +782,21 @@ const SCENES=[
   const rim=new THREE.DirectionalLight(0xffffff,.8);rim.position.set(5,-2,-4);scene.add(rim);
   const gl=glow(10,.18);gl.position.set(0,-2.5,-2);scene.add(gl);
   const me=makePerson({body:0x4a4a4a,jacket:0x3a3a3a});const pivot=new THREE.Group();pivot.add(me);me.position.set(0,-.95,0);scene.add(pivot);
-  const r=rng(12),papers=[],pm=new THREE.MeshBasicMaterial({color:0xdddddd,side:THREE.DoubleSide});
-  for(let i=0;i<40;i++){const p=new THREE.Mesh(new THREE.PlaneGeometry(.21,.3),pm);p.userData={o:V3((r()-.5)*7,(r()-.5)*5,(r()-.5)*7),s:V3(r(),r(),r())};scene.add(p);papers.push(p)}
+  // sheets of paper: one layer curled across its height (4 bands, 8 triangles), lit so the bands shade differently; three curl profiles
+  const sheet=(w,h,curl,k=2)=>{const P=[],R=4,pt=(i,j)=>[(i-.5)*w,(j/R-.5)*h,curl*Math.pow(j/R,k)];
+    for(let j=0;j<R;j++){const a=pt(0,j),b=pt(1,j),c=pt(1,j+1),d=pt(0,j+1);P.push(...a,...b,...c,...a,...c,...d)}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.computeVertexNormals();return g};
+  const r=rng(12),papers=[],pm=M(0x868686),sg=[sheet(.21,.3,.05),sheet(.21,.3,.035,1),sheet(.21,.3,.07,3)];
+  const drift=(o,X,Y)=>{o.userData={o:V3((r()-.5)*X,(r()-.5)*Y,(r()-.5)*X),s:V3(r(),r(),r())};scene.add(o);papers.push(o)};
+  for(let i=0;i<40;i++){const p=new THREE.Mesh(sg[i%3],pm);if(i%10<3)p.scale.setScalar(.75);drift(p,7,5)}
+  // a few small things drifting with the papers: two pens, a mug, a phone, a notebook (6/8-sided, each under ~90 triangles)
+  const pen=()=>{const g=new THREE.Group(),lt=M(0x9a9a9a);g.add(new THREE.Mesh(new THREE.CylinderGeometry(.007,.007,.14,6,1),M(0x2a2a2a)));
+    const tip=new THREE.Mesh(new THREE.CylinderGeometry(.002,.007,.022,6,1),lt);tip.position.y=-.081;g.add(tip,box(.004,.045,.005,lt,.009,.04,0));return g};
+  const mug=()=>{const g=new THREE.Group(),m=M(0xbdbdbd);g.add(loft([[0,.07,.07,0],[.09,.08,.08,0]],m,{sides:6}),box(.03,.008,.012,m,.052,.072,0),box(.03,.008,.012,m,.052,.024,0),box(.008,.056,.012,m,.066,.048,0));
+    const cf=new THREE.Mesh(new THREE.CircleGeometry(.03,6),B(0x151515));cf.rotation.x=-Math.PI/2;cf.position.y=.091;g.add(cf);return g};
+  const phone=()=>{const g=new THREE.Group();g.add(loft([[0,.064,.134,.3],[.004,.07,.14,.3],[.008,.064,.134,.3]],M(0x303030),{sides:8}),box(.058,.002,.126,B(0x6a6a6a),0,.009,0));return g};
+  const book=()=>{const g=new THREE.Group(),cm=M(0x343434);g.add(loft([[0,.12,.16,.1],[.004,.12,.16,.1]],cm,{sides:8}),loft([[.02,.12,.16,.1],[.024,.12,.16,.1]],cm,{sides:8}),box(.112,.016,.152,M(0xcfcfcf),.004,.012,0),box(.008,.024,.16,cm,-.06,.012,0));return g};
+  [pen(),pen(),mug(),phone(),book()].forEach(o=>drift(o,4,3));
   return{scene,update(t,time){
     me.userData.float(time);pivot.rotation.set(Math.sin(time*.3)*.1,t*1.2,lerp(-.25,.35,t));
     papers.forEach(p=>{const u=p.userData;p.position.set(u.o.x+Math.sin(time*.3+u.s.x*6)*.4,u.o.y+Math.sin(time*.4+u.s.y*6)*.4-t*1.5,u.o.z);p.rotation.set(time*.3*u.s.x+u.s.y*6,time*.2*u.s.y,u.s.z*6)});
@@ -836,16 +859,25 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=gradTex('#050505','#1d1d1d');scene.fog=new THREE.Fog(0x111111,8,30);
   lights(scene,{hemi:[0x888888,0x111111,.55],dir:[0xffffff,.8,[1,6,3]]});scene.add(ground(0x161616));
   const me=makePerson();me.rotation.y=.3;me.userData.head.rotation.x=-.55;scene.add(me);
-  // torn-off calendar pages, one per day, drifting down around him
-  const pg=new THREE.PlaneGeometry(.34,.42),N=26,r=rng(55);
+  // torn-off calendar pages, one per day, drifting down around him. A leaf is a .34 × .42 sheet with a paper thickness, curled toward
+  // its top and torn off along the top edge (44 triangles); its back and edges sample a blank corner of the page texture
+  const leaf=(seed,curl)=>{const C=3,R=2,W=.34,H=.42,T=.005,jr=rng(seed),P=[],U=[],tear=[...Array(C+1)].map(()=>.012+jr()*.03);
+    const pos=(i,j,back)=>{const y=j/R*H-(j===R?tear[i]:0);return[[(i/C-.5)*W,y-H/2,curl*Math.pow(j/R,2.2)-(back?T:0)],y/H]};
+    const tri=(a,b,c)=>{P.push(...a[0],...b[0],...c[0]);U.push(...a[1],...b[1],...c[1])},quad=(a,b,c,d)=>{tri(a,b,c);tri(a,c,d)};
+    const F=(i,j)=>{const p=pos(i,j);return[p[0],[i/C,p[1]]]},K=(i,j,back)=>[pos(i,j,back)[0],[.06,.5]];
+    for(let i=0;i<C;i++)for(let j=0;j<R;j++){quad(F(i,j),F(i+1,j),F(i+1,j+1),F(i,j+1));quad(K(i,j,1),K(i,j+1,1),K(i+1,j+1,1),K(i+1,j,1))}
+    for(let i=0;i<C;i++){quad(K(i,0),K(i,0,1),K(i+1,0,1),K(i+1,0));quad(K(i,R),K(i+1,R),K(i+1,R,1),K(i,R,1))}
+    for(let j=0;j<R;j++){quad(K(0,j),K(0,j+1),K(0,j+1,1),K(0,j,1));quad(K(C,j),K(C,j,1),K(C,j+1,1),K(C,j+1))}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.computeVertexNormals();return g};
+  const pg=[leaf(1,.03),leaf(2,.05),leaf(3,.02)],N=26,r=rng(55);
   const fall=[...Array(N)].map((_,i)=>{const day=i+1,tex=canvasTex(128,160,(c,w,h)=>{c.fillStyle='#f2f2ef';c.fillRect(0,0,w,h);c.fillStyle='#1a1a1a';c.fillRect(0,0,w,26);
       c.fillStyle='#f2f2ef';c.font='14px serif';c.textAlign='center';c.fillText('DAY',w/2,18);c.fillStyle='#222';c.font='72px serif';c.fillText(String(day),w/2,118)});
-    const m=new THREE.Mesh(pg,new THREE.MeshStandardMaterial({map:tex,side:THREE.DoubleSide,roughness:1}));scene.add(m);
+    const m=new THREE.Mesh(pg[i%3],new THREE.MeshStandardMaterial({map:tex,color:0xbcbcbc,side:THREE.DoubleSide,roughness:1,flatShading:true}));scene.add(m); // toned down so a landed page reads as paper, not as a light
     return{m,o:i/N,seed:i*1.37,a:r()*Math.PI*2,R:.7+r()*1.6}});
   const dawn=glow(30,0);dawn.position.set(0,1,-18);scene.add(dawn);
   return{scene,update(t,time){
     fall.forEach(({m,o,seed,a,R})=>{const k=clamp((t*1.25-o*.9)*3);m.visible=k>0;if(!m.visible)return;
-      const y=lerp(6.5,.02,k),sw=Math.sin(k*9+seed)*(1-k)*.6;
+      const y=lerp(6.5,.008,k),sw=Math.sin(k*9+seed)*(1-k)*.6;
       m.position.set(Math.sin(a)*R+sw,y,Math.cos(a)*R*.8);
       if(k<1)m.rotation.set(time*1.6+seed,seed,Math.sin(time*2.5+seed)*.8);else m.rotation.set(-Math.PI/2,0,seed)});
     dawn.material.opacity=smooth(.5,1,t)*.5;
@@ -856,21 +888,29 @@ const SCENES=[
 {key:'shards',bg:'#1c1c1c',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x1c1c1c);scene.fog=new THREE.Fog(0x1c1c1c,6,30);
   lights(scene,{hemi:[0xbbbbbb,0x111111,.6],dir:[0xffffff,1,[3,5,4]]});
+  const fill=new THREE.PointLight(0xffffff,.5,10);scene.add(fill); // low fill from the camera side so the curled figure is not only rim-lit
   const dad=makePerson({body:0x0e0e0e,jacket:0x232323});dad.rotation.y=.4;scene.add(dad);
   // curled up tight: knees to chest, arms wrapped round them, head buried
   const H=dad.userData;H.legs.forEach(l=>l.rotation.x=-1.75);H.knees.forEach(k=>k.rotation.x=2.25);
   H.arms.forEach((a,i)=>a.rotation.set(-.85,0,(i?-1:1)*.45));H.elbows.forEach(e=>e.rotation.x=-1.0);H.head.rotation.x=.9;
-  const N=320,r=rng(31),geo=new THREE.TetrahedronGeometry(.5,0);
-  const im=new THREE.InstancedMesh(geo,M(0xffffff),N),data=[],c=new THREE.Color();
-  for(let i=0;i<N;i++){const dir=V3(r()-.5,(r()-.5)*.8,r()-.5).normalize();data.push({dir,d:.6+r()*1.2,sp:2+r()*9,rot:V3(r()*6,r()*6,r()*6),vr:V3(r()-.5,r()-.5,r()-.5).multiplyScalar(6),s:V3(.2+r()*1.2,.05+r()*.12,.2+r()*.9)});c.setScalar(.12+r()*.45);im.setColorAt(i,c)}
-  scene.add(im);
+  // the pieces, as in the film: thin plates and planks, sticks, a few flat triangular wedges — three instanced meshes (320 pieces),
+  // most of them #18–#3a, some mid-grey, 8 % white-lit; nothing starts closer than 1.2 so he stays visible
+  const r=rng(31),c=new THREE.Color(),data=[],mk=(geo,n)=>{const im=new THREE.InstancedMesh(geo,M(0xffffff),n);im.frustumCulled=false;scene.add(im);return im};
+  const plates=mk(new THREE.BoxGeometry(1,.04,1),160),sticks=mk(new THREE.BoxGeometry(.06,.06,1),110),wedges=mk(new THREE.TetrahedronGeometry(.5,0),50);
+  [[plates,0],[sticks,1],[wedges,2]].forEach(([im,kind])=>{for(let i=0;i<im.count;i++){
+    const dir=V3(r()-.5,(r()-.5)*.8,r()-.5).normalize(),d=1.2+r()*1.4;let s;
+    if(kind===0){const w=.3+r()*.9;s=V3(w,1,w*(.3+r()*.8))}else if(kind===1)s=V3(.5+r()*.9,.5+r()*.9,.35+r()*1.2);else{const w=.4+r()*.9;s=V3(w,.15,w)}
+    if(d<1.8)s.multiplyScalar(.6);
+    data.push({im,i,dir,d,sp:2+r()*9,rot:V3(r()*6,r()*6,r()*6),vr:V3(r()-.5,r()-.5,r()-.5).multiplyScalar(6),s});
+    const k=r();c.setScalar(k<.08?.9:k<.2?.4+r()*.25:.1+r()*.22);im.setColorAt(i,c)}});
   const m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler();
   return{scene,update(t,time){
     const ex=ease(t);
-    data.forEach((s,i)=>{const p=s.dir.clone().multiplyScalar(s.d+ex*s.sp);e.set(s.rot.x+s.vr.x*ex+time*.1,s.rot.y+s.vr.y*ex,s.rot.z+s.vr.z*ex);q.setFromEuler(e);m.compose(p,q,s.s);im.setMatrixAt(i,m)});
-    im.instanceMatrix.needsUpdate=true;
+    data.forEach(s=>{const p=s.dir.clone().multiplyScalar(s.d+ex*s.sp);e.set(s.rot.x+s.vr.x*ex+time*.1,s.rot.y+s.vr.y*ex,s.rot.z+s.vr.z*ex);q.setFromEuler(e);m.compose(p,q,s.s);s.im.setMatrixAt(s.i,m)});
+    [plates,sticks,wedges].forEach(im=>im.instanceMatrix.needsUpdate=true);
     dad.position.set(0,-.55,0);dad.rotation.set(.25,.4+t*.3,0);
-    const a=t*Math.PI*.7+.3;camera.position.set(Math.sin(a)*lerp(3.6,7,t),lerp(.5,1.4,t),Math.cos(a)*lerp(3.6,7,t));camera.lookAt(0,0,0);
+    const a=t*Math.PI*.7+.3,R=lerp(3.6,7,t);camera.position.set(Math.sin(a)*R,lerp(.5,1.4,t),Math.cos(a)*R);camera.lookAt(0,0,0);
+    fill.position.set(Math.sin(a)*2.2,1.2,Math.cos(a)*2.2);
   }};
 }},
 /* 16 — rowing alone through a flooded city in the rain */
@@ -1021,13 +1061,14 @@ const SCENES=[
   lights(scene,{hemi:[0x777777,0x050505,.4],dir:[0xffffff,.6,[1,6,2]]});scene.add(stars(400,50,{seed:3}));
   const me=makePerson({body:0x5a5a5a,jacket:0x6a6a6a});me.userData.head.rotation.x=-.3;scene.add(me);
   // small lights drift in from the dark and gather into a ring around him (one place in the ring stays empty)
-  const N=60,dot=new THREE.SphereGeometry(.05,8,6),dm=B(0xffffff),L=[],r=rng(12);
+  // each light is a small faceted lantern (a 6-sided loft, 60 triangles) glowing from within, with its soft halo sprite
+  const N=60,dot=loftGeo([[-.062,.02,.02,0],[-.028,.072,.072,0],[.018,.066,.066,0],[.05,.034,.034,0],[.066,.014,.014,0]],{sides:6}),dm=M(0x8c8c8c,{emissive:0xffffff,emissiveIntensity:.42}),L=[],r=rng(12);
   for(let i=0;i<N;i++){const m=new THREE.Mesh(dot,dm),g=glow(.55,.55);scene.add(m,g);
     L.push({m,g,a:(i+1)/(N+2)*Math.PI*2,R0:6+r()*8,y0:.5+r()*6,sp:3+r()*4,ph:r()*6})}
   return{scene,update(t,time){
     const k=ease(clamp(t*1.25));
     L.forEach(({m,g,a,R0,y0,sp,ph})=>{const ang=a+(1-k)*(sp+time*.25),R=lerp(R0,1.6,k),y=lerp(y0,.35+Math.sin(time*1.5+ph)*.05,k);
-      m.position.set(Math.sin(ang)*R,y,Math.cos(ang)*R);g.position.copy(m.position);g.material.opacity=.35+.25*Math.sin(time*3+ph)});
+      m.position.set(Math.sin(ang)*R,y,Math.cos(ang)*R);m.rotation.y=ph+time*.3;g.position.copy(m.position);g.material.opacity=.35+.25*Math.sin(time*3+ph)});
     const ca=lerp(.3,0,k);camera.position.set(Math.sin(ca)*lerp(9,2.5,k),lerp(2.5,9,k),Math.cos(ca)*lerp(9,2.5,k));camera.lookAt(0,lerp(1.2,.3,k),0);
   }};
 }},
