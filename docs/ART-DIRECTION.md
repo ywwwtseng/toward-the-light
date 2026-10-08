@@ -11,7 +11,7 @@ The bar is **"product-level and artistic, not a demo."** The owner judges by eye
 - **Light is the protagonist of the second half.** The arc runs from city loneliness, through collapse (flip, drift, eclipse, shards, flood), to small comforts (rooftop, room, call). It then moves to sunrise, walking through the dark toward a light, and lights gathering around him.
 - **Typography:**
   - Jost for letter-spaced Latin display ("T O W A R D").
-  - Noto Serif TC / Noto Sans TC for Chinese.
+  - Text is English now (see Language below); Noto TC fonts remain loaded as a fallback.
   - No scene counter: William removed the "03 — 24" numbers (2026-10-08). Captions show text only.
   - Captions are single centred lines, first person, quiet, never exclamatory.
 - **Motion:**
