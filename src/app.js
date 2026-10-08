@@ -654,8 +654,25 @@ const SCENES=[
 {key:'grid',bg:'#151515',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x151515);scene.fog=new THREE.Fog(0x151515,10,60);
   lights(scene,{hemi:[0x888888,0x111111,.5],dir:null});scene.add(ground(0x1c1c1c));
-  const r=rng(41),blocks=[];
-  for(let gx=-6;gx<=6;gx++)for(let gz=-6;gz<=6;gz++){if(r()<.15)continue;const h=1+r()*r()*9,b=building(2.6,h,2.6,true);b.position.x=gx*4;b.position.z=gz*4;b.material=b.material.clone();b.material.emissiveIntensity=0;b.userData.d=Math.hypot(gx,gz)+r()*1.5;scene.add(b);blocks.push(b)}
+  // blocks with mixed footprints (single, double, L-plan, slender tower); the inner blocks carry a lighter inset roof deck (the dark roof
+  // around it reads as a parapet) and some roof furniture (lift heads, tanks, masts), so the skyline is not a lattice of equal boxes.
+  // Instanced roof parts are not frustum-culled, so the fogged outer ring goes without them to stay near the 2× triangle budget.
+  const r=rng(41),blocks=[],plate=[],lift=[],tank=[],mast=[],taken=new Set();
+  const put=(w,h,d,x,z,dist,inner)=>{const b=building(w,h,d,true);b.position.x=x;b.position.z=z;const mats=[];
+    b.traverse(o=>{if(o.isMesh&&o.material&&o.material.emissiveMap){o.material=o.material.clone();o.material.emissiveIntensity=0;mats.push(o.material)}});
+    scene.add(b);blocks.push({mats,d:dist});if(!inner)return;
+    plate.push([x,h+.06,z,w-.3,.1,d-.3]);
+    if(h>3.6){lift.push([x+(r()-.5)*(w-1),h+.335,z+(r()-.5)*(d-1),.7,.45,.7]);if(h>5&&r()<.5)tank.push([x+(r()-.5)*(w-1.2),h+.36,z+(r()-.5)*(d-1.2),1,1,1])}
+    if(h>6&&r()<.6)mast.push([x+(w/2-.3)*(r()<.5?1:-1),h+.81,z+(d/2-.3)*(r()<.5?1:-1),.06,1.4,.06])};
+  for(let gx=-6;gx<=6;gx++)for(let gz=-6;gz<=6;gz++){if(taken.has(gx+','+gz))continue;if(r()<.15)continue;
+    const h=1+r()*r()*9,k=r(),x=gx*4,z=gz*4,dist=Math.hypot(gx,gz)+r()*1.5,inner=Math.abs(gx)<=4&&Math.abs(gz)<=4;
+    if(k<.16&&gz<6&&!taken.has(gx+','+(gz+1))){taken.add(gx+','+(gz+1));put(2.6,h,6.6,x,z+2,dist,inner)}           // double block along the street
+    else if(k<.28){put(2.6,h,1.2,x,z-.7,dist,inner);put(1.2,h*(.7+r()*.6),2.6,x-.7,z,dist,inner)}                        // L-plan: two wings sharing a corner
+    else if(k<.36)put(1.5,h*1.5+1,1.5,x,z,dist,inner);                                                             // slender tower
+    else put(2.2+r()*.6,h,2.2+r()*.6,x,z,dist,inner)}
+  const unit=new THREE.BoxGeometry(1,1,1),m4=new THREE.Matrix4(),q0=new THREE.Quaternion();
+  const mk=(list,mat,geo=unit)=>{if(!list.length)return;const im=new THREE.InstancedMesh(geo,mat,list.length);list.forEach(([x,y,z,sx,sy,sz],i)=>{m4.compose(V3(x,y,z),q0,V3(sx,sy,sz));im.setMatrixAt(i,m4)});scene.add(im)};
+  mk(plate,M(0x2c2c2c));mk(lift,M(0x202020));mk(mast,M(0x303030));mk(tank,M(0x262626),new THREE.CylinderGeometry(.32,.32,.5,6,1));
   // street grid, revealed outward from the centre
   const segs=[];for(let i=-7;i<=7;i++){for(let j=-7;j<7;j++){const a=i*4+2,b0=j*4+2,b1=b0+4;segs.push([[a,.03,b0],[a,.03,b1],Math.hypot(i,j)],[[b0,.03,a],[b1,.03,a],Math.hypot(j,i)])}}
   segs.sort((p,q)=>p[2]-q[2]);const arr=new Float32Array(segs.length*6);segs.forEach(([p,q],i)=>arr.set([...p,...q],i*6));
@@ -665,24 +682,79 @@ const SCENES=[
   const me=makePerson({body:0x555555,jacket:0x444444});me.position.set(2,0,2);me.rotation.y=-2.4;scene.add(me);
   return{scene,update(t,time){
     const g=ease(clamp(t*1.2)),R=g*11;lg.setDrawRange(0,Math.floor(segs.length*g)*2);
-    blocks.forEach(b=>b.material.emissiveIntensity=smooth(b.userData.d-1,b.userData.d,R)*.9);
+    blocks.forEach(b=>{const e=smooth(b.d-1,b.d,R)*.9;b.mats.forEach(m=>m.emissiveIntensity=e)});
     const a=lerp(.4,1.4,t);camera.position.set(Math.sin(a)*lerp(9,26,t),lerp(4,22,t),Math.cos(a)*lerp(9,26,t));camera.lookAt(0,0,0);
   }};
 }},
 /* 7 — the platform: trains rush past, nobody stops */
 {key:'subway',bg:'#0c0c0c',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x0c0c0c);scene.fog=new THREE.Fog(0x0c0c0c,6,40);
-  lights(scene,{hemi:[0x999999,0x111111,.45],dir:[0xffffff,.35,[2,6,4]]});
-  scene.add(box(60,.4,4,M(0x2a2a2a),0,-.2,1),box(60,.02,.12,B(0xdddddd),0,.01,-.95),box(60,.2,3,M(0x0a0a0a),0,-1.1,-2.5));
-  for(let x=-28;x<=28;x+=5)scene.add(box(.35,4,.35,M(0x222222),x,2,2.3),box(1.6,.04,.25,B(0xffffff),x,3.95,1));
-  const train=new THREE.Group(),wm=B(0xf0f0f0);
-  for(let c=0;c<6;c++){const car=box(9.4,2.6,2.6,M(0x3a3a3a),c*9.7,.6,-2.5);train.add(car);for(let w=-3.6;w<=3.6;w+=1.2)train.add(box(.8,.7,.02,wm,c*9.7+w,1,-1.19))}
-  scene.add(train);
+  lights(scene,{hemi:[0x999999,0x111111,.6],dir:[0xffffff,.5,[2,6,4]]});
+  const q0=new THREE.Quaternion(),m4=new THREE.Matrix4();
+  const inst=(geo,mat,list,parent=scene)=>{const im=new THREE.InstancedMesh(geo,mat,list.length);list.forEach((p,i)=>{m4.compose(V3(p[0],p[1],p[2]),q0,V3(1,1,1));im.setMatrixAt(i,m4)});parent.add(im);return im};
+  const bevelBox=(w,h,d,b,mat,x=0,y=0,z=0)=>{const m=loft([[0,w-2*b,d-2*b,.1],[b,w,d,.3],[h-b,w,d,.3],[h,w-2*b,d-2*b,.1]],mat,{sides:8});m.position.set(x,y,z);return m};
+  // a closed profile [[y,z],…] extruded along x over length L: non-indexed so every face is flat, with a small per-face tone jitter
+  const prism=(pts,L,seed)=>{const pos=[],col=[],r=rng(seed),n=pts.length,h=L/2;
+    const face=(...v)=>{const k=1+(r()-.5)*.1;v.forEach(p=>{pos.push(...p);col.push(k,k,k)})};
+    const cy=pts.reduce((s,p)=>s+p[0],0)/n,cz=pts.reduce((s,p)=>s+p[1],0)/n;
+    for(let i=0;i<n;i++){const[ay,az]=pts[i],[by,bz]=pts[(i+1)%n];
+      face([-h,ay,az],[h,ay,az],[h,by,bz],[-h,ay,az],[h,by,bz],[-h,by,bz]);
+      face([h,cy,cz],[h,ay,az],[h,by,bz]);face([-h,cy,cz],[-h,by,bz],[-h,ay,az])}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeVertexNormals();return g};
+  // a hollow rectangular frame (outer w×h, lip t, standing d proud of z=0) so a pane behind it reads as an inset panel: 24 triangles
+  const frameGeo=(w,h,t,d)=>{const pos=[],o=[[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]],n=[[-w/2+t,-h/2+t],[w/2-t,-h/2+t],[w/2-t,h/2-t],[-w/2+t,h/2-t]];
+    const quad=(a,b,c,e)=>pos.push(...a,...b,...c,...a,...c,...e);
+    for(let i=0;i<4;i++){const j=(i+1)%4,[ox,oy]=o[i],[px,py]=o[j],[ix,iy]=n[i],[jx,jy]=n[j];
+      quad([ox,oy,d],[px,py,d],[jx,jy,d],[ix,iy,d]);quad([ix,iy,d],[jx,jy,d],[jx,jy,0],[ix,iy,0]);quad([ox,oy,0],[px,py,0],[px,py,d],[ox,oy,d])}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();return g};
+  const range=(a,b,s)=>{const o=[];for(let x=a;x<=b;x+=s)o.push(x);return o};
+  // platform: slab with a lighter top, the white edge line, a raised tactile strip behind it, seams across the floor
+  // (the film pass renders into a 16-bit depth target, so every proud panel below sits ≥ .03 in front of the face behind it)
+  scene.add(box(60,.4,4,M(0x343434),0,-.2,1),box(60,.03,.3,M(0x4a4a4a),0,.015,-.58),box(60,.02,.12,B(0xdddddd),0,.01,-.95));
+  inst(new THREE.BoxGeometry(.03,.01,3.9),M(0x1c1c1c),range(-30,30,2.5).map(x=>[x,.005,1.05]));
+  // track bed: ballast, sleepers, two rails
+  scene.add(box(60,.2,4,M(0x141414),0,-1,-3));
+  inst(new THREE.BoxGeometry(.26,.08,2.3),M(0x0e0e0e),range(-12,12,1).map(x=>[x,-.86,-2.5]));
+  [-.72,.72].forEach(z=>scene.add(box(60,.1,.07,M(0x6a6a6a),0,-.77,-2.5+z)));
+  // far tunnel wall with a dado band, a strip light along the top and blank name boards
+  scene.add(box(60,4.6,.3,M(0x242424),0,1.3,-5.25),box(60,1.1,.08,M(0x363636),0,.65,-5.07),box(60,.06,.08,B(0xcfcfcf),0,3.42,-5.07));
+  [-14,-6,2,10].forEach(x=>scene.add(box(2.6,.7,.08,M(0x111111),x,1.75,-5.06),box(2.3,.44,.06,B(0xc4c4c4),x,1.75,-4.99)));
+  // ceiling with recessed light troughs; pillars with plinth and capital; small lit sign boxes on the two nearest pillars
+  scene.add(box(60,.12,9.4,M(0x161616),0,3.66,-.9));
+  const px=range(-28,28,5);
+  inst(new THREE.BoxGeometry(.36,3.3,.36),M(0x262626),px.map(x=>[x,1.77,2.3]));
+  inst(new THREE.BoxGeometry(.56,.12,.56),M(0x343434),px.map(x=>[x,.06,2.3]));
+  inst(new THREE.BoxGeometry(.56,.18,.56),M(0x343434),px.map(x=>[x,3.51,2.3]));
+  inst(new THREE.BoxGeometry(2,.12,.42),M(0x0e0e0e),px.map(x=>[x,3.55,1]));
+  inst(new THREE.BoxGeometry(1.8,.05,.28),B(0xffffff),px.map(x=>[x,3.475,1]));
+  [2,-3].forEach(x=>scene.add(box(.34,.2,.07,M(0x111111),x,2.05,2.515),box(.3,.14,.012,B(0xcfcfcf),x,2.05,2.556)));
+  // bench behind him, facing the tracks: bevelled seat and back on two end frames
+  const bench=new THREE.Group();bench.position.set(-1.3,0,1.9);
+  bench.add(bevelBox(1.5,.08,.44,.015,M(0x3c3c3c),0,.42,0),bevelBox(1.5,.26,.05,.01,M(0x363636),0,.64,.2));
+  [-.68,.68].forEach(x=>bench.add(box(.07,.42,.4,M(0x1e1e1e),x,.21,0),box(.05,.26,.05,M(0x1e1e1e),x,.59,.2)));
+  scene.add(bench);
+  // train: six cars on a bevelled-roof profile, inset windows in dark frames, two door pairs per car, roof units, gangways, bogies on the rails
+  const train=new THREE.Group();train.position.z=-2.5;scene.add(train);
+  const prof=[[-.35,-1.15],[-.35,1.15],[-.12,1.3],[1.95,1.3],[2.28,1.12],[2.5,.6],[2.5,-.6],[2.28,-1.12],[1.95,-1.3],[-.12,-1.3]];
+  const carGeo=prism(prof,9.4,7),mBody=M(0x5a5a5a,{vertexColors:true}),wm=B(0xf0f0f0),N=6,P=9.7;
+  const win=[],dwin=[],leaf=[],pocket=[],roof=[],bogie=[];
+  for(let c=0;c<N;c++){const cx=c*P,car=new THREE.Mesh(carGeo,mBody);car.position.x=cx;train.add(car);
+    [-4,-1.2,0,1.2,4].forEach(w=>win.push([cx+w,1.3,1.3]));
+    [-2.5,2.5].forEach(dx=>{pocket.push([cx+dx,1.12,1.31]);[-.34,.34].forEach(o=>{leaf.push([cx+dx+o,1.1,1.345]);dwin.push([cx+dx+o,1.4,1.405])})});
+    [-2.4,2.4].forEach(dx=>roof.push([cx+dx,2.6,0]));[-3.1,3.1].forEach(dx=>bogie.push([cx+dx,-.52,0]));
+    if(c<N-1)train.add(box(.5,2.3,1.7,M(0x1c1c1c),cx+P/2,1.1,0))}
+  inst(frameGeo(.96,.86,.05,.06),M(0x161616),win,train);inst(new THREE.PlaneGeometry(.86,.76),wm,win.map(([x,y,z])=>[x,y,z+.028]),train);
+  inst(new THREE.BoxGeometry(1.4,2.2,.03),M(0x121212),pocket,train);inst(new THREE.BoxGeometry(.64,2.12,.05),M(0x484848),leaf,train);inst(new THREE.PlaneGeometry(.4,.5),wm,dwin,train);
+  inst(new THREE.BoxGeometry(1.9,.2,1.2),M(0x3c3c3c),roof,train);inst(new THREE.BoxGeometry(2,.4,1.8),M(0x141414),bogie,train);
+  const fx=(N-1)*P+4.7;train.add(box(.05,.95,1.9,M(0x141414),fx+.025,1.55,0),box(.06,.2,.9,B(0xd8d8d8),fx+.03,2.2,0));   // cab: windscreen and destination display
+  [-.75,.75].forEach(z=>train.add(box(.06,.14,.22,B(0xffffff),fx+.03,.5,z),box(.05,.08,.16,B(0x999999),-4.725,.5,z)));   // headlights, tail lights
+  const hl=glow(1.6,.7);hl.position.set(fx+.2,.5,1.32);train.add(hl);
+  const tl=new THREE.PointLight(0xffffff,0,7);tl.position.set(-1,1.6,-.9);scene.add(tl);                                   // the passing windows light him
   const me=makePerson();me.rotation.y=Math.PI+.25;me.position.set(0,0,.2);scene.add(me);
-  const P=24,pm=M(0xf4f4f2,{flatShading:false}),pg=petalGeo(.08,.011,{seg:4,cross:2});
-  const petals=[...Array(P)].map((_,i)=>{const m=new THREE.Mesh(pg,pm);scene.add(m);return{m,o:i*1.7,s:.5+(i%5)*.2}});
+  const PN=24,pm=M(0xf4f4f2,{flatShading:false}),pg=petalGeo(.08,.011,{seg:4,cross:2});
+  const petals=[...Array(PN)].map((_,i)=>{const m=new THREE.Mesh(pg,pm);scene.add(m);return{m,o:i*1.7,s:.5+(i%5)*.2}});
   return{scene,update(t,time){
-    train.position.x=((time*22)%110)-80;
+    train.position.x=((time*22)%110)-80;const x=train.position.x;tl.intensity=smooth(-56,-51,x)*(1-smooth(2,7,x))*.9;
     petals.forEach(({m,o,s})=>{const k=(time*s+o)%6;m.position.set(-3+k*1.4,.3+Math.sin(time*2+o)*.4+k*.25,-.6+Math.sin(o)*.4);m.rotation.set(time*3+o,time*2,o)});
     camera.position.set(lerp(3.2,1.6,t),lerp(1.4,1.6,t),lerp(4.5,3.4,t));camera.lookAt(lerp(-.5,0,t),1.1,-.8);
   }};
@@ -790,36 +862,46 @@ const SCENES=[
   const hs=new THREE.Sprite(new THREE.SpriteMaterial({map:halo,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false}));hs.scale.set(9.6,9.6,1);put(hs,1);
   const ring=put(new THREE.Mesh(new THREE.TorusGeometry(3,.025,6,160),flat(0xffffff,1)),2);
   put(new THREE.Mesh(new THREE.CircleGeometry(2.985,128),flat(0x000000,1)),3);
-  // skyline in front of the eclipse, with a few lit windows
+  // skyline in front of the eclipse: flat cut-outs with varied rooflines (setbacks, stair heads, water tanks, billboards, gables, masts) and a few lit windows
   {const r=rng(77),sky=new THREE.Group(),mb=flat(0x060606,1),mw=flat(0x8a8a8a,1);let x=-14;
-   while(x<14){const w=.6+r()*1.5,h=.6+r()*(Math.abs(x)<4?2.2:4.5);const b=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mb);b.position.set(x+w/2,-4.4+h/2,4);b.renderOrder=5;sky.add(b);
-     if(r()<.5&&h>1.5){const a=new THREE.Mesh(new THREE.PlaneGeometry(.03,.5),mb);a.position.set(x+w*.5,-4.4+h+.25,4);a.renderOrder=5;sky.add(a)}
+   const P=(w,h,cx,cy)=>{const b=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mb);b.position.set(cx,cy,4);b.renderOrder=5;sky.add(b);return b};
+   while(x<14){const w=.5+r()*1.8,h=.6+r()*(Math.abs(x)<4?2.2:4.5),top=-4.4+h,cx=x+w/2;P(w,h,cx,-4.4+h/2);
+     const k=r();
+     if(k<.28){const w2=w*(.35+r()*.4),h2=.25+r()*.6;P(w2,h2,cx+(r()-.5)*(w-w2),top+h2/2)}                                  // setback storey
+     else if(k<.5){P(.22+r()*.15,.2+r()*.15,cx-w*.25,top+.1);                                                            // stair head …
+       const tx=cx+w*.22;P(.26,.24,tx,top+.24);P(.025,.13,tx-.09,top+.065);P(.025,.13,tx+.09,top+.065)}                   // … and a water tank on two legs
+     else if(k<.62){const bw=w*.6;P(.03,.3,cx-bw*.4,top+.15);P(.03,.3,cx+bw*.4,top+.15);P(bw,.3,cx,top+.45)}             // billboard frame on posts
+     else if(k<.72&&w<1.1){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([x,top,4,x+w,top,4,x+w*(.3+r()*.4),top+.2+r()*.3,4],3));const m=new THREE.Mesh(g,mb);m.renderOrder=5;sky.add(m)} // gable
+     if(r()<.5&&h>1.5)P(.03,.5,x+w*(.3+r()*.4),top+.25);                                                                  // antenna mast
      for(let wy=-4.2;wy<-4.4+h-.2;wy+=.22)for(let wx=x+.12;wx<x+w-.12;wx+=.18)if(r()<.12){const q=new THREE.Mesh(new THREE.PlaneGeometry(.06,.08),mw);q.position.set(wx,wy,4.01);q.renderOrder=6;sky.add(q)}
      x+=w+r()*.15}
    scene.add(sky)}
-  // crows: black silhouettes against the halo; broad wings ending in spread "finger" primaries, wedge tail
+  // crows: black silhouettes against the halo. Five-sided lofted body and six-sided head (a plump faceted outline instead of a diamond),
+  // cambered two-quad wings that never thin to a line, spread "finger" primaries, wedge tail
   function makeCrow(){
     const m=flat(0x050505,1),g=new THREE.Group(),add=(geo,ord=8)=>{const o=new THREE.Mesh(geo,m);o.renderOrder=ord;return o};
     const tri=(pts)=>{const q=new THREE.BufferGeometry();q.setAttribute('position',new THREE.Float32BufferAttribute(pts.flat(),3));return add(q)};
-    const body=add(new THREE.OctahedronGeometry(1,0));body.scale.set(.46,.13,.14);g.add(body);
-    const head=add(new THREE.SphereGeometry(.105,8,6));head.position.set(.42,.05,0);head.scale.set(1.15,1,1);g.add(head);
-    const beak=add(new THREE.ConeGeometry(.045,.2,4));beak.rotation.z=-Math.PI/2;beak.position.set(.6,.03,0);g.add(beak);
+    const along=(secs,sides)=>{const o=add(loftGeo(secs,{sides}));o.rotation.z=-Math.PI/2;return o}; // loft axis y → +x (beak end)
+    g.add(along([[-.42,.04,.05,.4],[-.22,.1,.1,.4],[-.04,.15,.15,.4],[.16,.14,.14,.4],[.3,.1,.1,.4],[.4,.06,.07,.4]],5));
+    const head=along([[-.1,.12,.13,.4],[-.03,.18,.17,.4],[.06,.16,.15,.4],[.11,.08,.09,.4]],6);head.position.set(.46,.06,0);g.add(head);
+    const beak=add(new THREE.ConeGeometry(.045,.2,4));beak.rotation.z=-Math.PI/2;beak.position.set(.64,.05,0);g.add(beak);
     g.add(tri([[-.36,0,.05],[-.36,0,-.05],[-.82,0,-.17],[-.36,0,.05],[-.82,0,-.17],[-.82,0,.17],[-.82,0,.17],[-.82,0,-.17],[-.88,0,0]]));
     const wings=[];
     for(const sd of [1,-1]){
       const root=new THREE.Group();root.position.set(.05,.04,0);
-      root.add(tri([[.22,0,0],[-.3,0,0],[-.26,0,.48*sd],[.22,0,0],[-.26,0,.48*sd],[.18,0,.48*sd]]));
+      root.add(tri([[.24,0,0],[-.3,0,0],[-.28,.04,.26*sd],[.24,0,0],[-.28,.04,.26*sd],[.22,.04,.26*sd],
+                    [.22,.04,.26*sd],[-.28,.04,.26*sd],[-.26,0,.48*sd],[.22,.04,.26*sd],[-.26,0,.48*sd],[.18,0,.48*sd]]));
       const tip=new THREE.Group();tip.position.z=.48*sd;root.add(tip);
-      tip.add(tri([[.18,0,0],[-.26,0,0],[-.2,0,.22*sd],[.18,0,0],[-.2,0,.22*sd],[.12,0,.24*sd]]));
+      tip.add(tri([[.18,0,0],[-.26,0,0],[-.2,.02,.22*sd],[.18,0,0],[-.2,.02,.22*sd],[.12,.02,.24*sd]]));
       // five primaries fanning out from the hand
       for(let i=0;i<5;i++){const x0=.12-i*.075,len=.32-i*.03,sw=-.05-i*.07;
-        tip.add(tri([[x0,0,.2*sd],[x0-.06,0,.2*sd],[x0-.03+sw,0,(.2+len)*sd]]))}
+        tip.add(tri([[x0,.02,.2*sd],[x0-.06,.02,.2*sd],[x0-.03+sw,0,(.2+len)*sd]]))}
       g.add(root);wings.push({root,tip,sd});
     }
     g.userData.flap=(ph)=>wings.forEach(({root,tip,sd})=>{root.rotation.x=sd*(.1+Math.sin(ph)*.5);tip.rotation.x=sd*(-.15+Math.sin(ph-.6)*.4)});
     return g;
   }
-  const birds=[[1.5,0,0,0],[1.05,-1.6,.5,1.7],[.85,-2.6,-.6,3.1],[.7,-3.4,.4,4.4]].map(([s,dx,dy,ph])=>{const b=makeCrow();b.scale.setScalar(s);scene.add(b);return{b,dx,dy,ph,s}});
+  const birds=[[1.5,0,0,0],[1.05,-1.6,.5,1.7],[.85,-2.6,-.6,3.1],[.7,-3.4,.4,4.4],[.4,-4.6,1.1,2.3],[.34,-5.3,.3,5.2]].map(([s,dx,dy,ph])=>{const b=makeCrow();b.scale.setScalar(s);scene.add(b);return{b,dx,dy,ph,s}});
   return{scene,update(t,time){
     ring.material.color.setScalar(.6+.4*smooth(0,.4,t));hs.material.opacity=.45+.55*smooth(0,.4,t);
     birds.forEach(({b,dx,dy,ph,s},i)=>{
