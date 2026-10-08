@@ -1,0 +1,14 @@
+{
+  "name": "toward-the-light",
+  "private": true,
+  "description": "Toward the Light 向光而行: a scroll-driven 3D story site (three.js r128, single HTML file)",
+  "scripts": {
+    "build": "./build.sh",
+    "shots": "./build.sh && node tools/shots.js",
+    "contact": "./build.sh && node tools/shots.js --all && python3 tools/contact.py",
+    "video": "./build.sh && node tools/record.js && ./tools/encode.sh"
+  },
+  "devDependencies": {
+    "playwright": "^1.47.0"
+  }
+}

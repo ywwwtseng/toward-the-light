@@ -1,0 +1,78 @@
+
+<canvas id="stage" aria-hidden="true"></canvas>
+<div id="fade"></div>
+<div id="bigTitle" aria-hidden="true"></div>
+<div id="track"></div>
+
+<!-- 1. 開場畫面 -->
+<section id="intro" class="layer" aria-label="開場">
+  <div class="intro-row">
+    <div class="intro-word wide">Toward</div>
+    <div class="orbit">
+      <div class="ring r1"></div><div class="ring r2"></div>
+      <div class="spin"><span class="dot hollow"></span></div>
+      <div class="spin b"><span class="dot"></span></div>
+      <button id="begin" type="button">BEGIN</button>
+    </div>
+    <div class="intro-word wide" aria-label="The Light">THE LIGHT</div>
+  </div>
+  <div class="intro-foot">
+    <span class="brand">一個人的城市故事</span>
+    <a href="#">隱私權與條款</a>
+  </div>
+</section>
+
+<!-- 2. 載入畫面 -->
+<section id="loader" class="layer gone" aria-live="polite">
+  <canvas id="loadCanvas" aria-hidden="true"></canvas>
+  <div id="loadText">Loading 0%</div>
+</section>
+
+<!-- 3. 操作提示 -->
+<section id="hint" class="layer gone">
+  <div class="mouse" aria-hidden="true"></div>
+  <p>向下滾動<br>陪他走過黑夜</p>
+</section>
+
+<div id="caption" aria-live="polite"><span class="cap-n"></span><span class="cap-t"></span></div>
+
+<!-- 4. 結尾 -->
+<section id="ending" class="layer gone">
+  <div class="end-title wide"><span>Toward</span><span aria-label="The Light">THE LIGHT</span></div>
+  <div class="end-cta">
+    <a class="btn" href="#" id="listen" onclick="event.preventDefault();scrollTo({top:0})">再走一次</a>
+    <p class="end-note">路還很長，光也還在前面。謝謝你陪他走完這一段。</p>
+    <button class="icon-btn" id="openAbout" type="button" aria-label="關於這個作品">↓</button>
+  </div>
+</section>
+
+<button id="sound" type="button" aria-label="切換音效" hidden><i></i><i></i><i></i></button>
+
+<!-- 5. 關於 -->
+<aside id="about" aria-label="關於" aria-hidden="true">
+  <div class="about-bar">
+    <button class="icon-btn" type="button" id="shareBtn" aria-label="複製連結">⤴</button>
+    <span class="wide">About</span>
+    <button class="icon-btn" type="button" id="closeAbout" aria-label="關閉">✕</button>
+  </div>
+  <div class="about-sec">
+    <canvas id="aboutFig" width="400" height="400" aria-hidden="true"></canvas>
+    <h2 class="wide">The Story</h2>
+    <p>一個人、一只行李箱、一座不認識他的城市。從熄燈的走廊、凌晨的便利商店，到雨中的公車亭和租來的小房間，二十四個場景，記下他一點一點撐下去的日子。</p>
+    <p>他被城市推著走，碎過、淹過、縮成一團過，也在凌晨的窗邊撐過。走到最後他才明白，黑暗不會一下子散去，但只要繼續往前，光一直都在前面。</p>
+    <a class="btn" href="#" onclick="event.preventDefault();document.getElementById('closeAbout').click();scrollTo({top:0})">從頭開始</a>
+  </div>
+  <div class="about-sec dark">
+    <canvas id="aboutPhone" width="400" height="400" aria-hidden="true"></canvas>
+    <h2 class="wide">The Concept</h2>
+    <p>世界從來不完整，總有一角是空的；但缺了一角的人，依然可以發光。這是寫給每個在城市裡獨自撐著的人的一句話：不完整也沒關係，繼續往有光的地方走。</p>
+    <p>滾動就是時間。往下，日子往前走；往上，時間倒回去。城市在白天的霧和夜裡的燈之間來回，陪他穿過最黑的那一段路。</p>
+    <p style="font-size:11px;opacity:.6">靈感來自 PEACEMINUSONE。</p>
+  </div>
+  <div class="about-foot">
+    <strong class="wide" style="letter-spacing:.3em">TOWARD THE LIGHT</strong>
+    <span>向光而行・一個人的城市故事</span>
+  </div>
+  <div class="about-foot" style="padding-top:0"><a href="#">隱私權與條款</a></div>
+</aside>
+
