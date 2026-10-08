@@ -1064,7 +1064,7 @@ function frame(ms){
     const f=$('#fade');f.style.background=col;f.style.opacity=a;
     const dark=sc.dark(t);
     const capKey=t>.12&&t<.75?sc.key:'',cap=$('#caption');
-    if(capKey!==lastCap){lastCap=capKey;cap.classList.remove('on');setTimeout(()=>{const tx=capKey?CAPTIONS[capKey]||'':'';cap.querySelector('.cap-n').textContent=String(i+1).padStart(2,'0')+' — '+String(n).padStart(2,'0');cap.querySelector('.cap-t').textContent=tx;cap.classList.toggle('on',!!tx)},450)}
+    if(capKey!==lastCap){lastCap=capKey;cap.classList.remove('on');setTimeout(()=>{const tx=capKey?CAPTIONS[capKey]||'':'';cap.querySelector('.cap-t').textContent=tx;cap.classList.toggle('on',!!tx)},450)}
     cap.style.color=dark?'rgba(255,255,255,.86)':'rgba(0,0,0,.72)';cap.style.textShadow=dark?'0 0 14px rgba(0,0,0,.7),0 0 3px rgba(0,0,0,.6)':'0 0 14px rgba(255,255,255,.95),0 0 3px rgba(255,255,255,.9)';
     const endOn=i===n-1&&t>.72;$('#ending').classList.toggle('gone',!endOn);$('#ending').classList.toggle('on',endOn);
     $('#sound').style.color=dark?'#aaa':'#555';

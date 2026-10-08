@@ -12,7 +12,7 @@ The bar is **"product-level and artistic, not a demo."** The owner judges by eye
 - **Typography:**
   - Jost for letter-spaced Latin display ("T O W A R D").
   - Noto Serif TC / Noto Sans TC for Chinese.
-  - Cormorant Garamond italic for the scene counter.
+  - No scene counter: William removed the "03 — 24" numbers (2026-10-08). Captions show text only.
   - Captions are single centred lines, first person, quiet, never exclamatory.
 - **Motion:**
   - Slow, eased and scroll-driven.
