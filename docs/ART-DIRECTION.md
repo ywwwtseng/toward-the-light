@@ -57,3 +57,6 @@ The bar is **"product-level and artistic, not a demo."** The owner judges by eye
 
 ## The hero walks in place; the world moves (2026-10-08)
 William first said 「角色不要走路，場景動」, then 「這幾幕加入走路，要藝術」. In arrive, crack, office and field, the hero stays at a fixed spot and walks in place with `stroll()`. The environment slides past through `worldGroup(scene, keep)`, which moves every non-light child into one group animated from `t`. Pass `stroll` the same distance the world moved, so the feet stay planted. In arrive, footprints appear in the snow at each heel strike. In the end scene he stands still. Never use the old `walk()`, which William found mechanical.
+
+## Text tone (2026-10-08)
+William: 「文字 藝術一點 不要負面」. Captions and the About copy are poetic and hopeful. Avoid words of loss, collapse or loneliness (熄、撐下去、缺了、沒有人、黑暗…). Hard scenes are framed as turning points: the fog is scenery not yet seen, the shards become new shapes, the gap in the ring is space kept for the next light. There are still no flower words.
