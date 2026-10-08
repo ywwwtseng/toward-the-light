@@ -613,10 +613,10 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x050505);scene.fog=new THREE.Fog(0x050505,4,14);
   scene.add(new THREE.HemisphereLight(0x666666,0x080808,.3));scene.add(ground(0x0c0c0c));
   const dm=M(0x2a2a2a);scene.add(box(1.8,.05,.8,dm,0,.74,0),box(.05,.72,.7,dm,-.85,.36,0),box(.05,.72,.7,dm,.85,.36,0));
-  // monitor sits low on the desk with no visible stand (only a flat foot hidden behind it)
-  scene.add(box(.7,.42,.03,M(0x111111),.1,.985,-.25),box(.22,.012,.14,M(0x111111),.1,.771,-.33),box(.08,.2,.03,M(0x111111),.1,.86,-.285));
-  const screen=new THREE.Mesh(new THREE.PlaneGeometry(.64,.36),B(0xe8e8e8));screen.position.set(.1,.995,-.233);scene.add(screen);
-  const glowL=new THREE.PointLight(0xffffff,1.1,4);glowL.position.set(.1,1.05,.25);scene.add(glowL);
+  // monitor raised to eye height; its stand is a slim neck behind the panel on a flat foot, never in front of the screen
+  scene.add(box(.7,.42,.03,M(0x111111),.1,1.12,-.25),box(.24,.012,.16,M(0x111111),.1,.771,-.32),box(.07,.36,.025,M(0x111111),.1,.95,-.285));
+  const screen=new THREE.Mesh(new THREE.PlaneGeometry(.64,.36),B(0xe8e8e8));screen.position.set(.1,1.13,-.233);scene.add(screen);
+  const glowL=new THREE.PointLight(0xffffff,1.1,4);glowL.position.set(.1,1.13,.25);scene.add(glowL);
   const r=rng(19);for(let i=0;i<5;i++)scene.add(box(.3,.03+r()*.08,.22,M(0xd0d0d0),-.55+r()*.15,.79+i*.0,.05+r()*.1));
   const cup=new THREE.Mesh(new THREE.CylinderGeometry(.045,.035,.11,7),M(0xdddddd));cup.position.set(.62,.82,.08);scene.add(cup);
   const d=makeDaisy({r:.06,stem:.13});d.position.set(.62,.98,.08);d.userData.head.rotation.x=.5;scene.add(d);
