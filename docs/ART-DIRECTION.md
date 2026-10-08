@@ -54,3 +54,6 @@ The bar is **"product-level and artistic, not a demo."** The owner judges by eye
 4. Big, busy foreground geometry fights the caption. Keep the lower-middle of the frame calm while the caption is showing (t ∈ .12–.75).
 5. Check every pose in side, front and three-quarter views before shipping. Look for limbs through the coat, feet through the floor and heads in pillows.
 6. When the owner says "簡單一點" or "不要太複雜", remove things rather than restyling them.
+
+## The hero does not walk (2026-10-08)
+William: 「角色不要走路，場景動」. In arrive, crack, office, field and end the hero stands in his relaxed default pose, and the environment moves instead. Use `worldGroup(scene, keep)` to move every non-light child into one group, then animate that group's position from `t`. Don't reintroduce `walk()` without asking.

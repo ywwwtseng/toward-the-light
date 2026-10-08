@@ -11,6 +11,7 @@ This repo is a single-page, scroll-driven three.js story. The owner (William, Gi
    - realistic faces
    - the flower motif in text
    - grass in the dark-walk scene
+   - a walking hero (he stands still; the scene moves past him)
    - jittery motion
 5. **The scene contract is small. Keep it.** A scene is `{key, bg, dark(t), build() -> {scene, update(t, time)}}`, and its caption is `CAPTIONS[key]`. Adding a scene means adding one object to `SCENES` plus one caption. The scroll track length follows `SCENES.length` automatically.
 6. **Performance budget:**

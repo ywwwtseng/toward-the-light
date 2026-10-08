@@ -33,7 +33,7 @@ The torso is an inner group `up` at y = 0.88. It is not exposed, so **the spine 
 
 ## Built-in poses
 
-- `walk(phase, amp=.45)`: legs, knees and arms swing with a slight bob. Drive the phase from scroll progress, e.g. `walk(t*48)`, so walking speed is tied to scrolling.
+- `walk(phase, amp=.45)`: legs, knees and arms swing with a slight bob. **Currently unused:** William asked (2026-10-08) that the hero never walks. He stands still and the scene moves past him (see `worldGroup` in ART-DIRECTION).
 - `sit()`: thighs at −1.5, knees at 1.45, arms resting forward. Seat height offset: the hero's origin sits about 0.95 below the seat top, so place him at `seatY - .95`.
 - `float(time)`: loose, drifting limbs, used in `drift`.
 

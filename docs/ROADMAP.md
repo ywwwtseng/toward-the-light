@@ -7,7 +7,7 @@ Ordered roughly by value-for-effort. Anything visual should be checked with scre
 - **Spine and neck pivots.** Expose `up` as a spine joint (and add a neck) so the hero can slump, curl, look up and breathe. Scenes `shards`, `desk`, `room`, `call` and `skyline` all benefit.
 - **Skirt panels in deep poses.** They form a slab when the thighs are raised (`shards`, `sit`). Hide or fold them past a threshold, or hinge them.
 - **Two-bone arm IK** so hands can hold the phone, the cup and the pot precisely.
-- **Richer gait.** Add weight shift, heel strike and a slower "tired" walk variant for the late scenes.
+- **Standing idle.** The hero no longer walks; a subtle breathing / weight-shift idle could make the still figure feel alive (no trembling).
 
 ## 2. Scenes the owner may push back on
 

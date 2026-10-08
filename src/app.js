@@ -101,6 +101,9 @@ function stars(n,radius,{seed=1,minY=-1e9,size=1.6,opacity=.9}={}){
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
   return new THREE.Points(g,new THREE.PointsMaterial({color:0xffffff,size,sizeAttenuation:false,transparent:true,opacity,fog:false}));
 }
+/* the hero never walks: he stands still and the world slides past him.
+   Moves every child of scene (except keep) into one group and returns it. */
+function worldGroup(scene,keep=[]){const w=new THREE.Group();scene.children.slice().forEach(o=>{if(!keep.includes(o)&&!o.isLight)w.add(o)});scene.add(w);return w}
 function ground(color,size=400){const m=new THREE.Mesh(new THREE.PlaneGeometry(size,size),M(color,{side:THREE.FrontSide}));m.rotation.x=-Math.PI/2;return m}
 
 /* ---------- characters ---------- */
@@ -520,17 +523,14 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=new THREE.Color(0xeeeeee);scene.fog=new THREE.Fog(0xeeeeee,6,55);
   lights(scene);scene.add(ground(0xf2f2f2));street(scene,{seed:2});
   const me=makePerson();me.rotation.y=Math.PI;scene.add(me);suitcase(me);
-  const fp=[],fm=new THREE.InstancedMesh(new THREE.BoxGeometry(.13,.01,.26),B(0xbdbdbd),300),m=new THREE.Matrix4();
-  for(let z=6;z>-26;z-=.42)fp.push([(fp.length%2?.11:-.11),z]);
-  fp.forEach(([x,z],i)=>{m.makeTranslation(x,.006,z);fm.setMatrixAt(i,m)});fm.count=0;scene.add(fm);
-  const n=1600,pos=new Float32Array(n*3),r=rng(4);for(let i=0;i<n;i++){pos[i*3]=(r()-.5)*30;pos[i*3+1]=r()*12;pos[i*3+2]=(r()-.5)*40}
+    const n=1600,pos=new Float32Array(n*3),r=rng(4);for(let i=0;i<n;i++){pos[i*3]=(r()-.5)*30;pos[i*3+1]=r()*12;pos[i*3+2]=(r()-.5)*40}
   const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const world=worldGroup(scene,[me]);
   const snow=new THREE.Points(sg,new THREE.PointsMaterial({color:0xffffff,size:.05}));scene.add(snow);
   return{scene,update(t,time){
-    const z=-t*16;me.position.set(0,0,z);me.userData.walk(t*90);me.userData.arms[1].rotation.x=0;
-    let c=0;for(const p of fp)if(p[1]>z+.3)c++;fm.count=c;
-    snow.position.y=-(time*.6%12);snow.position.z=z;
-    camera.position.set(Math.sin(t*3)*.3,1.75,5-t*6);camera.lookAt(0,1.3,z-4);
+    world.position.z=t*22; // the street slides toward us; he stands still with his suitcase
+    snow.position.y=-(time*.6%12);
+    camera.position.set(Math.sin(t*3)*.3,1.75,lerp(5,7.5,t));camera.lookAt(0,1.3,-4);
   }};
 }},
 /* 2 — a small daisy in a crack of the pavement; his steps pass by */
@@ -541,11 +541,12 @@ const SCENES=[
   while(x<6){const nx=x+.25+r()*.5,nz=z+(r()-.5)*.35,len=Math.hypot(nx-x,nz-z),seg=box(len,.004,.03,cm,(x+nx)/2,.003,(z+nz)/2);seg.rotation.y=-Math.atan2(nz-z,nx-x);scene.add(seg);x=nx;z=nz}
   for(let i=0;i<40;i++){const s=box(.25+r()*.6,.01,.18+r()*.3,M(0xf7f7f7),(r()-.5)*10,.005,(r()-.5)*6);s.rotation.y=r()*3;scene.add(s)} // snow patches
   const d=makeDaisy({r:.09,stem:.16});d.position.set(0,.16,.25);d.userData.head.rotation.x=.35;scene.add(d);
-  const me=makePerson();me.rotation.y=Math.PI/2;scene.add(me);
+  const world=worldGroup(scene);
+  const me=makePerson();me.rotation.y=Math.PI/2;me.position.set(0,0,-1.1);scene.add(me);
   return{scene,update(t,time){
-    me.position.set(lerp(-5,4.5,t),0,-1.1);me.userData.walk(t*55);
+    world.position.x=lerp(4.5,-4.5,t); // the pavement and its crack slide by under him
     d.rotation.z=Math.sin(time*1.3)*.06;d.userData.head.rotation.y=time*.15;
-    camera.position.set(lerp(.9,.25,t),lerp(.28,.22,t),lerp(1.6,.8,t));camera.lookAt(0,.2,.1);
+    camera.position.set(lerp(.5,.2,t),lerp(.3,.24,t),lerp(1.5,1.1,t));camera.lookAt(0,.25,-.4);
   }};
 }},
 /* 3 — the office corridor after the last train */
@@ -563,10 +564,12 @@ const SCENES=[
     scene.add(box(.05,2.3,1.4,M(0x2a2a2a),-2.14,1.15,z-2.5),box(.05,2.3,1.4,M(0x2a2a2a),2.14,1.15,z-2.5));
   }
   const pl=new THREE.PointLight(0xffffff,1.2,14);scene.add(pl);
-  const me=makePerson({body:0x3a3a3a,jacket:0x2c2c2c});me.rotation.y=Math.PI;scene.add(me);suitcase(me);
+  const world=worldGroup(scene,[pl]);
+  const me=makePerson({body:0x3a3a3a,jacket:0x2c2c2c});me.rotation.y=Math.PI;me.position.set(0,0,5.5);scene.add(me);suitcase(me);
+  pl.position.set(0,2.6,7);
   return{scene,update(t){
-    const z=10-t*30;me.position.set(0,0,z-4.5);me.userData.walk(t*70,.35);me.userData.arms[1].rotation.x=0;
-    camera.position.set(0,1.6,z);camera.lookAt(0,1.3,z-10);pl.position.set(0,2.6,z-3);
+    world.position.z=t*30; // the corridor and its lamps slide past; he stays put
+    camera.position.set(0,1.6,10);camera.lookAt(0,1.3,0);
   }};
 }},
 /* 4 — late night at the desk */
@@ -939,9 +942,14 @@ const SCENES=[
   const sun=new THREE.Mesh(new THREE.CircleGeometry(1.2,48),B(0xfffbef,{fog:false}));sun.position.set(0,11,-70);scene.add(sun);
   const halo=glow(24,.45);halo.material.fog=false;halo.material.depthTest=false;halo.renderOrder=10;halo.position.set(0,11,-69);scene.add(halo);
   const halo2=glow(8,.8);halo2.material.fog=false;halo2.position.set(0,11,-68);scene.add(halo2);
-  const me=makePerson();me.rotation.y=Math.PI;scene.add(me);
+  // faint stones on the dark ground, so the ground can be seen moving under him
+  const world=new THREE.Group(),stone=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(.06,0),M(0x262626),260);
+  for(let i=0;i<260;i++){e.set(r()*3,r()*3,r()*3);q.setFromEuler(e);const s=.4+r()*1.4;m4.compose(V3((r()-.5)*14,.01,8-r()*44),q,V3(s,s*.5,s));stone.setMatrixAt(i,m4)}
+  world.add(stone);scene.add(world);
+  const me=makePerson();me.rotation.y=Math.PI;me.position.set(0,0,2);scene.add(me);
+  key.position.z=-10;key.target.position.set(0,0,2);
   return{scene,update(t,time){
-    const z=2-t*14;me.position.set(0,0,z);me.userData.walk(t*48,.38);key.position.z=z-12;key.target.position.set(0,0,z);
+    const z=2;world.position.z=t*14; // he stands; the dark ground moves toward us
     const k=smooth(0,1,t);sun.scale.setScalar(1+k*.5);halo.material.opacity=.35+k*.5;halo2.material.opacity=.6+k*.4;key.intensity=.5+k*.9;
     camera.position.set(lerp(.9,.5,t),lerp(1.5,1.7,t),z+3.6);camera.lookAt(0,lerp(1.5,1.8,t),z-12);
   }};
@@ -974,8 +982,7 @@ const SCENES=[
   const fadeTex=canvasTex(4,128,(c,w,h)=>{const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(251,251,251,0)');g.addColorStop(1,'rgba(251,251,251,1)');c.fillStyle=g;c.fillRect(0,0,w,h)});
   const veil=new THREE.Mesh(new THREE.PlaneGeometry(6,2.2),new THREE.MeshBasicMaterial({map:fadeTex,transparent:true,depthTest:false}));veil.position.set(0,-1.1,.6);veil.renderOrder=2;scene.add(veil);
   return{scene,update(t,time){
-    const k=ease(smooth(0,.75,t)),w=(1-k)*time*5.5,amp=.45*(1-k);
-    dad.userData.walk(w,amp);ref.userData.walk(w,amp);
+    const k=ease(smooth(0,.75,t)); // he stands still with his reflection
     camera.position.set(0,0,lerp(2.6,14,k));camera.lookAt(0,lerp(1.2,0,k),0);
     veil.position.z=.6;veil.scale.setScalar(lerp(1,1,k));
   }};
