@@ -60,3 +60,9 @@ William first said 「角色不要走路，場景動」, then 「這幾幕加入
 
 ## Text tone (2026-10-08)
 William: 「文字 藝術一點 不要負面」. Captions and the About copy are poetic and hopeful. Avoid words of loss, collapse or loneliness (熄、撐下去、缺了、沒有人、黑暗…). Hard scenes are framed as turning points: the fog is scenery not yet seen, the shards become new shapes, the gap in the ring is space kept for the next light. There are still no flower words.
+
+## Language (2026-10-08)
+William: 「文字最後都用英文」. All visible text (captions, intro, hints, ending, About, aria labels) is in English, in the same hopeful, poetic tone. Captions are set in Cormorant Garamond italic.
+
+## Gait fixes (2026-10-08)
+William said the walking body and feet looked odd. Ankles now keep the soles flat while planted, the stride is calmer (amp about .27 to .3), coat panels follow the legs at only 50% while walking, and the torso twist is tiny so the coat doesn't break at the waist. Use tools/gait.html (serve the repo root) to check a gait sheet.

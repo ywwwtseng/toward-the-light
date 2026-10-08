@@ -1,33 +1,33 @@
 /* =========================================================
-   可編輯區：每一幕的文字說明（留空字串就不顯示）
+   Editable: the caption for each scene (an empty string shows nothing)
    ========================================================= */
 const CAPTIONS = {
   title:     "",
-  arrive:    "一只行李箱，裝著我全部的勇氣",
-  crack:     "每天走過的路，也藏著小小的風景",
-  office:    "一盞一盞的燈，替晚歸的人照路",
-  desk:      "夜深了，螢幕的光陪我把夢寫完",
-  skyline:   "城市很大，我正一筆一筆寫下自己的名字",
-  grid:      "萬家燈火裡，總有一盞會為我亮起",
-  subway:    "列車來來去去，每一站都通往遠方",
-  store:     "凌晨的窗還亮著，像一句溫柔的晚安",
-  towers:    "霧再濃，也只是還沒看見的風景",
-  umbrellas: "人海裡撐一把傘，也撐起自己的天空",
-  flip:      "換個角度，天空就在腳下",
-  drift:     "放下重量的夜，身體輕得像雲",
-  eclipse:   "光只是暫時休息，等著再一次登場",
-  petals:    "一頁一頁翻過，每一天都算數",
-  shards:    "把碎片拾起來，拼成新的形狀",
-  flood:     "雨下成了海，就划向對岸",
-  rooftop:   "清晨的頂樓，把盼望種進風裡",
-  room:      "小小的房間，裝得下一整天的溫暖",
-  call:      "電話那頭的聲音，是離我最近的家",
-  bloom:     "太陽升起，今天又是嶄新的一頁",
-  field:     "一步一步，往光的方向走",
-  minusone:  "留一個位置，給還在路上的光",
+  arrive:    "One suitcase, carrying all my courage",
+  crack:     "Even the everyday road hides small wonders",
+  office:    "Light after light, guiding the late ones home",
+  desk:      "Deep in the night, the screen's glow helps me write my dream",
+  skyline:   "The city is vast, and I am writing my name into it, line by line",
+  grid:      "Among ten thousand lights, one will shine for me",
+  subway:    "Trains come and go; every stop leads somewhere new",
+  store:     "A window glowing at dawn, like a gentle goodnight",
+  towers:    "However thick the fog, it is only a view not yet seen",
+  umbrellas: "In a sea of people, my umbrella holds up a sky of my own",
+  flip:      "Turn the world around, and the sky lies at your feet",
+  drift:     "On nights I set the weight down, I am light as a cloud",
+  eclipse:   "The light is only resting, waiting for its return",
+  petals:    "Page by page, every day counts",
+  shards:    "Gather the pieces and shape them into something new",
+  flood:     "When the rain becomes a sea, row for the other shore",
+  rooftop:   "Morning on the rooftop, planting hope in the wind",
+  room:      "A small room, big enough for a whole day's warmth",
+  call:      "The voice on the line is the closest home",
+  bloom:     "The sun rises, and today is a brand-new page",
+  field:     "Step by step, toward the light",
+  minusone:  "A space kept open for the light still on its way",
   end:       ""
 }
-const TITLE_A = "TOWARD", TITLE_B = "THE LIGHT", PRESENTS = "獻給每個獨自打拼的人";
+const TITLE_A = "TOWARD", TITLE_B = "THE LIGHT", PRESENTS = "For everyone making it alone in the city";
 
 /* ---------- utilities ---------- */
 const $ = s => document.querySelector(s);
@@ -323,7 +323,7 @@ function makeHero({body,jacket,mat=null}={}){
   let sd0=1;const g=new THREE.Group(),mm=c=>mat||M(c,{vertexColors:true});
   const mCoat=mm(C.coat),mPants=mm(C.pants),mSkin=mm(C.skin),mHair=mm(C.hair),mShoe=mm(C.shoe),mIn=mm(C.inner);
   const L=(secs,m,n=5,rot=0)=>new THREE.Mesh(loftGeo(secs,{sides:n,rot,jitter:.09,seed:sd0++}),m);
-  const legs=[],knees=[],arms=[],elbows=[],hands=[],hipY=.98;
+  const legs=[],knees=[],ankles=[],arms=[],elbows=[],hands=[],hipY=.98;
   /* hand: faceted palm, four two-joint fingers and a thumb. Palm faces the thigh (local -z); fingers curl toward it.
      hand.userData.grip(k): 0 = open, ~.15 = relaxed, 1 = closed around a handle. */
   const mkHand=sd=>{const hd=new THREE.Group(),ts=-sd;hd.position.y=-.255;hd.rotation.y=sd*Math.PI/2;
@@ -342,14 +342,15 @@ function makeHero({body,jacket,mat=null}={}){
     hip.add(L([[0,.14,.15],[-.5,.085,.095]],mPants,5,Math.PI));
     const knee=new THREE.Group();knee.position.y=-.5;hip.add(knee);
     knee.add(L([[0,.09,.1],[-.44,.06,.07]],mPants,5,Math.PI));
-    knee.add(L([[-.43,.08,.1,0,.0],[-.47,.1,.27,0,.06],[-.5,.08,.24,0,.07]],mShoe,4,Math.PI/4));
-    g.add(hip);legs.push(hip);knees.push(knee);
+    const ank=new THREE.Group();ank.position.y=-.44;knee.add(ank); // ankle: keeps the sole flat on the ground while walking
+    ank.add(L([[.01,.08,.1,0,.0],[-.03,.1,.27,0,.06],[-.06,.08,.24,0,.07]],mShoe,4,Math.PI/4));
+    g.add(hip);legs.push(hip);knees.push(knee);ankles.push(ank);
   }
   // long coat skirt: one faceted panel per leg, swinging part-way with it
   g.add(L([[1.04,.4,.25],[.86,.38,.26],[.7,.3,.22]],mCoat,6,Math.PI/6)); // fixed seat of the coat, hides the gap between the panels
   for(let i=0;i<2;i++){const sd=i?1:-1,leg=legs[i],pv=new THREE.Group();pv.position.set(sd*.08,hipY,0);
     pv.add(L([[.08,.25,.27,0,0,sd*.025],[-.52,.27,.31,0,0,sd*.03]],mCoat,4,Math.PI/4));
-    pv.updateMatrix=function(){const a=leg.rotation.x;this.rotation.x=a*(a<-1?.92:.8);this.rotation.z=leg.rotation.z;THREE.Object3D.prototype.updateMatrix.call(this)};g.add(pv)}
+    pv.updateMatrix=function(){const a=leg.rotation.x;this.rotation.x=a*(a<-1?.92:(g.userData.walking?.5:.8));this.rotation.z=leg.rotation.z;THREE.Object3D.prototype.updateMatrix.call(this)};g.add(pv)}
   const base=.88,up=new THREE.Group();up.position.y=base;g.add(up);
   // torso: an inverted wedge, broad sharp shoulders tapering to the waist
   up.add(L([[.94-base,.4,.24],[1.12-base,.44,.26],[1.3-base,.54,.28],[1.4-base,.56,.26],[1.47-base,.36,.2],[1.52-base,.18,.15]],mCoat,6,Math.PI/6));
@@ -374,7 +375,7 @@ function makeHero({body,jacket,mat=null}={}){
   // relaxed default stance
   arms[1].rotation.x=.04;elbows[1].rotation.x=-.38;arms[0].rotation.x=-.05;elbows[0].rotation.x=-.3;
   legs[0].rotation.z=-.035;legs[1].rotation.z=.02;knees[1].rotation.x=.08;head.rotation.y=-.12;up.rotation.z=.015;
-  g.userData={legs,knees,arms,elbows,head,hands,
+  g.userData={legs,knees,ankles,arms,elbows,head,hands,
     walk(ph,amp=.45){
       for(let i=0;i<2;i++){const p=ph+(i?Math.PI:0),sw=Math.sin(p);
         legs[i].rotation.x=-sw*amp;knees[i].rotation.x=Math.max(0,Math.cos(p))*amp*1.6;
@@ -394,11 +395,14 @@ function makeHero({body,jacket,mat=null}={}){
         if(u<.5)return[amp*(1-4*u),.05*Math.sin(u*TAU)];                 // stance: hip sweeps back at a constant rate, slight loading flex
         const w=(u-.5)*2;return[-amp*Math.cos(Math.PI*w),amp*2.1*Math.sin(Math.PI*Math.pow(w,.75))]}; // swing: knee lifts early, leg reaches forward
       let drop=0;
-      for(let i=0;i<2;i++){const[h,k]=leg(ph+i*.5);legs[i].rotation.x=-h;knees[i].rotation.x=k;
-        drop=Math.max(drop,.5*Math.cos(h)+.5*Math.cos(k-h))}
+      g.userData.walking=true;
+      for(let i=0;i<2;i++){const u=(((ph+i*.5)%1)+1)%1,[h,k]=leg(ph+i*.5);legs[i].rotation.x=-h;knees[i].rotation.x=k;
+        // foot: flat while planted; in swing the toe lifts slightly so it clears the ground
+        ankles[i].rotation.x=h-k-(u<.5?0:.18*Math.sin((u-.5)*2*Math.PI));
+        drop=Math.max(drop,.5*Math.cos(h)+.44*Math.cos(k-h)+.06)}
       g.position.y=drop-1;
       const s=Math.sin(ph*TAU);
-      up.rotation.set(.05,-s*.07,(carry?-.03:0)+Math.cos(ph*2*TAU)*.012);
+      up.rotation.set(.04,-s*.025,Math.cos(ph*2*TAU)*.006); // small: the coat skirt below does not twist, so a big torso twist breaks the line at the waist
       for(let i=0;i<2;i++){const[hl]=leg(ph+i*.5-.06);
         const a=carry&&i===1?hl*.12:hl*.62;arms[i].rotation.x=a;elbows[i].rotation.x=carry&&i===1?-.05:-.22-Math.max(0,-a)*.45}
       head.rotation.set(gaze,s*.06,-up.rotation.z*.6);
@@ -554,7 +558,7 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=new THREE.Color(0xeeeeee);scene.fog=new THREE.Fog(0xeeeeee,6,55);
   lights(scene);scene.add(ground(0xf2f2f2));street(scene,{seed:2});
   const me=makePerson();me.rotation.y=Math.PI;scene.add(me);suitcase(me);
-  const AMP=.34,STEP=2*Math.sin(AMP),fm=new THREE.InstancedMesh(new THREE.BoxGeometry(.11,.008,.24),B(0xc9c9c9),80),m=new THREE.Matrix4();
+  const AMP=.3,STEP=2*Math.sin(AMP),fm=new THREE.InstancedMesh(new THREE.BoxGeometry(.11,.008,.24),B(0xc9c9c9),80),m=new THREE.Matrix4();
   for(let j=0;j<80;j++){m.makeTranslation(j%2?-.08:.08,.005,-STEP/2-j*STEP+.04);fm.setMatrixAt(j,m)}fm.count=0;scene.add(fm); // a print each time a heel lands
   const n=1600,pos=new Float32Array(n*3),r=rng(4);for(let i=0;i<n;i++){pos[i*3]=(r()-.5)*30;pos[i*3+1]=r()*12;pos[i*3+2]=(r()-.5)*40}
   const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(pos,3));
@@ -579,7 +583,7 @@ const SCENES=[
   const me=makePerson();me.rotation.y=Math.PI/2;me.position.set(0,0,-1.1);scene.add(me);
   return{scene,update(t,time){
     world.position.x=lerp(4.5,-4.5,t); // the pavement and its crack slide by under his steps
-    me.userData.stroll(t*9,{amp:.32,gaze:.18});
+    me.userData.stroll(t*9,{amp:.3,gaze:.18});
     d.rotation.z=Math.sin(time*1.3)*.06;d.userData.head.rotation.y=time*.15;
     camera.position.set(lerp(.5,.2,t),lerp(.3,.24,t),lerp(1.5,1.1,t));camera.lookAt(0,.25,-.4);
   }};
@@ -604,7 +608,7 @@ const SCENES=[
   pl.position.set(0,2.6,7);
   return{scene,update(t){
     world.position.z=t*30; // the corridor and its lamps slide past as he walks
-    me.userData.stroll(t*30,{amp:.3,carry:true,gaze:.2});
+    me.userData.stroll(t*30,{amp:.27,carry:true,gaze:.2});
     camera.position.set(0,1.6,10);camera.lookAt(0,1.3,0);
   }};
 }},
@@ -1006,7 +1010,7 @@ const SCENES=[
   key.position.z=-10;key.target.position.set(0,0,2);
   return{scene,update(t,time){
     const z=2;world.position.z=t*14; // the dark ground moves toward us under his steps
-    me.userData.stroll(t*14,{amp:.36,gaze:lerp(.02,-.12,t)}); // head lifts toward the light
+    me.userData.stroll(t*14,{amp:.3,gaze:lerp(.02,-.12,t)}); // head lifts toward the light
     const k=smooth(0,1,t);sun.scale.setScalar(1+k*.5);halo.material.opacity=.35+k*.5;halo2.material.opacity=.6+k*.4;key.intensity=.5+k*.9;
     camera.position.set(lerp(.9,.5,t),lerp(1.5,1.7,t),z+3.6);camera.lookAt(0,lerp(1.5,1.8,t),z-12);
   }};
@@ -1088,7 +1092,7 @@ function runLoader(done){
     c.fillStyle='#fff';c.beginPath();const a1=s*1.3;c.arc(cx+Math.cos(a1)*base*1.25,cy+Math.sin(a1)*base*1.25,5,0,7);c.fill();
     c.strokeStyle='#777';c.lineWidth=1.5;c.beginPath();const a2=-s*.7+2;c.arc(cx+Math.cos(a2)*base*1.5,cy+Math.sin(a2)*base*1.5,4,0,7);c.stroke();
     if(s-lastMsg>1.6){lastMsg=s;msg^=1}
-    $('#loadText').innerHTML=msg?'為了最佳體驗<br>請戴上耳機':'Loading '+Math.floor(pct)+'%';
+    $('#loadText').innerHTML=msg?'For the best experience<br>wear headphones':'Loading '+Math.floor(pct)+'%';
     if(pct>=100&&s>3){
       if(!endAt)endAt=s;const k=clamp((s-endAt)/.9);
       c.fillStyle='#fafafa';c.beginPath();c.arc(cx,cy,lerp(base,Math.hypot(W,H),ease(k)),0,7);c.fill();

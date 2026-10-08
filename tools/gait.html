@@ -1,0 +1,19 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#2a2a2a">
+<!-- Gait sheet: renders the hero's stroll() at 8 phases from the side and the back. Serve the repo root, open /tools/gait.html -->
+<script src="../dist/three.min.js"></script>
+<script>
+fetch('../dist/test.html').then(r => r.text()).then(html => {
+  const js = html.split('<script>').pop().split('<\/script>')[0];
+  const util = js.slice(js.indexOf('/* ---------- utilities'), js.indexOf('/* ---------- renderer'));
+  const help = js.slice(js.indexOf('/* ---------- materials & helpers'), js.indexOf('const SCENES=['));
+  (0, eval)(util + help + `
+    const R=new THREE.WebGLRenderer({antialias:true});R.setSize(1600,800);R.setScissorTest(true);document.body.appendChild(R.domElement);
+    const S=new THREE.Scene();S.background=new THREE.Color(0x2a2a2a);S.add(new THREE.HemisphereLight(0xffffff,0x333333,.9));
+    const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(3,5,4);S.add(dl);S.add(ground(0x555555));
+    const d=makePerson({body:0x3a3a3a,jacket:0x555555});S.add(d);
+    const C=new THREE.PerspectiveCamera(30,1,.1,50),step=2*Math.sin(.34);
+    for(let row=0;row<2;row++)for(let k=0;k<8;k++){d.userData.stroll(k/8*2*step,{amp:.34});
+      if(row)C.position.set(0,1.1,-5);else C.position.set(5,1.1,0);C.lookAt(0,.9,0);
+      R.setViewport(k*200,(1-row)*400,200,400);R.setScissor(k*200,(1-row)*400,200,400);C.aspect=.5;C.updateProjectionMatrix();R.render(S,C)}`);
+});
+</script>
