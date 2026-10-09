@@ -1,0 +1,3990 @@
+[
+ {
+  "i": 0,
+  "key": "title",
+  "tris": 0,
+  "heroTris": 0,
+  "meshes": 0,
+  "instanced": 0,
+  "instances": 0,
+  "lines": 0,
+  "points": 0,
+  "sprites": 0,
+  "lights": [],
+  "materials": 0,
+  "top": []
+ },
+ {
+  "i": 1,
+  "key": "arrive",
+  "tris": 2454,
+  "heroTris": 1749,
+  "meshes": 193,
+  "instanced": 8,
+  "instances": 92,
+  "lines": 0,
+  "points": 1600,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #ffffff 0.90",
+   "Directional #ffffff 0.70",
+   "Directional #ffffff 0.32"
+  ],
+  "materials": 56,
+  "top": [
+   {
+    "geo": "Box",
+    "tris": 288,
+    "per": 12,
+    "n": 24,
+    "color": "#8e8e8e",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 216,
+    "per": 12,
+    "n": 18,
+    "color": "#4e4e4e",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 216,
+    "per": 12,
+    "n": 18,
+    "color": "#4e4e4e",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 88,
+    "per": 8,
+    "n": 11,
+    "color": "#eaeaea",
+    "lit": true,
+    "pos": [
+     8.22,
+     15.95,
+     2.23
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 56,
+    "per": 8,
+    "n": 7,
+    "color": "#eaeaea",
+    "lit": true,
+    "pos": [
+     6.43,
+     10.98,
+     -14.57
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 56,
+    "per": 8,
+    "n": 7,
+    "color": "#eaeaea",
+    "lit": true,
+    "pos": [
+     8.25,
+     14.1,
+     -20.94
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 56,
+    "per": 8,
+    "n": 7,
+    "color": "#eaeaea",
+    "lit": true,
+    "pos": [
+     8.1,
+     8.25,
+     -47.01
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     -8.18,
+     7.71,
+     9.03
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#eaeaea",
+    "lit": true,
+    "pos": [
+     -8.18,
+     15.38,
+     9.03
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#999999",
+    "lit": true,
+    "pos": [
+     -8.18,
+     1.44,
+     9.03
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#eaeaea",
+    "lit": true,
+    "pos": [
+     -8.18,
+     2.83,
+     9.03
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#c6c6c6",
+    "lit": true,
+    "pos": [
+     -4.68,
+     1,
+     9.03
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 2,
+  "key": "crack",
+  "tris": 3514,
+  "heroTris": 1561,
+  "meshes": 84,
+  "instanced": 1,
+  "instances": 200,
+  "lines": 0,
+  "points": 0,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #ffffff 0.90",
+   "Directional #ffffff 0.80",
+   "Directional #ffffff 0.36"
+  ],
+  "materials": 17,
+  "top": [
+   {
+    "geo": "Sphere",
+    "tris": 462,
+    "per": 462,
+    "n": 1,
+    "color": "#e79a14",
+    "emissive": "#7a4a00",
+    "lit": true,
+    "pos": [
+     0,
+     0.16,
+     0.25
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Plane",
+    "tris": 400,
+    "per": 2,
+    "n": 200,
+    "color": "#e2e2e2",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Tube",
+    "tris": 392,
+    "per": 392,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0,
+     0.16,
+     0.25
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 128,
+    "per": 128,
+    "n": 1,
+    "color": "#484848",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Sphere",
+    "tris": 126,
+    "per": 126,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0,
+     0.16,
+     0.25
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 98,
+    "per": 98,
+    "n": 1,
+    "color": "#363636",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Shape",
+    "tris": 95,
+    "per": 95,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0,
+     0.08,
+     0.25
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Shape",
+    "tris": 95,
+    "per": 95,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0,
+     0.04,
+     0.25
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.01,
+     0.16,
+     0.27
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.01,
+     0.16,
+     0.26
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.01,
+     0.16,
+     0.26
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.02,
+     0.16,
+     0.26
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 3,
+  "key": "office",
+  "tris": 1922,
+  "heroTris": 1749,
+  "meshes": 107,
+  "instanced": 15,
+  "instances": 209,
+  "lines": 0,
+  "points": 0,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #888888 0.35",
+   "Point #ffffff 1.20"
+  ],
+  "materials": 40,
+  "top": [
+   {
+    "geo": "Buffer",
+    "tris": 240,
+    "per": 16,
+    "n": 15,
+    "color": "#141414",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 180,
+    "per": 12,
+    "n": 15,
+    "color": "#1a1a1a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 180,
+    "per": 12,
+    "n": 15,
+    "color": "#1a1a1a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 180,
+    "per": 12,
+    "n": 15,
+    "color": "#1a1a1a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 180,
+    "per": 12,
+    "n": 15,
+    "color": "#3a3a3a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 180,
+    "per": 12,
+    "n": 15,
+    "color": "#2a2a2a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 180,
+    "per": 12,
+    "n": 15,
+    "color": "#6e6e6e",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 180,
+    "per": 12,
+    "n": 15,
+    "color": "#6e6e6e",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 84,
+    "per": 12,
+    "n": 7,
+    "color": "#111111",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Plane",
+    "tris": 30,
+    "per": 2,
+    "n": 15,
+    "color": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Plane",
+    "tris": 30,
+    "per": 2,
+    "n": 15,
+    "color": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Plane",
+    "tris": 30,
+    "per": 2,
+    "n": 15,
+    "color": "#050505",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 4,
+  "key": "desk",
+  "tris": 4530,
+  "heroTris": 1561,
+  "meshes": 118,
+  "instanced": 1,
+  "instances": 71,
+  "lines": 0,
+  "points": 0,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #666666 0.30",
+   "Point #ffffff 1.10"
+  ],
+  "materials": 34,
+  "top": [
+   {
+    "geo": "Box",
+    "tris": 852,
+    "per": 12,
+    "n": 71,
+    "color": "#2e2e2e",
+    "lit": true,
+    "pos": [
+     0,
+     0.77,
+     -0.07
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Sphere",
+    "tris": 462,
+    "per": 462,
+    "n": 1,
+    "color": "#e79a14",
+    "emissive": "#7a4a00",
+    "lit": true,
+    "pos": [
+     0.62,
+     0.98,
+     0.08
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Tube",
+    "tris": 392,
+    "per": 392,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0.62,
+     0.98,
+     0.08
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Sphere",
+    "tris": 126,
+    "per": 126,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0.62,
+     0.98,
+     0.08
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Shape",
+    "tris": 95,
+    "per": 95,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0.62,
+     0.92,
+     0.08
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Shape",
+    "tris": 95,
+    "per": 95,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0.62,
+     0.88,
+     0.08
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.62,
+     0.98,
+     0.09
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.63,
+     0.98,
+     0.09
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.63,
+     0.98,
+     0.09
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.63,
+     0.98,
+     0.08
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.63,
+     0.98,
+     0.08
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.63,
+     0.98,
+     0.08
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 5,
+  "key": "skyline",
+  "tris": 3232,
+  "heroTris": 1561,
+  "meshes": 305,
+  "instanced": 1,
+  "instances": 25,
+  "lines": 0,
+  "points": 0,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #ffffff 0.90",
+   "Directional #ffffff 0.90",
+   "Directional #ffffff 0.41"
+  ],
+  "materials": 88,
+  "top": [
+   {
+    "geo": "Box",
+    "tris": 300,
+    "per": 12,
+    "n": 25,
+    "color": "#a8a8a8",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     -43.52,
+     21.64,
+     -56.79
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#eaeaea",
+    "lit": true,
+    "pos": [
+     -43.52,
+     43.24,
+     -56.79
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     26.1,
+     10.99,
+     -87.76
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#eaeaea",
+    "lit": true,
+    "pos": [
+     26.1,
+     21.94,
+     -87.76
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#7f7f7f",
+    "lit": true,
+    "pos": [
+     28.48,
+     22.12,
+     -89.4
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     28.74,
+     23.19,
+     -81.33
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#eaeaea",
+    "lit": true,
+    "pos": [
+     28.74,
+     46.34,
+     -81.33
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     29.14,
+     52.18,
+     -81.6
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#eaeaea",
+    "lit": true,
+    "pos": [
+     29.14,
+     57.94,
+     -81.6
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     -37.75,
+     17.82,
+     -46.48
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#eaeaea",
+    "lit": true,
+    "pos": [
+     -37.75,
+     35.61,
+     -46.48
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 6,
+  "key": "grid",
+  "tris": 5078,
+  "heroTris": 1561,
+  "meshes": 358,
+  "instanced": 4,
+  "instances": 116,
+  "lines": 1,
+  "points": 0,
+  "sprites": 1,
+  "lights": [
+   "Hemisphere #888888 0.50"
+  ],
+  "materials": 164,
+  "top": [
+   {
+    "geo": "Box",
+    "tris": 840,
+    "per": 12,
+    "n": 70,
+    "color": "#2c2c2c",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 396,
+    "per": 12,
+    "n": 33,
+    "color": "#202020",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 120,
+    "per": 24,
+    "n": 5,
+    "color": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 96,
+    "per": 12,
+    "n": 8,
+    "color": "#303030",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     -24,
+     1.95,
+     -24
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#1e1e1e",
+    "lit": true,
+    "pos": [
+     -24,
+     3.87,
+     -24
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     -24,
+     0.68,
+     -20
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#1e1e1e",
+    "lit": true,
+    "pos": [
+     -24,
+     1.36,
+     -20
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     -24,
+     0.75,
+     -16
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#1e1e1e",
+    "lit": true,
+    "pos": [
+     -24,
+     1.49,
+     -16
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     -24,
+     0.87,
+     -10
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#1e1e1e",
+    "lit": true,
+    "pos": [
+     -24,
+     1.73,
+     -10
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 7,
+  "key": "subway",
+  "tris": 3548,
+  "heroTris": 1561,
+  "meshes": 137,
+  "instanced": 13,
+  "instances": 217,
+  "lines": 0,
+  "points": 0,
+  "sprites": 1,
+  "lights": [
+   "Hemisphere #999999 0.60",
+   "Directional #ffffff 0.50",
+   "Directional #ffffff 0.23",
+   "Point #ffffff 0.00"
+  ],
+  "materials": 57,
+  "top": [
+   {
+    "geo": "Buffer",
+    "tris": 720,
+    "per": 24,
+    "n": 30,
+    "color": "#161616",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     -2.5
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 288,
+    "per": 12,
+    "n": 24,
+    "color": "#484848",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     -2.5
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 156,
+    "per": 12,
+    "n": 13,
+    "color": "#1c1c1c",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 144,
+    "per": 12,
+    "n": 12,
+    "color": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 144,
+    "per": 12,
+    "n": 12,
+    "color": "#343434",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 144,
+    "per": 12,
+    "n": 12,
+    "color": "#343434",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 144,
+    "per": 12,
+    "n": 12,
+    "color": "#0e0e0e",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 144,
+    "per": 12,
+    "n": 12,
+    "color": "#ffffff",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 144,
+    "per": 12,
+    "n": 12,
+    "color": "#3c3c3c",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     -2.5
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 144,
+    "per": 12,
+    "n": 12,
+    "color": "#141414",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     -2.5
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#3c3c3c",
+    "lit": true,
+    "pos": [
+     -1.6,
+     0.42,
+     1.9
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#363636",
+    "lit": true,
+    "pos": [
+     -1.6,
+     0.64,
+     2.1
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 8,
+  "key": "store",
+  "tris": 4036,
+  "heroTris": 1561,
+  "meshes": 210,
+  "instanced": 1,
+  "instances": 163,
+  "lines": 1,
+  "points": 0,
+  "sprites": 2,
+  "lights": [
+   "Hemisphere #555555 0.35"
+  ],
+  "materials": 59,
+  "top": [
+   {
+    "geo": "Box",
+    "tris": 1956,
+    "per": 12,
+    "n": 163,
+    "color": "#ffffff",
+    "lit": false,
+    "pos": [
+     0,
+     0.12,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#7a7a76",
+    "lit": false,
+    "pos": [
+     0.52,
+     1.04,
+     -0.25
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#1a1a1a",
+    "lit": false,
+    "pos": [
+     0,
+     3.14,
+     -0.02
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Torus",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#161616",
+    "lit": false,
+    "pos": [
+     0.4,
+     0.44,
+     -0.68
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 32,
+    "per": 32,
+    "n": 1,
+    "color": "#eeeeee",
+    "lit": true,
+    "pos": [
+     0.4,
+     1.16,
+     -0.3
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#121212",
+    "lit": false,
+    "pos": [
+     2.3,
+     0.48,
+     0.9
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#161616",
+    "lit": false,
+    "pos": [
+     0.4,
+     0.14,
+     -0.68
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#161616",
+    "lit": false,
+    "pos": [
+     0.4,
+     0.14,
+     -0.68
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#161616",
+    "lit": false,
+    "pos": [
+     0.4,
+     0.49,
+     -0.68
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#1a1a1a",
+    "lit": true,
+    "pos": [
+     0,
+     0.06,
+     -1.2
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#2e2e2e",
+    "lit": true,
+    "pos": [
+     0,
+     0.07,
+     1.25
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#dcdcd8",
+    "lit": false,
+    "pos": [
+     0,
+     1.62,
+     -3.6
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 9,
+  "key": "towers",
+  "tris": 1742,
+  "heroTris": 0,
+  "meshes": 135,
+  "instanced": 11,
+  "instances": 33,
+  "lines": 0,
+  "points": 0,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #ffffff 0.90",
+   "Directional #ffffff 0.40",
+   "Directional #ffffff 0.18"
+  ],
+  "materials": 57,
+  "top": [
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 8,
+    "n": 3,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     -8.67,
+     25.34,
+     -12.77
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 8,
+    "n": 3,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     -6.17,
+     11.28,
+     -17
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 8,
+    "n": 3,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     -6.7,
+     20.21,
+     -12.72
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 8,
+    "n": 3,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     -7.42,
+     23.4,
+     -46.53
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 8,
+    "n": 3,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     7.33,
+     8.06,
+     13.78
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 8,
+    "n": 3,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     5.91,
+     24.44,
+     -4.65
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 8,
+    "n": 3,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     -6.37,
+     23.62,
+     -22.08
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 8,
+    "n": 3,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     5.87,
+     23.07,
+     4.53
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 8,
+    "n": 3,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     6.68,
+     10.81,
+     -40.63
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 8,
+    "n": 3,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     4.77,
+     17.01,
+     -26.64
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 8,
+    "n": 3,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     -7.17,
+     21.23,
+     -38.21
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#6a6a6a",
+    "lit": true,
+    "pos": [
+     -8.67,
+     25.34,
+     -12.77
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 10,
+  "key": "umbrellas",
+  "tris": 22558,
+  "heroTris": 1561,
+  "meshes": 62,
+  "instanced": 1,
+  "instances": 160,
+  "lines": 1,
+  "points": 0,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #ffffff 0.90",
+   "Directional #ffffff 0.50",
+   "Directional #ffffff 0.23"
+  ],
+  "materials": 17,
+  "top": [
+   {
+    "geo": "Buffer",
+    "tris": 22400,
+    "per": 140,
+    "n": 160,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 48,
+    "per": 48,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     -0.06,
+     1.96,
+     0.52
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": true,
+    "pos": [
+     -0.06,
+     1.96,
+     0.52
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#e6e6e6",
+    "lit": false,
+    "pos": [
+     -3,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#e6e6e6",
+    "lit": false,
+    "pos": [
+     -2,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#e6e6e6",
+    "lit": false,
+    "pos": [
+     -1,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#e6e6e6",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#e6e6e6",
+    "lit": false,
+    "pos": [
+     1,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#e6e6e6",
+    "lit": false,
+    "pos": [
+     2,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#e6e6e6",
+    "lit": false,
+    "pos": [
+     3,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Plane",
+    "tris": 2,
+    "per": 2,
+    "n": 1,
+    "color": "#b8b8b8",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 11,
+  "key": "flip",
+  "tris": 5386,
+  "heroTris": 3122,
+  "meshes": 140,
+  "instanced": 0,
+  "instances": 0,
+  "lines": 0,
+  "points": 700,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #ffffff 0.90",
+   "Directional #ffffff 0.50"
+  ],
+  "materials": 20,
+  "top": [
+   {
+    "geo": "Sphere",
+    "tris": 4512,
+    "per": 4512,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#c8c8c8",
+    "lit": true,
+    "pos": [
+     -1.8,
+     0.69,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#777777",
+    "lit": true,
+    "pos": [
+     -1.8,
+     0.77,
+     0.02
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#777777",
+    "lit": true,
+    "pos": [
+     -1.8,
+     0.79,
+     -0.12
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#aaaaaa",
+    "lit": true,
+    "pos": [
+     -2.2,
+     0.44,
+     0.5
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#3a3a3a",
+    "lit": true,
+    "pos": [
+     -1.8,
+     -0.69,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#202020",
+    "lit": true,
+    "pos": [
+     -1.8,
+     -0.77,
+     0.02
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#202020",
+    "lit": true,
+    "pos": [
+     -1.8,
+     -0.79,
+     -0.12
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#2c2c2c",
+    "lit": true,
+    "pos": [
+     -2.2,
+     -0.44,
+     0.5
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#4a4a4a",
+    "lit": true,
+    "pos": [
+     -1.8,
+     0.79,
+     -0.12
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#151515",
+    "lit": true,
+    "pos": [
+     -1.8,
+     -0.79,
+     -0.12
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#aaaaaa",
+    "lit": true,
+    "pos": [
+     -2.47,
+     0.35,
+     0
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 12,
+  "key": "drift",
+  "tris": 608,
+  "heroTris": 1561,
+  "meshes": 108,
+  "instanced": 0,
+  "instances": 0,
+  "lines": 0,
+  "points": 1500,
+  "sprites": 1,
+  "lights": [
+   "Hemisphere #ffffff 1.10",
+   "Directional #ffffff 1.30",
+   "Directional #ffffff 0.59",
+   "Directional #ffffff 0.80"
+  ],
+  "materials": 18,
+  "top": [
+   {
+    "geo": "Buffer",
+    "tris": 48,
+    "per": 48,
+    "n": 1,
+    "color": "#303030",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 32,
+    "per": 32,
+    "n": 1,
+    "color": "#343434",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 32,
+    "per": 32,
+    "n": 1,
+    "color": "#343434",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#9a9a9a",
+    "lit": true,
+    "pos": [
+     0,
+     -0.15,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#9a9a9a",
+    "lit": true,
+    "pos": [
+     0,
+     -0.15,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#505050",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#9a9a9a",
+    "lit": true,
+    "pos": [
+     0.02,
+     0.08,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#505050",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#9a9a9a",
+    "lit": true,
+    "pos": [
+     0.02,
+     0.08,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#9a9a9a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#9a9a9a",
+    "lit": true,
+    "pos": [
+     0.1,
+     0.14,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#9a9a9a",
+    "lit": true,
+    "pos": [
+     0.1,
+     0.05,
+     0
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 13,
+  "key": "eclipse",
+  "tris": 3276,
+  "heroTris": 0,
+  "meshes": 289,
+  "instanced": 0,
+  "instances": 0,
+  "lines": 0,
+  "points": 0,
+  "sprites": 1,
+  "lights": [],
+  "materials": 10,
+  "top": [
+   {
+    "geo": "Torus",
+    "tris": 1920,
+    "per": 1920,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Circle",
+    "tris": 128,
+    "per": 128,
+    "n": 1,
+    "color": "#000000",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#050505",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#050505",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#050505",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#050505",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#050505",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#050505",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 48,
+    "per": 48,
+    "n": 1,
+    "color": "#050505",
+    "lit": false,
+    "pos": [
+     0.69,
+     0.09,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 48,
+    "per": 48,
+    "n": 1,
+    "color": "#050505",
+    "lit": false,
+    "pos": [
+     0.48,
+     0.06,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 48,
+    "per": 48,
+    "n": 1,
+    "color": "#050505",
+    "lit": false,
+    "pos": [
+     0.39,
+     0.05,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 48,
+    "per": 48,
+    "n": 1,
+    "color": "#050505",
+    "lit": false,
+    "pos": [
+     0.32,
+     0.04,
+     0
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 14,
+  "key": "petals",
+  "tris": 626,
+  "heroTris": 1561,
+  "meshes": 78,
+  "instanced": 0,
+  "instances": 0,
+  "lines": 0,
+  "points": 0,
+  "sprites": 1,
+  "lights": [
+   "Hemisphere #888888 0.55",
+   "Directional #ffffff 0.80",
+   "Directional #ffffff 0.36"
+  ],
+  "materials": 34,
+  "top": [
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#bcbcbc",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 15,
+  "key": "shards",
+  "tris": 3440,
+  "heroTris": 1561,
+  "meshes": 54,
+  "instanced": 3,
+  "instances": 320,
+  "lines": 0,
+  "points": 0,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #bbbbbb 0.60",
+   "Directional #ffffff 1.00",
+   "Directional #ffffff 0.45",
+   "Point #ffffff 0.50"
+  ],
+  "materials": 10,
+  "top": [
+   {
+    "geo": "Box",
+    "tris": 1920,
+    "per": 12,
+    "n": 160,
+    "color": "#ffffff",
+    "emissive": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 1320,
+    "per": 12,
+    "n": 110,
+    "color": "#ffffff",
+    "emissive": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Tetrahedron",
+    "tris": 200,
+    "per": 4,
+    "n": 50,
+    "color": "#ffffff",
+    "emissive": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 16,
+  "key": "flood",
+  "tris": 1438,
+  "heroTris": 1561,
+  "meshes": 159,
+  "instanced": 0,
+  "instances": 0,
+  "lines": 1,
+  "points": 600,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #8a8a8a 0.55",
+   "Directional #ffffff 1.10"
+  ],
+  "materials": 69,
+  "top": [
+   {
+    "geo": "Buffer",
+    "tris": 72,
+    "per": 72,
+    "n": 1,
+    "color": "#5a5a5a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 51,
+    "per": 51,
+    "n": 1,
+    "color": "#1a1a1a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 51,
+    "per": 51,
+    "n": 1,
+    "color": "#3a3a3a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#4a4a4a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     1.75
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#4a4a4a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     1.75
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     -39.65,
+     5.48,
+     -19.78
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#1e1e1e",
+    "lit": true,
+    "pos": [
+     -39.65,
+     10.93,
+     -19.78
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": false,
+    "pos": [
+     -39.65,
+     -5.48,
+     -19.78
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     -35.48,
+     6.85,
+     -22.46
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#1e1e1e",
+    "lit": true,
+    "pos": [
+     -35.48,
+     13.67,
+     -22.46
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": false,
+    "pos": [
+     -35.48,
+     -6.85,
+     -22.46
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#ffffff",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     -31.41,
+     5.98,
+     -23.15
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 17,
+  "key": "rooftop",
+  "tris": 5088,
+  "heroTris": 1561,
+  "meshes": 247,
+  "instanced": 1,
+  "instances": 15,
+  "lines": 0,
+  "points": 0,
+  "sprites": 1,
+  "lights": [
+   "Hemisphere #ffffff 0.90",
+   "Directional #fff4e0 0.80",
+   "Directional #ffffff 0.36"
+  ],
+  "materials": 73,
+  "top": [
+   {
+    "geo": "Sphere",
+    "tris": 462,
+    "per": 462,
+    "n": 1,
+    "color": "#e79a14",
+    "emissive": "#7a4a00",
+    "lit": true,
+    "pos": [
+     0.55,
+     0.46,
+     -0.2
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Tube",
+    "tris": 392,
+    "per": 392,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0.55,
+     0.46,
+     -0.2
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Sphere",
+    "tris": 126,
+    "per": 126,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0.55,
+     0.46,
+     -0.2
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Shape",
+    "tris": 95,
+    "per": 95,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0.55,
+     0.35,
+     -0.2
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Shape",
+    "tris": 95,
+    "per": 95,
+    "n": 1,
+    "color": "#1d7a2c",
+    "lit": true,
+    "pos": [
+     0.54,
+     0.29,
+     -0.2
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.56,
+     0.46,
+     -0.18
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.56,
+     0.45,
+     -0.18
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.57,
+     0.46,
+     -0.19
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.57,
+     0.46,
+     -0.19
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.57,
+     0.46,
+     -0.2
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.57,
+     0.46,
+     -0.2
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 80,
+    "per": 80,
+    "n": 1,
+    "color": "#f1f1ec",
+    "lit": true,
+    "pos": [
+     0.57,
+     0.47,
+     -0.21
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 18,
+  "key": "room",
+  "tris": 1526,
+  "heroTris": 1561,
+  "meshes": 128,
+  "instanced": 0,
+  "instances": 0,
+  "lines": 0,
+  "points": 0,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #ffffff 0.95",
+   "Directional #ffffff 0.50",
+   "Directional #ffffff 0.23",
+   "Point #ffffff 0.60"
+  ],
+  "materials": 35,
+  "top": [
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#e0e0e0",
+    "lit": true,
+    "pos": [
+     -1.6,
+     0.41,
+     -0.1
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#f4f4f4",
+    "lit": true,
+    "pos": [
+     -1.82,
+     0.61,
+     -0.92
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#f4f4f4",
+    "lit": true,
+    "pos": [
+     -1.38,
+     0.61,
+     -0.92
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#bdbdbd",
+    "lit": true,
+    "pos": [
+     0.6,
+     0.69,
+     -1.05
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#4a4a4a",
+    "lit": true,
+    "pos": [
+     0.5,
+     0.77,
+     -1.05
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#4a4a4a",
+    "lit": true,
+    "pos": [
+     0.5,
+     0.79,
+     -1.19
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Sphere",
+    "tris": 36,
+    "per": 36,
+    "n": 1,
+    "color": "#c4c4c4",
+    "lit": true,
+    "pos": [
+     -2.06,
+     0.95,
+     -1.2
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Sphere",
+    "tris": 36,
+    "per": 36,
+    "n": 1,
+    "color": "#c4c4c4",
+    "lit": true,
+    "pos": [
+     -1.14,
+     0.95,
+     -1.2
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Sphere",
+    "tris": 36,
+    "per": 36,
+    "n": 1,
+    "color": "#c4c4c4",
+    "lit": true,
+    "pos": [
+     -2.06,
+     0.8,
+     1
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Sphere",
+    "tris": 36,
+    "per": 36,
+    "n": 1,
+    "color": "#c4c4c4",
+    "lit": true,
+    "pos": [
+     -1.14,
+     0.8,
+     1
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Sphere",
+    "tris": 36,
+    "per": 36,
+    "n": 1,
+    "color": "#c4c4c4",
+    "lit": true,
+    "pos": [
+     -1.12,
+     0.74,
+     -0.55
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Sphere",
+    "tris": 36,
+    "per": 36,
+    "n": 1,
+    "color": "#c4c4c4",
+    "lit": true,
+    "pos": [
+     -1.12,
+     0.2,
+     -0.55
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 19,
+  "key": "call",
+  "tris": 622,
+  "heroTris": 1561,
+  "meshes": 100,
+  "instanced": 0,
+  "instances": 0,
+  "lines": 1,
+  "points": 0,
+  "sprites": 3,
+  "lights": [
+   "Hemisphere #666666 0.35",
+   "Directional #ffffff 0.25",
+   "Directional #ffffff 0.11",
+   "Point #ffffff 0.90"
+  ],
+  "materials": 25,
+  "top": [
+   {
+    "geo": "Buffer",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     2.5,
+     -0.35
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#2e2e2e",
+    "lit": true,
+    "pos": [
+     2.45,
+     1.29,
+     0.6
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#1c1c1c",
+    "lit": true,
+    "pos": [
+     0,
+     0.07,
+     -0.2
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#323232",
+    "lit": true,
+    "pos": [
+     0,
+     0.08,
+     0.83
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#202020",
+    "lit": true,
+    "pos": [
+     -1.7,
+     1.32,
+     -1
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#202020",
+    "lit": true,
+    "pos": [
+     -1.7,
+     0.16,
+     -1
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#202020",
+    "lit": true,
+    "pos": [
+     1.7,
+     1.32,
+     -1
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#202020",
+    "lit": true,
+    "pos": [
+     1.7,
+     0.16,
+     -1
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#202020",
+    "lit": true,
+    "pos": [
+     -1.7,
+     1.32,
+     0.3
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#202020",
+    "lit": true,
+    "pos": [
+     -1.7,
+     0.16,
+     0.3
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#202020",
+    "lit": true,
+    "pos": [
+     1.7,
+     1.32,
+     0.3
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#202020",
+    "lit": true,
+    "pos": [
+     1.7,
+     0.16,
+     0.3
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 20,
+  "key": "bloom",
+  "tris": 2652,
+  "heroTris": 1561,
+  "meshes": 207,
+  "instanced": 3,
+  "instances": 64,
+  "lines": 0,
+  "points": 0,
+  "sprites": 1,
+  "lights": [
+   "Hemisphere #ffffff 0.90",
+   "Directional #ffffff 0.80",
+   "Directional #ffffff 0.36"
+  ],
+  "materials": 86,
+  "top": [
+   {
+    "geo": "Box",
+    "tris": 360,
+    "per": 12,
+    "n": 30,
+    "color": "#5e5d5a",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 360,
+    "per": 12,
+    "n": 30,
+    "color": "#7c7b78",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Circle",
+    "tris": 64,
+    "per": 64,
+    "n": 1,
+    "color": "#fffdf6",
+    "lit": false,
+    "pos": [
+     0,
+     0,
+     -110
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 48,
+    "per": 12,
+    "n": 4,
+    "color": "#8a8a8a",
+    "lit": true,
+    "pos": [
+     0,
+     2,
+     12
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cylinder",
+    "tris": 24,
+    "per": 24,
+    "n": 1,
+    "color": "#b8b8b8",
+    "lit": true,
+    "pos": [
+     -1.3,
+     2.95,
+     7
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Cone",
+    "tris": 18,
+    "per": 18,
+    "n": 1,
+    "color": "#8e8e8e",
+    "lit": true,
+    "pos": [
+     -1.3,
+     3.54,
+     7
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#6a6a6a",
+    "lit": true,
+    "pos": [
+     40.53,
+     4.03,
+     -40.27
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     40.53,
+     8.03,
+     -40.27
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#6a6a6a",
+    "lit": true,
+    "pos": [
+     -36.57,
+     8.26,
+     -50.18
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     -36.57,
+     16.48,
+     -50.18
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#6a6a6a",
+    "lit": true,
+    "pos": [
+     -54.79,
+     3.14,
+     -66.79
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Box",
+    "tris": 12,
+    "per": 12,
+    "n": 1,
+    "color": "#616161",
+    "lit": true,
+    "pos": [
+     -54.79,
+     6.25,
+     -66.79
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 21,
+  "key": "field",
+  "tris": 7710,
+  "heroTris": 1561,
+  "meshes": 58,
+  "instanced": 4,
+  "instances": 270,
+  "lines": 0,
+  "points": 0,
+  "sprites": 2,
+  "lights": [
+   "Hemisphere #444444 0.25",
+   "Directional #fff6e6 0.90"
+  ],
+  "materials": 11,
+  "top": [
+   {
+    "geo": "Buffer",
+    "tris": 2700,
+    "per": 30,
+    "n": 90,
+    "color": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Dodecahedron",
+    "tris": 2160,
+    "per": 36,
+    "n": 60,
+    "color": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 1320,
+    "per": 1320,
+    "n": 1,
+    "color": "#0e0e0e",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 1200,
+    "per": 24,
+    "n": 50,
+    "color": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Tetrahedron",
+    "tris": 280,
+    "per": 4,
+    "n": 70,
+    "color": "#262626",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Circle",
+    "tris": 48,
+    "per": 48,
+    "n": 1,
+    "color": "#fffbef",
+    "lit": false,
+    "pos": [
+     0,
+     11,
+     -70
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Plane",
+    "tris": 2,
+    "per": 2,
+    "n": 1,
+    "color": "#0a0a0a",
+    "lit": true,
+    "pos": [
+     0,
+     -0.4,
+     0
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 22,
+  "key": "minusone",
+  "tris": 3600,
+  "heroTris": 1561,
+  "meshes": 111,
+  "instanced": 0,
+  "instances": 0,
+  "lines": 0,
+  "points": 400,
+  "sprites": 60,
+  "lights": [
+   "Hemisphere #777777 0.40",
+   "Directional #ffffff 0.60",
+   "Directional #ffffff 0.27"
+  ],
+  "materials": 8,
+  "top": [
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   },
+   {
+    "geo": "Buffer",
+    "tris": 60,
+    "per": 60,
+    "n": 1,
+    "color": "#8c8c8c",
+    "emissive": "#ffffff",
+    "lit": true,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "vis": true
+   }
+  ]
+ },
+ {
+  "i": 23,
+  "key": "end",
+  "tris": 2,
+  "heroTris": 3122,
+  "meshes": 103,
+  "instanced": 0,
+  "instances": 0,
+  "lines": 0,
+  "points": 0,
+  "sprites": 0,
+  "lights": [
+   "Hemisphere #ffffff 1.00",
+   "Directional #ffffff 0.60",
+   "Directional #ffffff 0.27"
+  ],
+  "materials": 9,
+  "top": [
+   {
+    "geo": "Plane",
+    "tris": 2,
+    "per": 2,
+    "n": 1,
+    "color": "#ffffff",
+    "lit": false,
+    "pos": [
+     0,
+     -1.1,
+     0.6
+    ],
+    "vis": true
+   }
+  ]
+ }
+]

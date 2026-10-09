@@ -26,6 +26,17 @@ This repo is a single-page, scroll-driven three.js story. The owner (William, Gi
    - Keep instanced counts sane: the largest today are the 320 shards and 160 umbrellas.
    - Only meshes with a bounding radius < 1.2 cast shadows.
 
+## Before you touch a scene or a model
+
+Read the docs for exactly the thing you are changing. They were written so you do not have to re-derive the scene from 1,700 lines of `app.js`:
+
+1. **[docs/SCENES.md](docs/SCENES.md)**: story order and a matrix of how the 24 scenes differ (setting, light or dark, hero pose, what moves, camera, signature models, shared helpers, triangle budget, lights, owning model group).
+2. **`docs/scenes/NN-key.md`** (e.g. [docs/scenes/16-flood.md](docs/scenes/16-flood.md)): one page per scene with a v41 screenshot, every model in it (helper, position, tone, triangles), lights, the `update()` animation, what changed in v41, editing pitfalls and how to check your change.
+3. **[docs/MODELS.md](docs/MODELS.md)**: catalogue of every model builder (shared helpers, the hero rig, local helpers inside scene blocks), which scenes use each one, the tone ladder, the triangle budget per scene and legacy code you should not revive.
+4. **[docs/CHARACTER.md](docs/CHARACTER.md)** for anything the hero does; he is about 1.92 units tall to the top of the hair (eyes about 1.7), not 1.75.
+
+Then measure. `node tools/inventory.js` builds every scene headless and writes `out/inventory.json` and `.md` (triangles with and without the hero, meshes, instances, lights, heaviest meshes). Compare with [docs/data/inventory-v41.json](docs/data/inventory-v41.json). If a scene grows past about 2× its v41 count, justify it in the scene doc. **When you change a scene, update its `docs/scenes/NN-key.md`, the matrix row in SCENES.md and, if a helper changed, MODELS.md**, and replace its image in `assets/scenes/` from a fresh `tools/shots.js` run.
+
 ## Where things are in `src/app.js`
 
 Search for these banner comments:

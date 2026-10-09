@@ -1,6 +1,6 @@
 # Changelog
 
-Every number is a published version of the claude.ai Artifact (same URL each time). All dates are 2026-10-08. The owner's words are quoted where they set a rule. Versions before the repo existed are summarised.
+Every number is a published version of the claude.ai Artifact (same URL each time). Dates are 2026-10-08, except v41 and the scene and model docs (2026-10-09). The owner's words are quoted where they set a rule. Versions before the repo existed are summarised.
 
 ## Before the repo (v1–v28)
 
@@ -32,3 +32,4 @@ Every number is a published version of the claude.ai Artifact (same URL each tim
 | v39 | all text in English (「文字最後都用英文」); gait fixed with ankles, a smaller stride, gentler coat panels and less torso twist (「走路 身體跟腳怪怪的」) |
 | docs | full docs refresh, new storyboard, this changelog (「docs 也幫我更新」) |
 | v41 | **model polish** (「幫我把每個 model 優化，維持低面數，可參考原本影片」): every prop and set piece rebuilt as a deliberate low-poly sculpture after the reference film, in seven groups that were each reviewed by an art and a technical reviewer and fixed until no blocker remained. Highlights: buildings with hero-scale window floors, parapets, podiums with doors, setbacks and roof furniture; a railing the hero actually holds; a subway platform and train that read as a station; a bedroom bed after the film's hospital bed; a real office chair and desk; a shop front with mullions and a door; a bus shelter with volume; a plank-and-rib rowing boat with oarlocks on the gunwale; paving slabs, a kerb and a parapet roof; a cabin suitcase the fist closes on; calendar pages, shards and lanterns with real thickness; the hero's sloped shoulders, collar, draped coat skirt, trousers with cuffs and six-sided shoes. See `docs/model-polish/` for each group's notes. |
+| docs | **scene and model docs** (「幫我把場景差異跟使用模型，也寫到文件，更新文件讓以後的 llm 更好優化開發」): one page per scene in `docs/scenes/` with a v41 screenshot, model table, lights, animation, v40 → v41 changes and editing notes; a scene-difference matrix in SCENES.md; a model catalogue in MODELS.md; `tools/inventory.js` with measured v40 and v41 data in `docs/data/`; CHARACTER.md corrected (hero height about 1.92, flood, call and store poses as coded). No change to the site itself. |

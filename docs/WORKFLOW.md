@@ -31,6 +31,24 @@ Tips:
 - For the walk cycle, use `tools/gait.html` (same server): eight phases of `stroll()` from the side and from behind. Check that feet are flat when planted and that the coat stays one piece from behind.
 - Look at the actual PNGs every time. The owner will notice floating buildings, clipping, invisible white objects and stiff limbs immediately.
 
+## Measure the model budget
+
+```bash
+node tools/inventory.js                         # -> out/inventory.json + out/inventory.md
+```
+
+It builds every scene headless and records, per scene: scene triangles (instanced meshes multiplied by their count, hero excluded), hero triangles, meshes, instanced meshes and instances, line objects, point counts, lights, and the 12 heaviest non-hero meshes (geometry, tris per piece, instance count, tone, lit/unlit, world position). The committed snapshots are `docs/data/inventory-v40.json` (before the model polish) and `docs/data/inventory-v41.json`; the per-scene docs in `docs/scenes/` quote them. Re-run it after any model change and update the Budget row of the scene doc. To measure another version, check it out in a worktree, `./build.sh` there, and run the same script from that checkout (`OUT=out/inv_old node tools/inventory.js`).
+
+## Large model changes (how v41 was done)
+
+For a change that touches many scenes, the v41 model polish is the pattern to copy (details in [model-polish/README.md](model-polish/README.md) and its [brief](model-polish/brief.md)):
+
+1. **Study first.** Pull frames from the reference film, write the standard ([REFERENCE-STYLE.md](REFERENCE-STYLE.md)) and a per-scene audit before touching code.
+2. **Split by ownership.** Each group owns specific scene blocks and helpers (one owner per shared helper: `building()`/`street()` = city, `suitcase()` = void-objects, `makeHero()` = hero), on its own branch and git worktree, so groups never edit the same lines.
+3. **Before/after shots for every change** at `i+.35` and `i+.65` plus close-ups, kept next to a `summary.md` of what changed and why.
+4. **Two independent reviews per group**: an art director (does it look better and closer to the film; would the owner say 很怪?) and a technical reviewer (diff scope, triangle growth, PAGE ERROR, clipping, z-fighting, contact, caption band). Fix every blocker and re-review; stop after three rounds.
+5. **Merge in dependency order** (helpers first: city, then scenes, hero last), rebuild, shoot all 24 scenes, look at every one, then publish.
+
 ## Record the video
 
 ```bash

@@ -37,7 +37,7 @@ legs or feet that reach the floor line with a tiny dark contact shadow (f113, f1
 (f054, f057, f075, f118–f121); on water, a darker inverted smear plus a few lighter wake dashes at the hull (f096, f098).
 Nothing floats; nothing is cut by the floor plane.
 
-**Scale against the characters is strict.** Father ≈1.92, son ≈1.38 in the film; our hero is 1.75. In the frames the
+**Scale against the characters is strict.** Father ≈1.92, son ≈1.38 in the film; our hero is ≈1.92 to the top of the hair (measured in v41; older notes said 1.75). In the frames the
 bed's headboard reaches the father's hip (~0.95), the mattress top is just under knee height (0.5–0.55); the boat's
 gunwale reaches the seated son's chest (~0.55 above the waterline); the dog's shoulder is at the father's knee (0.6);
 the trees are 2–3 figures tall; a doorway is 2.1 × 0.9. Use the table in §3 and check with a shot that includes the hero.
@@ -157,7 +157,7 @@ reveal in scene 1.
 mattress, cabinet, icebergs) so neighbouring facets differ by a few percent; skip it on tiny props and on anything
 `B`-lit, and never animate it (the owner rejected trembling).
 
-**Scale table (hero = 1.75, feet at y=0).** Bed 2.0 × 0.95, mattress top .55, headboard .95, footboard .8 · chair seat
+**Scale table (written for a 1.75 hero, feet at y=0; the measured hero is ≈1.92 to the hair top, eye level ≈1.7).** Bed 2.0 × 0.95, mattress top .55, headboard .95, footboard .8 · chair seat
 .45, back .9 · desk/table top .74 · bench .45 · boat 3.8 × 1.2, freeboard .5, draft .15, thwarts at .35 · doorway 2.1 ×
 .9 · shelter roof 2.5 · tree 3.5–6 · IV stand 1.7 · dog shoulder .6 · pot .24 · cup .12 · phone .13 · suitcase .44 tall.
 

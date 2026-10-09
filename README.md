@@ -25,6 +25,7 @@ Optional tooling (headless screenshots and video), which needs Node 18+ and Play
 npm install
 npm run shots -- 3.5 14.6  # screenshots at scroll positions (scene index + fraction) -> out/shots/
 npm run contact            # one shot per scene + a contact sheet -> out/contact.jpg
+npm run inventory          # triangles, meshes and lights per scene -> out/inventory.json + .md
 npm run video              # frame-by-frame capture + ffmpeg -> out/toward-the-light.mp4
 ```
 
@@ -37,21 +38,22 @@ npm run video              # frame-by-frame capture + ffmpeg -> out/toward-the-l
 | `src/body.html` | DOM layers: intro, loader, scroll hint, caption, ending, sound toggle, About |
 | `src/app.js` | everything else: captions, renderer, film shader, character rig, scene builders, render loop, loader, audio |
 | `build.sh` | concatenates `src/` into `dist/` |
-| `tools/` | screenshots, contact sheet, video, pose sandbox (`pose.html`) and walk-cycle sheet (`gait.html`) |
-| `docs/` | design and engineering notes for whoever (human or model) continues this |
-| `assets/` | reference images: `storyboard.jpg` (all 24 scenes, current) and `daisy.png` (the owner's daisy reference) |
+| `tools/` | screenshots, contact sheet, video, model inventory (`inventory.js`), pose sandbox (`pose.html`) and walk-cycle sheet (`gait.html`) |
+| `docs/` | design and engineering notes for whoever (human or model) continues this; `docs/scenes/` has one page per scene, `docs/data/` the measured model inventory |
+| `assets/` | reference images: `storyboard.jpg` (all 24 scenes, current), `scenes/NN-key.jpg` (one v41 frame per scene), `model-polish/` (before/after sheets) and `daisy.png` (the owner's daisy reference) |
 
 ## Docs
 
 Start with **[AGENTS.md](AGENTS.md)** (also the CLAUDE.md). Then read:
 
 1. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the page works, from the render loop and scene contract to the film pass and loader
-2. [docs/SCENES.md](docs/SCENES.md): all 24 scenes, with caption, staging, camera and known weaknesses
-3. [docs/CHARACTER.md](docs/CHARACTER.md): the low-poly hero, his rig API and poses
-4. [docs/ART-DIRECTION.md](docs/ART-DIRECTION.md): the look, the owner's taste and the feedback history (what was rejected and why)
-5. [docs/WORKFLOW.md](docs/WORKFLOW.md): building, verifying with screenshots, recording video, publishing
-6. [docs/ROADMAP.md](docs/ROADMAP.md): known issues and the highest-value improvements
-7. [docs/CHANGELOG.md](docs/CHANGELOG.md): every published version and what changed, with the owner's words
+2. [docs/SCENES.md](docs/SCENES.md): story order, a matrix of how the 24 scenes differ, and known weaknesses; each scene has its own page in [docs/scenes/](docs/scenes/) with screenshot, model table, lights, animation and editing notes
+3. [docs/MODELS.md](docs/MODELS.md): every model builder, which scenes use it, the tone ladder and the triangle budget per scene
+4. [docs/CHARACTER.md](docs/CHARACTER.md): the low-poly hero, his rig API and poses
+5. [docs/ART-DIRECTION.md](docs/ART-DIRECTION.md): the look, the owner's taste and the feedback history (what was rejected and why)
+6. [docs/WORKFLOW.md](docs/WORKFLOW.md): building, verifying with screenshots, recording video, publishing
+7. [docs/ROADMAP.md](docs/ROADMAP.md): known issues and the highest-value improvements
+8. [docs/CHANGELOG.md](docs/CHANGELOG.md): every published version and what changed, with the owner's words
 
 ## Credits
 

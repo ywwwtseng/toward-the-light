@@ -1,6 +1,6 @@
 # The protagonist
 
-`makePerson(opts)` routes to `makeHero(opts)` unless `child` or `father` is set; those two are legacy and unused. `makeHero` builds a **faceless, deliberately low-poly figure**. Each body part is a `loftGeo` with 4–6 sides and a per-facet tone jitter, like folded paper or plaster. Height is about 1.75 units, with the feet at y = 0.
+`makePerson(opts)` routes to `makeHero(opts)` unless `child` or `father` is set; those two are legacy and unused. `makeHero` builds a **faceless, deliberately low-poly figure**. Each body part is a `loftGeo` with 4–6 sides and a per-facet tone jitter, like folded paper or plaster. He measures about 1.92 units from the soles to the top of the hair (default stance bounding box y −.035 … 1.916; the head is a gem under a hair shell, so eye level is about 1.7), with the feet at y = 0. Older docs say 1.75; use 1.92 when you place things against his head.
 
 The owner asked for this direction ("低面數、更藝術感") after rejecting every attempt at a realistic or anime face. **Do not add a face** unless the owner supplies a model, such as a VRoid `.vrm`. See [ART-DIRECTION.md](ART-DIRECTION.md).
 
@@ -70,11 +70,11 @@ hand.userData.grip(k)   // 0 open, ~.18 relaxed (default), ~.35 resting on keys,
 | Scene | Pose |
 |---|---|
 | `desk` (typing) | `sit()`, arms `(-1.42, 0, ±.2)` turned in, elbows `-.15`, hands `rotation.y = 0`, `grip(.35)`. With the shoulder at y .88, the elbows end up at about y .835, so the forearms clear the desktop (y .765) and the hands land on the keyboard |
-| `flood` (rowing) | `sit()`, stroke: arms `lerp(-1.25, -.55, pull)`, elbows `lerp(-.1, -1.25, pull)`. Each oar is aimed every frame from the grip point (elbow-local `(0, -.33, 0)`) through an oarlock, so the oars follow the hands |
+| `flood` (rowing) | `sit()`, stroke: arms `lerp(-1.25, -.6, pull)`, elbows `lerp(-.15, -1.2, pull)` (v41: hands stay below the shoulder line). Each oar is aimed every frame from the grip point (elbow-local `(0, -.33, 0)`) through an oarlock, so the oars follow the hands |
 | `shards` (curled up) | `legs -1.75, knees 2.25, arms (-.85, 0, ±.45), elbows -1.0, head .9`, plus whole body `rotation.x = .25` |
-| `call` (phone to ear) | right arm `(-.35, 0, .15)` with elbow `-2.45`, head tilted `(.25, 0, -.12)`. The phone mesh follows `head.getWorldPosition()` each frame |
+| `call` (phone to ear) | left arm `arms[1]` `(-.35, 0, .15)` with `elbows[1]` `-2.45` (index 1 = his left), the other arm `-.7` / elbow `-.6`, head tilted `(.25, 0, -.12)`. The phone mesh follows `head.getWorldPosition()` each frame |
 | `room` (lying in bed) | `person.rotation.x = -π/2` on the mattress, `head.rotation.x = .55` so the head rests *on* the pillow, not in it |
-| `store` | `sit()` with arms −1.0…−1.1 forward onto the counter |
+| `store` | `sit()`, then arms `-.97`, elbows `-.6` (forearms on the counter), knees `2.0`, ankles `-.5` (heels on the stool ring), head `.15` |
 
 Contact points the owner has caught: head in the pillow, hands sinking into the desk, hands separated from the oars, fingers detached from the palm. Check every contact in a close screenshot.
 

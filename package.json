@@ -6,7 +6,8 @@
     "build": "./build.sh",
     "shots": "./build.sh && node tools/shots.js",
     "contact": "./build.sh && node tools/shots.js --all && python3 tools/contact.py",
-    "video": "./build.sh && node tools/record.js && ./tools/encode.sh"
+    "video": "./build.sh && node tools/record.js && ./tools/encode.sh",
+    "inventory": "./build.sh && node tools/inventory.js"
   },
   "devDependencies": {
     "playwright": "^1.47.0"
