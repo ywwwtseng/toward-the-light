@@ -657,24 +657,35 @@ const SCENES=[
   // blocks with mixed footprints (single, double, L-plan, slender tower); the inner blocks carry a lighter inset roof deck (the dark roof
   // around it reads as a parapet) and some roof furniture (lift heads, tanks, masts), so the skyline is not a lattice of equal boxes.
   // Instanced roof parts are not frustum-culled, so the fogged outer ring goes without them to stay near the 2× triangle budget.
-  const r=rng(41),blocks=[],plate=[],lift=[],tank=[],mast=[],taken=new Set();
-  const put=(w,h,d,x,z,dist,inner)=>{const b=building(w,h,d,true);b.position.x=x;b.position.z=z;const mats=[];
+  const r=rng(41),blocks=[],plate=[],lift=[],tank=[],mast=[],taken=new Set(),merged=new Set();
+  // roof draws are taken per block in the same order and number as before (so the block layout is unchanged) and applied by place():
+  // the lift head takes one corner quadrant (never nearer than .4 of the way out), the tank the opposite corner (only on footprints ≥ 2.2
+  // so its .32 radius stays on the deck), a mast one of the two free corners, so no roof piece interpenetrates another.
+  const roofDraws=(h,inner)=>{const R={};if(!inner)return R;if(h>3.6){R.u=r();R.v=r();if(h>5&&r()<.5){r();r();R.tank=true}}if(h>6&&r()<.6){R.mast=true;R.c=r()<.5;r()}return R};
+  const place=(w,h,d,x,z,dist,inner,R)=>{const b=building(w,h,d,true);b.position.x=x;b.position.z=z;const mats=[];
     b.traverse(o=>{if(o.isMesh&&o.material&&o.material.emissiveMap){o.material=o.material.clone();o.material.emissiveIntensity=0;mats.push(o.material)}});
     scene.add(b);blocks.push({mats,d:dist});if(!inner)return;
     plate.push([x,h+.06,z,w-.3,.1,d-.3]);
-    if(h>3.6){lift.push([x+(r()-.5)*(w-1),h+.335,z+(r()-.5)*(d-1),.7,.45,.7]);if(h>5&&r()<.5)tank.push([x+(r()-.5)*(w-1.2),h+.36,z+(r()-.5)*(d-1.2),1,1,1])}
-    if(h>6&&r()<.6)mast.push([x+(w/2-.3)*(r()<.5?1:-1),h+.81,z+(d/2-.3)*(r()<.5?1:-1),.06,1.4,.06])};
+    let sx=1,sz=1;
+    if(R.u!==undefined){const ax=Math.max(0,w/2-.7),az=Math.max(0,d/2-.7);sx=R.u<.5?-1:1;sz=R.v<.5?-1:1;
+      lift.push([x+sx*ax*(.4+Math.abs(R.u-.5)*1.2),h+.335,z+sz*az*(.4+Math.abs(R.v-.5)*1.2),.7,.45,.7]);
+      if(R.tank&&w>=2.2&&d>=2.2)tank.push([x-sx*(w/2-.5),h+.36,z-sz*(d/2-.5),1,1,1])}
+    if(R.mast)mast.push([x+(w/2-.3)*(R.c?sx:-sx),h+.81,z+(d/2-.3)*(R.c?-sz:sz),.06,1.4,.06])};
+  const put=(w,h,d,x,z,dist,inner)=>place(w,h,d,x,z,dist,inner,roofDraws(h,inner));
   for(let gx=-6;gx<=6;gx++)for(let gz=-6;gz<=6;gz++){if(taken.has(gx+','+gz))continue;if(r()<.15)continue;
     const h=1+r()*r()*9,k=r(),x=gx*4,z=gz*4,dist=Math.hypot(gx,gz)+r()*1.5,inner=Math.abs(gx)<=4&&Math.abs(gz)<=4;
-    if(k<.16&&gz<6&&!taken.has(gx+','+(gz+1))){taken.add(gx+','+(gz+1));put(2.6,h,6.6,x,z+2,dist,inner)}           // double block along the street
-    else if(k<.28){put(2.6,h,1.2,x,z-.7,dist,inner);put(1.2,h*(.7+r()*.6),2.6,x-.7,z,dist,inner)}                        // L-plan: two wings sharing a corner
+    if(k<.16&&gz<6&&!taken.has(gx+','+(gz+1))){taken.add(gx+','+(gz+1));merged.add(gx+','+gz);put(2.6,h,6.6,x,z+2,dist,inner)} // double block over two cells (the street between them is dropped below)
+    else if(k<.28){const RA=roofDraws(h,inner),hB=h*(.7+r()*.6),RB=roofDraws(hB,inner);                                  // L-plan: two wings; the taller one takes the corner and the
+      if(hB>=h){place(1.4,h,1.2,x+.6,z-.7,dist,inner,RA);place(1.2,hB,2.6,x-.7,z,dist,inner,RB)}                         // shorter one butts against its wall, so the boxes never overlap
+      else{place(2.6,h,1.2,x,z-.7,dist,inner,RA);place(1.2,hB,1.4,x-.7,z+.6,dist,inner,RB)}}                             // (no hidden coplanar faces to z-fight at any distance)
     else if(k<.36)put(1.5,h*1.5+1,1.5,x,z,dist,inner);                                                             // slender tower
     else put(2.2+r()*.6,h,2.2+r()*.6,x,z,dist,inner)}
   const unit=new THREE.BoxGeometry(1,1,1),m4=new THREE.Matrix4(),q0=new THREE.Quaternion();
   const mk=(list,mat,geo=unit)=>{if(!list.length)return;const im=new THREE.InstancedMesh(geo,mat,list.length);list.forEach(([x,y,z,sx,sy,sz],i)=>{m4.compose(V3(x,y,z),q0,V3(sx,sy,sz));im.setMatrixAt(i,m4)});scene.add(im)};
   mk(plate,M(0x2c2c2c));mk(lift,M(0x202020));mk(mast,M(0x303030));mk(tank,M(0x262626),new THREE.CylinderGeometry(.32,.32,.5,6,1));
   // street grid, revealed outward from the centre
-  const segs=[];for(let i=-7;i<=7;i++){for(let j=-7;j<7;j++){const a=i*4+2,b0=j*4+2,b1=b0+4;segs.push([[a,.03,b0],[a,.03,b1],Math.hypot(i,j)],[[b0,.03,a],[b1,.03,a],Math.hypot(j,i)])}}
+  const segs=[];for(let i=-7;i<=7;i++){for(let j=-7;j<7;j++){const a=i*4+2,b0=j*4+2,b1=b0+4;segs.push([[a,.03,b0],[a,.03,b1],Math.hypot(i,j)]);
+    if(!merged.has((j+1)+','+i))segs.push([[b0,.03,a],[b1,.03,a],Math.hypot(j,i)])}}   // no street line under a double block
   segs.sort((p,q)=>p[2]-q[2]);const arr=new Float32Array(segs.length*6);segs.forEach(([p,q],i)=>arr.set([...p,...q],i*6));
   const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.BufferAttribute(arr,3));
   scene.add(new THREE.LineSegments(lg,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.75,fog:true})));
@@ -711,11 +722,10 @@ const SCENES=[
   // platform: slab with a lighter top, the white edge line, a raised tactile strip behind it, seams across the floor
   // (the film pass renders into a 16-bit depth target, so every proud panel below sits ≥ .03 in front of the face behind it)
   scene.add(box(60,.4,4,M(0x343434),0,-.2,1),box(60,.03,.3,M(0x4a4a4a),0,.015,-.58),box(60,.02,.12,B(0xdddddd),0,.01,-.95));
-  inst(new THREE.BoxGeometry(.03,.01,3.9),M(0x1c1c1c),range(-30,30,2.5).map(x=>[x,.005,1.05]));
-  // track bed: ballast, sleepers, two rails
+  inst(new THREE.BoxGeometry(.03,.01,3.9),M(0x1c1c1c),range(-30,30,5).map(x=>[x,.005,1.05]));
+  // track bed: ballast and two rails lying on it (the bed is hidden behind the platform edge from the scene camera, so no sleepers)
   scene.add(box(60,.2,4,M(0x141414),0,-1,-3));
-  inst(new THREE.BoxGeometry(.26,.08,2.3),M(0x0e0e0e),range(-12,12,1).map(x=>[x,-.86,-2.5]));
-  [-.72,.72].forEach(z=>scene.add(box(60,.1,.07,M(0x6a6a6a),0,-.77,-2.5+z)));
+  [-.72,.72].forEach(z=>scene.add(box(60,.1,.07,M(0x6a6a6a),0,-.85,-2.5+z)));
   // far tunnel wall with a dado band, a strip light along the top and blank name boards
   scene.add(box(60,4.6,.3,M(0x242424),0,1.3,-5.25),box(60,1.1,.08,M(0x363636),0,.65,-5.07),box(60,.06,.08,B(0xcfcfcf),0,3.42,-5.07));
   [-14,-6,2,10].forEach(x=>scene.add(box(2.6,.7,.08,M(0x111111),x,1.75,-5.06),box(2.3,.44,.06,B(0xc4c4c4),x,1.75,-4.99)));
@@ -727,11 +737,11 @@ const SCENES=[
   inst(new THREE.BoxGeometry(.56,.18,.56),M(0x343434),px.map(x=>[x,3.51,2.3]));
   inst(new THREE.BoxGeometry(2,.12,.42),M(0x0e0e0e),px.map(x=>[x,3.55,1]));
   inst(new THREE.BoxGeometry(1.8,.05,.28),B(0xffffff),px.map(x=>[x,3.475,1]));
-  [2,-3].forEach(x=>scene.add(box(.34,.2,.07,M(0x111111),x,2.05,2.515),box(.3,.14,.012,B(0xcfcfcf),x,2.05,2.556)));
-  // bench behind him, facing the tracks: bevelled seat and back on two end frames
-  const bench=new THREE.Group();bench.position.set(-1.3,0,1.9);
+  [2,-3].forEach(x=>scene.add(box(.3,.16,.07,M(0x111111),x,2.4,2.515),box(.26,.1,.012,B(0xb4b4b4),x,2.4,2.556)));   // above the frame at .35, so no blank white slab near the lens
+  // bench behind him, facing the tracks: bevelled seat and back on two open leg frames (two posts and a stretcher per end), so it reads from any side
+  const bench=new THREE.Group();bench.position.set(-1.6,0,1.9);
   bench.add(bevelBox(1.5,.08,.44,.015,M(0x3c3c3c),0,.42,0),bevelBox(1.5,.26,.05,.01,M(0x363636),0,.64,.2));
-  [-.68,.68].forEach(x=>bench.add(box(.07,.42,.4,M(0x1e1e1e),x,.21,0),box(.05,.26,.05,M(0x1e1e1e),x,.59,.2)));
+  const bm=M(0x1e1e1e);[-.66,.66].forEach(x=>{[-.16,.16].forEach(z=>bench.add(box(.06,.42,.06,bm,x,.21,z)));bench.add(box(.06,.04,.38,bm,x,.1,0),box(.05,.26,.05,bm,x,.59,.2))});
   scene.add(bench);
   // train: six cars on a bevelled-roof profile, inset windows in dark frames, two door pairs per car, roof units, gangways, bogies on the rails
   const train=new THREE.Group();train.position.z=-2.5;scene.add(train);
@@ -740,12 +750,12 @@ const SCENES=[
   const win=[],dwin=[],leaf=[],pocket=[],roof=[],bogie=[];
   for(let c=0;c<N;c++){const cx=c*P,car=new THREE.Mesh(carGeo,mBody);car.position.x=cx;train.add(car);
     [-4,-1.2,0,1.2,4].forEach(w=>win.push([cx+w,1.3,1.3]));
-    [-2.5,2.5].forEach(dx=>{pocket.push([cx+dx,1.12,1.31]);[-.34,.34].forEach(o=>{leaf.push([cx+dx+o,1.1,1.345]);dwin.push([cx+dx+o,1.4,1.405])})});
-    [-2.4,2.4].forEach(dx=>roof.push([cx+dx,2.6,0]));[-3.1,3.1].forEach(dx=>bogie.push([cx+dx,-.52,0]));
+    [-2.5,2.5].forEach(dx=>{pocket.push([cx+dx,.96,1.325]);[-.34,.34].forEach(o=>{leaf.push([cx+dx+o,.95,1.345]);dwin.push([cx+dx+o,1.4,1.405])})});   // pocket .02–1.9, leaves .04–1.86: both end below the roof shoulder (1.95)
+    [-2.4,2.4].forEach(dx=>roof.push([cx+dx,2.6,0]));[-3.1,3.1].forEach(dx=>bogie.push([cx+dx,-.56,0]));
     if(c<N-1)train.add(box(.5,2.3,1.7,M(0x1c1c1c),cx+P/2,1.1,0))}
   inst(frameGeo(.96,.86,.05,.06),M(0x161616),win,train);inst(new THREE.PlaneGeometry(.86,.76),wm,win.map(([x,y,z])=>[x,y,z+.028]),train);
-  inst(new THREE.BoxGeometry(1.4,2.2,.03),M(0x121212),pocket,train);inst(new THREE.BoxGeometry(.64,2.12,.05),M(0x484848),leaf,train);inst(new THREE.PlaneGeometry(.4,.5),wm,dwin,train);
-  inst(new THREE.BoxGeometry(1.9,.2,1.2),M(0x3c3c3c),roof,train);inst(new THREE.BoxGeometry(2,.4,1.8),M(0x141414),bogie,train);
+  inst(new THREE.PlaneGeometry(1.4,1.88),M(0x121212),pocket,train);inst(new THREE.BoxGeometry(.64,1.82,.05),M(0x484848),leaf,train);inst(new THREE.PlaneGeometry(.4,.5),wm,dwin,train);
+  inst(new THREE.BoxGeometry(1.9,.2,1.2),M(0x3c3c3c),roof,train);inst(new THREE.BoxGeometry(2,.48,1.8),M(0x141414),bogie,train);
   const fx=(N-1)*P+4.7;train.add(box(.05,.95,1.9,M(0x141414),fx+.025,1.55,0),box(.06,.2,.9,B(0xd8d8d8),fx+.03,2.2,0));   // cab: windscreen and destination display
   [-.75,.75].forEach(z=>train.add(box(.06,.14,.22,B(0xffffff),fx+.03,.5,z),box(.05,.08,.16,B(0x999999),-4.725,.5,z)));   // headlights, tail lights
   const hl=glow(1.6,.7);hl.position.set(fx+.2,.5,1.32);train.add(hl);
@@ -865,14 +875,17 @@ const SCENES=[
   // skyline in front of the eclipse: flat cut-outs with varied rooflines (setbacks, stair heads, water tanks, billboards, gables, masts) and a few lit windows
   {const r=rng(77),sky=new THREE.Group(),mb=flat(0x060606,1),mw=flat(0x8a8a8a,1);let x=-14;
    const P=(w,h,cx,cy)=>{const b=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mb);b.position.set(cx,cy,4);b.renderOrder=5;sky.add(b);return b};
+   // Roof furniture stays off the blocks whose top can reach the halo band or the caption line: the halo and the caption both project onto
+   // this plane (z=4) inside |x|<2.5 and above y≈-2.4 at both camera positions, so a piece is emitted only on blocks beside that column
+   // (|cx|>3.5; billboards |cx|>4.5) or when its top stays below -2.6. The rng draws are unchanged, so the block layout is the same.
    while(x<14){const w=.5+r()*1.8,h=.6+r()*(Math.abs(x)<4?2.2:4.5),top=-4.4+h,cx=x+w/2;P(w,h,cx,-4.4+h/2);
-     const k=r();
-     if(k<.28){const w2=w*(.35+r()*.4),h2=.25+r()*.6;P(w2,h2,cx+(r()-.5)*(w-w2),top+h2/2)}                                  // setback storey
-     else if(k<.5){P(.22+r()*.15,.2+r()*.15,cx-w*.25,top+.1);                                                            // stair head …
-       const tx=cx+w*.22;P(.26,.24,tx,top+.24);P(.025,.13,tx-.09,top+.065);P(.025,.13,tx+.09,top+.065)}                   // … and a water tank on two legs
-     else if(k<.62){const bw=w*.6;P(.03,.3,cx-bw*.4,top+.15);P(.03,.3,cx+bw*.4,top+.15);P(bw,.3,cx,top+.45)}             // billboard frame on posts
-     else if(k<.72&&w<1.1){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([x,top,4,x+w,top,4,x+w*(.3+r()*.4),top+.2+r()*.3,4],3));const m=new THREE.Mesh(g,mb);m.renderOrder=5;sky.add(m)} // gable
-     if(r()<.5&&h>1.5)P(.03,.5,x+w*(.3+r()*.4),top+.25);                                                                  // antenna mast
+     const k=r(),side=Math.abs(cx)>3.5,clear=(hh)=>side||top+hh<-2.6;
+     if(k<.28){const w2=w*(.35+r()*.4),h2=.25+r()*.6,ox=(r()-.5)*(w-w2);if(clear(h2))P(w2,h2,cx+ox,top+h2/2)}            // setback storey
+     else if(k<.5){const sw=.22+r()*.15,sh=.2+r()*.15;if(clear(.36)){P(sw,sh,cx-w*.25,top+.1);                           // stair head …
+       const tx=cx+w*.22;P(.26,.24,tx,top+.24);P(.025,.13,tx-.09,top+.065);P(.025,.13,tx+.09,top+.065)}}                 // … and a water tank on two legs
+     else if(k<.62){if(Math.abs(cx)>4.5||top+.6<-2.6){const bw=w*.6;P(.03,.3,cx-bw*.4,top+.15);P(.03,.3,cx+bw*.4,top+.15);P(bw,.3,cx,top+.45)}} // billboard frame on posts
+     else if(k<.72&&w<1.1){const gx=x+w*(.3+r()*.4),gy=top+.2+r()*.3;if(clear(.5)){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([x,top,4,x+w,top,4,gx,gy,4],3));const m=new THREE.Mesh(g,mb);m.renderOrder=5;sky.add(m)}} // gable
+     if(r()<.5&&h>1.5){const mx=x+w*(.3+r()*.4);if(clear(.5))P(.03,.5,mx,top+.25)}                                        // antenna mast
      for(let wy=-4.2;wy<-4.4+h-.2;wy+=.22)for(let wx=x+.12;wx<x+w-.12;wx+=.18)if(r()<.12){const q=new THREE.Mesh(new THREE.PlaneGeometry(.06,.08),mw);q.position.set(wx,wy,4.01);q.renderOrder=6;sky.add(q)}
      x+=w+r()*.15}
    scene.add(sky)}
