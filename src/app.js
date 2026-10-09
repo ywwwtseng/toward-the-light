@@ -319,10 +319,14 @@ function makePerson({child=false,father=false,body,jacket,mat=null}={}){
 /* the protagonist: a deliberately low-poly, faceted figure, like a paper sculpture.
    Few sides per section, sharp planes, a faceless gem-cut head and a slight tone shift per facet. Same rig and poses as makePerson. */
 function makeHero({body,jacket,mat=null}={}){
-  const C={coat:jacket??0x3a3a3a,pants:body??0x1a1a1a,skin:0xa9a9a9,hair:0x161616,shoe:0x121212,inner:0x0e0e0e};
+  /* tones: coat, a darker collar/cuff ring (coat x .55), trousers one step lighter than the shoes (the reference father wears
+     mid-grey trousers over dark boots), skin, hair, inner layer. The shoe is derived from the trousers so the step always holds. */
+  const C={coat:jacket??0x3a3a3a,pants:body??0x2a2a2a,skin:0xa9a9a9,hair:0x161616,inner:0x0e0e0e};
+  C.collar=new THREE.Color(C.coat).multiplyScalar(.55).getHex();
+  {const s=new THREE.Color(C.pants).multiplyScalar(.5);if(s.r>16/255)s.setScalar(16/255);C.shoe=s.getHex()}
   let sd0=1;const g=new THREE.Group(),mm=c=>mat||M(c,{vertexColors:true});
-  const mCoat=mm(C.coat),mPants=mm(C.pants),mSkin=mm(C.skin),mHair=mm(C.hair),mShoe=mm(C.shoe),mIn=mm(C.inner);
-  const L=(secs,m,n=5,rot=0)=>new THREE.Mesh(loftGeo(secs,{sides:n,rot,jitter:.09,seed:sd0++}),m);
+  const mCoat=mm(C.coat),mDark=mm(C.collar),mPants=mm(C.pants),mSkin=mm(C.skin),mHair=mm(C.hair),mShoe=mm(C.shoe),mIn=mm(C.inner);
+  const L=(secs,m,n=5,rot=0,seed=sd0++)=>new THREE.Mesh(loftGeo(secs,{sides:n,rot,jitter:.09,seed}),m);
   const legs=[],knees=[],ankles=[],arms=[],elbows=[],hands=[],hipY=.98;
   /* hand: faceted palm, four two-joint fingers and a thumb. Palm faces the thigh (local -z); fingers curl toward it.
      hand.userData.grip(k): 0 = open, ~.15 = relaxed, 1 = closed around a handle. */
@@ -336,45 +340,75 @@ function makeHero({body,jacket,mat=null}={}){
     const tm=new THREE.Group();tm.position.y=-.032;tm.add(L([[.006,.018,.018],[-.025,.012,.012]],mSkin,4,Math.PI/4));th.add(tm);hd.add(th);
     hd.userData.grip=k=>{F.forEach(([p,m],i)=>{p.rotation.x=.18+k*1.3+i*.04;m.rotation.x=.22+k*1.35});th.rotation.x=.3+k*.25;th.rotation.z=ts*(.3-k*.5);tm.rotation.x=.15+k*.35};
     hd.userData.grip(.18);return hd};
-  g.add(L([[.86,.28,.18],[1.0,.3,.19]],mPants,6,Math.PI/6));
+  g.add(L([[.92,.3,.2],[1.0,.32,.21]],mPants,6,Math.PI/6)); // pelvis, inside the coat's seat piece; ends above the thighs' underside (hip -.08) so nothing hangs under a seat
   for(const sd of [-1,1]){
     const hip=new THREE.Group();hip.position.set(sd*.08,hipY,0);
-    hip.add(L([[0,.14,.15],[-.5,.085,.095]],mPants,5,Math.PI));
+    hip.add(L([[.04,.1,.11],[0,.15,.16],[-.5,.105,.115]],mPants,5,Math.PI)); // thigh; the ring above the pivot is a gusset that stays inside the pelvis when the leg swings
     const knee=new THREE.Group();knee.position.y=-.5;hip.add(knee);
-    knee.add(L([[0,.09,.1],[-.44,.06,.07]],mPants,5,Math.PI));
+    knee.add(L([[.035,.07,.08],[0,.105,.115],[-.36,.082,.092],[-.375,.094,.104],[-.44,.09,.1]],mPants,5,Math.PI)); // shin: knee cap ring, straight leg, turned-up cuff at the hem
     const ank=new THREE.Group();ank.position.y=-.44;knee.add(ank); // ankle: keeps the sole flat on the ground while walking
-    ank.add(L([[.01,.08,.1,0,.0],[-.03,.1,.27,0,.06],[-.06,.08,.24,0,.07]],mShoe,4,Math.PI/4));
+    // shoe: six-sided plan (flat heel, flat toe, widest at the ball), the instep slopes down from inside the cuff to the sole lip. The lip (widest ring) sits at -.02,
+    // 2 cm above the floor line when standing (hip .98 - .94 leg), so the sole edge shows above a floor; the sole itself stays at -.06 (stroll and the boat rely on it)
+    ank.add(L([[.03,.07,.09,0,0],[-.005,.08,.17,0,.03],[-.02,.1,.29,0,.07],[-.045,.096,.285,0,.07],[-.06,.088,.27,0,.07]],mShoe,6,Math.PI/6));
     g.add(hip);legs.push(hip);knees.push(knee);ankles.push(ank);
   }
-  // long coat skirt: one faceted panel per leg, swinging part-way with it
-  g.add(L([[1.04,.4,.25],[.86,.38,.26],[.7,.3,.22]],mCoat,6,Math.PI/6)); // fixed seat of the coat, hides the gap between the panels
+  /* long coat skirt. Standing/walking: a fixed seat piece plus one faceted panel per leg that swings part-way with it.
+     Seated or curled (thigh past -.6 rad): the panels would stick out as a block, so each panel hides and a lap piece that hugs
+     the thigh (100 % follow) plus a flap hinged at the knee take over; the seat piece swaps to a short version so nothing hangs under the seat. */
+  // seatA ends inside the panels (no ledge at mid-thigh); seatB ends at .92, above the thighs' underside, so nothing hangs under a seat
+  const seatA=L([[1.06,.42,.26],[.9,.42,.27],[.72,.37,.23]],mCoat,6,Math.PI/6),seatB=L([[1.06,.42,.26],[.99,.42,.27],[.92,.4,.26]],mCoat,6,Math.PI/6);
+  g.add(seatA,seatB);seatB.visible=false;
   for(let i=0;i<2;i++){const sd=i?1:-1,leg=legs[i],pv=new THREE.Group();pv.position.set(sd*.08,hipY,0);
-    pv.add(L([[.08,.25,.27,0,0,sd*.025],[-.52,.27,.31,0,0,sd*.03]],mCoat,4,Math.PI/4));
-    pv.updateMatrix=function(){const a=leg.rotation.x;this.rotation.x=a*(a<-1?.92:(g.userData.walking?.5:.8));this.rotation.z=leg.rotation.z;THREE.Object3D.prototype.updateMatrix.call(this)};g.add(pv)}
+    // both panels share one jitter seed and overlap 2-3 cm at the centre line (still overlapping once the legs' lateral spread tilts them), so the back reads as one plane:
+    // no split line and no gap at the hem. The left panel is 1.4 mm deeper and 1 mm lower so the overlapping faces are never coplanar (no z-fighting).
+    const dd=i?0:.004,dy=i?0:-.001;
+    const panel=L([[.08+dy,.25,.27+dd,0,0,-sd*.004],[-.28+dy,.265,.29+dd,0,0,-sd*.006],[-.53+dy,.28,.31+dd,0,0,-sd*.01]],mCoat,4,Math.PI/4,77);
+    // lap: hugs the thigh; its end ring is wider and deeper than the flap's first ring so the flap's top cap is hidden inside it (no lit shelf on the knee)
+    const lap=L([[.05,.24,.26,0,.012],[-.42,.22,.23,0,.012],[-.5,.21,.2,0,0],[-.55,.2,.18,0,0]],mCoat,4,Math.PI/4);
+    const flap=L([[0,.15,.03,0,.035],[-.14,.19,.07,0,.045],[-.22,.18,.05,0,.05]],mCoat,4,Math.PI/4);
+    knees[i].add(flap);pv.add(panel,lap);lap.visible=flap.visible=false;
+    // switch at -.6 rad (above walk amp .45, so a walk never reaches it); from -.45 to -.6 the panel's follow factor fades to 1, so at the switch the panel already lies on the thigh and only the shape swaps
+    pv.updateMatrix=function(){const a=leg.rotation.x,s=a<-.6,any=legs[0].rotation.x<-.6||legs[1].rotation.x<-.6;
+      panel.visible=!s;lap.visible=flap.visible=s;seatA.visible=!any;seatB.visible=any;
+      const f=g.userData.walking?.5:.8,k=Math.min(1,Math.max(0,(-a-.45)/.15));
+      this.rotation.z=leg.rotation.z;this.rotation.x=s?a:a*(f+(1-f)*k);THREE.Object3D.prototype.updateMatrix.call(this)};
+    g.add(pv)}
   const base=.88,up=new THREE.Group();up.position.y=base;g.add(up);
-  // torso: an inverted wedge, broad sharp shoulders tapering to the waist
-  up.add(L([[.94-base,.4,.24],[1.12-base,.44,.26],[1.3-base,.54,.28],[1.4-base,.56,.26],[1.47-base,.36,.2],[1.52-base,.18,.15]],mCoat,6,Math.PI/6));
-  up.add(L([[1.46-base,.13,.13],[1.56-base,.11,.11]],mIn,4,Math.PI/4)); // high collar
-  {const v=new THREE.BufferGeometry(),z=.152,P=[[-.075,1.44,z-.02],[.075,1.44,z-.02],[0,1.1,z-.022]].map(([x,y,zz])=>[x,y-base,zz]);
-   v.setAttribute('position',new THREE.Float32BufferAttribute(P.flat(),3));v.computeVertexNormals();up.add(new THREE.Mesh(v,mIn))}
+  // torso: widest at the chest, then one continuous slope up to the collar (no shoulder plateau); the sleeves hang from the slope
+  up.add(L([[.94-base,.4,.25],[1.1-base,.44,.27],[1.3-base,.52,.28],[1.38-base,.48,.26],[1.45-base,.36,.22],[1.51-base,.26,.18],[1.56-base,.18,.14]],mCoat,6,Math.PI/6));
+  // coat collar: a dark turned-up ring rising out of the shoulder slope, tapering from .29 at the base to .215 at the rim (1.25x the head) and leaning back, so the chin overhangs its front
+  up.add(L([[1.47-base,.29,.25,0,-.005],[1.545-base,.25,.22,0,-.015],[1.6-base,.215,.2,0,-.028]],mDark,6,Math.PI/6));
+  // turtleneck inside it, up into the jaw (its top cap is inside the head loft, so no lit plate shows between hair and collar from above)
+  up.add(L([[1.55-base,.2,.17,0,-.018],[1.6-base,.19,.17,0,-.025],[1.635-base,.14,.13,0,-.028],[1.665-base,.08,.08,0,-.015]],mIn,6,Math.PI/6));
+  up.add(L([[1.5-base,.09,.09],[1.64-base,.085,.085]],mIn,4,Math.PI/4)); // neck, inner tone
+  {// the coat's open front: a bent strip (it follows the chest bulge, 4-6 mm proud of it) whose top tucks under the collar
+   const v=new THREE.BufferGeometry(),[TL,TR,ML,MR,B]=[[-.06,1.46,.103],[.06,1.46,.103],[-.032,1.33,.125],[.032,1.33,.125],[0,1.17,.128]].map(([x,y,z])=>[x,y-base,z]);
+   v.setAttribute('position',new THREE.Float32BufferAttribute([TL,TR,MR, TL,MR,ML, ML,MR,B].flat(),3));v.computeVertexNormals();up.add(new THREE.Mesh(v,mIn))}
   for(const sd of [-1,1]){
-    const sh=new THREE.Group();sh.position.set(sd*.235,1.36-base,0);sh.rotation.z=sd*.07;
-    sh.add(L([[.03,.07,.1],[-.03,.12,.13],[-.3,.1,.1]],mCoat,5,Math.PI));
+    const sh=new THREE.Group();sh.position.set(sd*.23,1.36-base,0);sh.rotation.z=sd*.07;
+    sh.add(L([[.045,.03,.05,0,0,-sd*.06],[0,.12,.14],[-.07,.135,.145],[-.3,.105,.11]],mCoat,5,Math.PI)); // sleeve; the small cap ring sits 6 cm inside the torso (checked for arm swings of +-.25), so the sleeve top runs into the yoke with no bump
     const el=new THREE.Group();el.position.y=-.3;el.rotation.x=-.24;sh.add(el);
-    el.add(L([[.02,.1,.1],[-.27,.09,.09]],mCoat,5,Math.PI));
+    el.add(L([[.02,.1,.1],[-.2,.095,.095]],mCoat,5,Math.PI));el.add(L([[-.19,.1,.1],[-.27,.1,.1]],mDark,5,Math.PI)); // forearm and a dark cuff; the palm starts inside the cuff
     const hand=mkHand(sd);el.add(hand);
     up.add(sh);arms.push(sh);elbows.push(el);hands.push(hand);
   }
-  // head: gem-cut, faceless; a swept faceted hair shell with one sharp fringe plane
+  // head: gem-cut, faceless; a swept faceted hair shell with a short bent fringe lying on the forehead
   const head=new THREE.Group();head.position.set(0,1.59-base,0);head.rotation.x=.05;up.add(head);
-  up.add(L([[1.5-base,.075,.08],[1.62-base,.07,.075]],mSkin,4,Math.PI/4));
-  head.add(L([[0,.03,.04,0,.05],[.06,.12,.15,0,.035],[.13,.155,.19,0,.012],[.2,.155,.19,0,0],[.26,.1,.13,0,-.01]],mSkin,6,0));
-  head.add(L([[.04,.11,.1,0,-.06],[.12,.165,.2,0,-.025],[.2,.172,.21,0,-.008],[.265,.15,.18,0,.004],[.3,.06,.09,0,.0]],mHair,6,Math.PI/6));
-  {const f=new THREE.BufferGeometry(),[A,B,Q,D]=[[.075,.27,.06],[-.075,.255,.055],[-.088,.15,.08],[-.015,.22,.118]];
-   f.setAttribute('position',new THREE.Float32BufferAttribute([A,B,D, B,Q,D, Q,A,D, A,Q,B].flat(),3));f.computeVertexNormals();head.add(new THREE.Mesh(f,mHair))}
+  const skull=L([[0,.03,.04,0,.05],[.06,.12,.15,0,.035],[.13,.155,.19,0,.012],[.2,.155,.19,0,0],[.26,.1,.13,0,-.01]],mSkin,6,0);head.add(skull);
+  {// skin tone, flat per facet: the strip under the fringe (.13-.2) and the crown a step darker, the chin facets (0-.06) slightly darker, the cheeks full tone;
+   // with the head tilted back (petals) the lit face then reads as a shaded face, not a white wedge. The loft itself is unchanged (still faceless).
+   const p=skull.geometry.attributes.position,c=skull.geometry.attributes.color;
+   for(let i=0;i<p.count;i+=3){const y=(p.getY(i)+p.getY(i+1)+p.getY(i+2))/3,k=y>.2?.7:y>.13?.85:y<.06?.82:1;for(let j=i;j<i+3;j++)c.setXYZ(j,c.getX(j)*k,c.getY(j)*k,c.getZ(j)*k)}}
+  // hair shell: fuller at the top (a flat top 6 cm above the crown, like the reference father), so the head sits inside a dark hair outline when tilted back
+  head.add(L([[.04,.11,.1,0,-.06],[.12,.165,.2,0,-.025],[.2,.172,.21,0,-.008],[.265,.17,.2,0,0],[.3,.13,.16,0,.005],[.32,.08,.1,0,.005]],mHair,6,Math.PI/6));
+  {// fringe: two facets folded over the face ridge, corners just outside the temples (1 cm proud of the head's side vertices, so no skin pokes through the plate), lying on the forehead down to y .16 with a straight, slightly swept lower edge
+   // (no V notch, so the exposed face has no 'two-pointed crown' outline), the tip ~5 mm proud of the forehead; it never rises above the hair as a horn
+   const f=new THREE.BufferGeometry(),[LC,CT,RC,CB]=[[-.07,.172,.062],[0,.27,.088],[.068,.15,.066],[-.004,.162,.106]];
+   f.setAttribute('position',new THREE.Float32BufferAttribute([LC,CT,CB, CT,RC,CB].flat(),3));
+   f.setAttribute('color',new THREE.Float32BufferAttribute(new Array(18).fill(.8),3));f.computeVertexNormals();head.add(new THREE.Mesh(f,mHair))}
   // relaxed default stance
   arms[1].rotation.x=.04;elbows[1].rotation.x=-.38;arms[0].rotation.x=-.05;elbows[0].rotation.x=-.3;
-  legs[0].rotation.z=-.035;legs[1].rotation.z=.02;knees[1].rotation.x=.08;head.rotation.y=-.12;up.rotation.z=.015;
+  legs[0].rotation.z=-.035;legs[1].rotation.z=.03;knees[1].rotation.x=.08;head.rotation.y=-.12;up.rotation.z=.015;
   g.userData={legs,knees,ankles,arms,elbows,head,hands,
     walk(ph,amp=.45){
       for(let i=0;i<2;i++){const p=ph+(i?Math.PI:0),sw=Math.sin(p);
