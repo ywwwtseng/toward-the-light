@@ -65,6 +65,7 @@ The bar is **"product-level and artistic, not a demo."** The owner judges by eye
 | 每一幕 不用顯示 03 -24 數字 | captions | scene counter removed |
 | 走路 身體跟腳怪怪的 | walk | ankles (flat feet), smaller stride, coat panels at 50 %, tiny torso twist |
 | 文字最後都用英文 | all copy | **English only** |
+| 幫我把每個 model 優化，維持低面數，可參考原本影片 | all models | v41: every prop rebuilt as a designed low-poly sculpture after the film, reviewed by art + technical reviewers (docs/model-polish). Low-poly limits stay: ≤ 8 sides, flat shading, no files. |
 
 ## Practical rules distilled
 

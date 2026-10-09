@@ -25,7 +25,7 @@ node tools/shots.js --all && python3 tools/contact.py   # every scene at t=.5 ->
 ```
 
 Tips:
-- Shots are taken in order. Visiting nearby positions in sequence lags less than jumping around.
+- Shots are taken in order. Visiting nearby positions in sequence lags less than jumping around; for a shot far from the previous one, add a lead-in position first (`15.9 16.35`) and keep `WAIT` ≥ 9000.
 - To check a scene's start, middle and end, shoot `i+.2`, `i+.5` and `i+.85`. Captions are only visible for t ∈ .12–.75.
 - For a character pose, use `tools/pose.html` (side/front/three-quarter) instead of the full page. It fetches `dist/test.html`, so serve the repo root first (`python3 -m http.server 8000`, then open http://localhost:8000/tools/pose.html?v=2); it does not work from file://.
 - For the walk cycle, use `tools/gait.html` (same server): eight phases of `stroll()` from the side and from behind. Check that feet are flat when planted and that the coat stays one piece from behind.

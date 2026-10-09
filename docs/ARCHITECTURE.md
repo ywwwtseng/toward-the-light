@@ -76,12 +76,17 @@ Uniforms: `tex`, `res`, `time`, `dark`. Pure white reads as `#f4f4f4`-ish after 
 | `glow(scale, opacity)` | additive radial-gradient sprite. For a light source on the horizon, set `material.fog=false`; to stop the ground clipping it, also set `depthTest=false` and `renderOrder=10`. |
 | `stars(n, radius, opts)` | point sprites |
 | `ground(color, size=400)` | horizontal plane at y=0. Every city scene needs one, or buildings look like they float (owner feedback). |
-| `building(w,h,d,night,{col})` | box with a procedural window-grid facade, base at y=0 |
+| `building(w,h,d,night,opts)` | box with a procedural window-grid facade, base at y=0. `opts`: `col`, `variant` (0–2 facade tile: punched / ribbon / piers), `front` (door face), `setback`, `roof` (`'mast'`/`'tank'`/`'box'`), `piers` (instanced fins), `lobby` (podium + door, default on by day). Day tiles are 4 windows × 4 floors per 2.8 × 4.4 units (one floor = 1.1 units, hero scale); night keeps the dense grid of lit windows. Facade tiles are built once in `facades()`. Every trim child draws after the facade (`renderOrder` 1–2) **and** stands ≥ 3 cm proud, because the film pass renders into a 16-bit depth target (r128 default), so anything thinner z-fights at distance. |
 | `street(scene, opts)` | two rows of buildings along -z |
 | `rain(n, area, seed)` | line segments; animate `.position.y` |
 | `rng(seed)` | deterministic PRNG. Use it instead of `Math.random()` so scenes are identical every load. |
 | `canvasTex(w,h,draw)` | draw on a 2D canvas, get a texture (calendar pages, city-at-night window, etc.) |
+| `suitcase(person)` | cabin case (chamfered 8-sided loft, rib line, bar handle, wheels) hung from the hero's left hand; the fist closes on the bar with `grip(1)`. |
 | `worldGroup(scene, keep=[])` | moves every non-light child of `scene` (except `keep`) into one group and returns it. Used by the walk-in-place scenes: animate the group, not the hero. |
+
+## Depth precision
+
+The film pass renders the 3D scene into a `WebGLMultisampleRenderTarget` whose depth buffer is 16-bit (r128 default). Depth resolution is roughly 3e-4·z², so a face less than ~3 cm in front of another ties with it at 10 units and ~30 cm at 30 units. Rule from the v41 model polish: a trim piece (door, podium band, window frame, sign) draws after its parent (`renderOrder` 1–2) **and** stands at least that far proud; a thin coplanar panel will z-fight into stripes. A 24-bit depth texture on the target would remove the need for this.
 
 ## Loader, audio, About
 

@@ -31,15 +31,17 @@ Light/dark is the `dark(t)` value. It drives caption colour and the strength of 
 | 22 | `minusone` | D | A space kept open for the light still on its way | 60 small lights spiral in from the dark and settle into a ring around him with one gap (no inner ground ring; William removed it) | Rises to top-down |
 | 23 | `end` | L | (none; `#ending` overlay: TOWARD THE LIGHT, "Walk again", note, About) | He stands still on white with a soft reflection (no walking) | Pulls far back |
 
+Every set piece was rebuilt in v41 (model polish); what changed per scene, with before/after sheets, is in [model-polish/README.md](model-polish/README.md).
+
 ## Known weak spots (verified by screenshots)
 
-- **`subway`:** the train is hard to read; the scene is very dark.
-- **`store`:** the bloom pass washes the interior shelves into white blobs. They read as "bright shop", but there is no detail.
-- **`shards`:**
-  - The coat's skirt panels follow the raised thighs and form a slab in the curled pose.
-  - The figure is small and often hidden behind shards early in the scene.
+- **`subway`:** the daisy petals still drift there (owner decision pending). The train and platform were rebuilt in v41.
+- **`crack`:** the crack reads as a dark line laid on the slabs rather than a fracture (reviewers' note, v41).
+- **`flood`:** the water tone was lifted from `#0c` to `#20` in v41 so the hull and wake read; the dark smear under the hull is still faint.
+- **`desk`:** the thighs pass through the 5 cm chair seat slab (raise the hero ~.07 in the scene).
+- **`room`:** the lying hero is a straight slab; the coat has no spine to bend.
+- **`shards`:** the figure is small early in the scene (v41 keeps the first 1.2 units clear and scales near pieces down).
 - **`towers`, `skyline`:** the hero is small or absent; they could use stronger composition.
-- **`petals`:** pages that have landed render pure white because of the glow pass. Fine, but busy near the caption.
 - **`end`:** the reflection is a second, mirrored character (`scale.y=-1`) with a gradient veil. A true planar reflection would be nicer.
 - **`field`:** the hero is backlit by the light ahead and reads almost black; a faint fill from behind the camera would help.
 - **Walk scenes (`arrive`, `crack`, `office`, `field`):** the gait was rebuilt twice on owner feedback. Check `tools/gait.html` and a back view in `office` after any rig change.

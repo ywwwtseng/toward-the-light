@@ -5,9 +5,10 @@ A scroll-driven 3D short story in the browser. One person, one suitcase, and a c
 一個人、一只行李箱、一座正在認識他的城市。24 個場景，用滾動推進時間，陪他一步一步走向光。（網站上的文字全部是英文。）
 
 - **Tech:** plain HTML + CSS + JavaScript, [three.js r128](https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js) from cdnjs. No framework, no bundler, no assets: every model, texture and sound is generated in code.
-- **Output:** one self-contained HTML file (`dist/index.html`, ~95 KB).
+- **Output:** one self-contained HTML file (`dist/index.html`, ~185 KB).
 - **Look:** black-and-white low-poly film. A post-processing pass adds grain, glow, vignette and a silver tone curve.
 - **Text:** English only, hopeful and poetic, set in Cormorant Garamond italic. No scene numbers on screen.
+- **Models:** every set piece is a designed low-poly sculpture after the reference film (v41 model polish, see [docs/model-polish](docs/model-polish/README.md)); the hero is a faceless faceted figure with five-finger hands.
 
 ![storyboard](assets/storyboard.jpg)
 

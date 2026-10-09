@@ -17,6 +17,8 @@ This repo is a single-page, scroll-driven three.js story. The owner (William, Gi
    - jittery motion
    - the old mechanical `walk()` gait
    - a monitor stand that shows in front of the screen
+   - placeholder boxes for props: every object is a designed low-poly sculpture (see [docs/REFERENCE-STYLE.md](docs/REFERENCE-STYLE.md) and [docs/model-polish/README.md](docs/model-polish/README.md)); keep it low-poly (≤ 8 sides, flat shading, instancing for repeats, roughly ≤ 2× triangles per scene)
+   - thin trim panels less than ~3 cm proud of a face: the 16-bit depth target makes them z-fight into stripes (draw order **and** offset, see ARCHITECTURE.md)
 5. **The scene contract is small. Keep it.** A scene is `{key, bg, dark(t), build() -> {scene, update(t, time)}}`, and its caption is `CAPTIONS[key]`. Adding a scene means adding one object to `SCENES` plus one caption. The scroll track length follows `SCENES.length` automatically.
 6. **Performance budget:**
    - The page must stay smooth on a mid-range laptop.

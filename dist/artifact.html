@@ -504,10 +504,14 @@ function makePerson({child=false,father=false,body,jacket,mat=null}={}){
 /* the protagonist: a deliberately low-poly, faceted figure, like a paper sculpture.
    Few sides per section, sharp planes, a faceless gem-cut head and a slight tone shift per facet. Same rig and poses as makePerson. */
 function makeHero({body,jacket,mat=null}={}){
-  const C={coat:jacket??0x3a3a3a,pants:body??0x1a1a1a,skin:0xa9a9a9,hair:0x161616,shoe:0x121212,inner:0x0e0e0e};
+  /* tones: coat, a darker collar/cuff ring (coat x .55), trousers one step lighter than the shoes (the reference father wears
+     mid-grey trousers over dark boots), skin, hair, inner layer. The shoe is derived from the trousers so the step always holds. */
+  const C={coat:jacket??0x3a3a3a,pants:body??0x2a2a2a,skin:0xa9a9a9,hair:0x161616,inner:0x0e0e0e};
+  C.collar=new THREE.Color(C.coat).multiplyScalar(.55).getHex();
+  {const s=new THREE.Color(C.pants).multiplyScalar(.5);if(s.r>16/255)s.setScalar(16/255);C.shoe=s.getHex()}
   let sd0=1;const g=new THREE.Group(),mm=c=>mat||M(c,{vertexColors:true});
-  const mCoat=mm(C.coat),mPants=mm(C.pants),mSkin=mm(C.skin),mHair=mm(C.hair),mShoe=mm(C.shoe),mIn=mm(C.inner);
-  const L=(secs,m,n=5,rot=0)=>new THREE.Mesh(loftGeo(secs,{sides:n,rot,jitter:.09,seed:sd0++}),m);
+  const mCoat=mm(C.coat),mDark=mm(C.collar),mPants=mm(C.pants),mSkin=mm(C.skin),mHair=mm(C.hair),mShoe=mm(C.shoe),mIn=mm(C.inner);
+  const L=(secs,m,n=5,rot=0,seed=sd0++)=>new THREE.Mesh(loftGeo(secs,{sides:n,rot,jitter:.09,seed}),m);
   const legs=[],knees=[],ankles=[],arms=[],elbows=[],hands=[],hipY=.98;
   /* hand: faceted palm, four two-joint fingers and a thumb. Palm faces the thigh (local -z); fingers curl toward it.
      hand.userData.grip(k): 0 = open, ~.15 = relaxed, 1 = closed around a handle. */
@@ -521,45 +525,75 @@ function makeHero({body,jacket,mat=null}={}){
     const tm=new THREE.Group();tm.position.y=-.032;tm.add(L([[.006,.018,.018],[-.025,.012,.012]],mSkin,4,Math.PI/4));th.add(tm);hd.add(th);
     hd.userData.grip=k=>{F.forEach(([p,m],i)=>{p.rotation.x=.18+k*1.3+i*.04;m.rotation.x=.22+k*1.35});th.rotation.x=.3+k*.25;th.rotation.z=ts*(.3-k*.5);tm.rotation.x=.15+k*.35};
     hd.userData.grip(.18);return hd};
-  g.add(L([[.86,.28,.18],[1.0,.3,.19]],mPants,6,Math.PI/6));
+  g.add(L([[.92,.3,.2],[1.0,.32,.21]],mPants,6,Math.PI/6)); // pelvis, inside the coat's seat piece; ends above the thighs' underside (hip -.08) so nothing hangs under a seat
   for(const sd of [-1,1]){
     const hip=new THREE.Group();hip.position.set(sd*.08,hipY,0);
-    hip.add(L([[0,.14,.15],[-.5,.085,.095]],mPants,5,Math.PI));
+    hip.add(L([[.04,.1,.11],[0,.15,.16],[-.5,.105,.115]],mPants,5,Math.PI)); // thigh; the ring above the pivot is a gusset that stays inside the pelvis when the leg swings
     const knee=new THREE.Group();knee.position.y=-.5;hip.add(knee);
-    knee.add(L([[0,.09,.1],[-.44,.06,.07]],mPants,5,Math.PI));
+    knee.add(L([[.035,.07,.08],[0,.105,.115],[-.36,.082,.092],[-.375,.094,.104],[-.44,.09,.1]],mPants,5,Math.PI)); // shin: knee cap ring, straight leg, turned-up cuff at the hem
     const ank=new THREE.Group();ank.position.y=-.44;knee.add(ank); // ankle: keeps the sole flat on the ground while walking
-    ank.add(L([[.01,.08,.1,0,.0],[-.03,.1,.27,0,.06],[-.06,.08,.24,0,.07]],mShoe,4,Math.PI/4));
+    // shoe: six-sided plan (flat heel, flat toe, widest at the ball), the instep slopes down from inside the cuff to the sole lip. The lip (widest ring) sits at -.02,
+    // 2 cm above the floor line when standing (hip .98 - .94 leg), so the sole edge shows above a floor; the sole itself stays at -.06 (stroll and the boat rely on it)
+    ank.add(L([[.03,.07,.09,0,0],[-.005,.08,.17,0,.03],[-.02,.1,.29,0,.07],[-.045,.096,.285,0,.07],[-.06,.088,.27,0,.07]],mShoe,6,Math.PI/6));
     g.add(hip);legs.push(hip);knees.push(knee);ankles.push(ank);
   }
-  // long coat skirt: one faceted panel per leg, swinging part-way with it
-  g.add(L([[1.04,.4,.25],[.86,.38,.26],[.7,.3,.22]],mCoat,6,Math.PI/6)); // fixed seat of the coat, hides the gap between the panels
+  /* long coat skirt. Standing/walking: a fixed seat piece plus one faceted panel per leg that swings part-way with it.
+     Seated or curled (thigh past -.6 rad): the panels would stick out as a block, so each panel hides and a lap piece that hugs
+     the thigh (100 % follow) plus a flap hinged at the knee take over; the seat piece swaps to a short version so nothing hangs under the seat. */
+  // seatA ends inside the panels (no ledge at mid-thigh); seatB ends at .92, above the thighs' underside, so nothing hangs under a seat
+  const seatA=L([[1.06,.42,.26],[.9,.42,.27],[.72,.37,.23]],mCoat,6,Math.PI/6),seatB=L([[1.06,.42,.26],[.99,.42,.27],[.92,.4,.26]],mCoat,6,Math.PI/6);
+  g.add(seatA,seatB);seatB.visible=false;
   for(let i=0;i<2;i++){const sd=i?1:-1,leg=legs[i],pv=new THREE.Group();pv.position.set(sd*.08,hipY,0);
-    pv.add(L([[.08,.25,.27,0,0,sd*.025],[-.52,.27,.31,0,0,sd*.03]],mCoat,4,Math.PI/4));
-    pv.updateMatrix=function(){const a=leg.rotation.x;this.rotation.x=a*(a<-1?.92:(g.userData.walking?.5:.8));this.rotation.z=leg.rotation.z;THREE.Object3D.prototype.updateMatrix.call(this)};g.add(pv)}
+    // both panels share one jitter seed and overlap 2-3 cm at the centre line (still overlapping once the legs' lateral spread tilts them), so the back reads as one plane:
+    // no split line and no gap at the hem. The left panel is 1.4 mm deeper and 1 mm lower so the overlapping faces are never coplanar (no z-fighting).
+    const dd=i?0:.004,dy=i?0:-.001;
+    const panel=L([[.08+dy,.25,.27+dd,0,0,-sd*.004],[-.28+dy,.265,.29+dd,0,0,-sd*.006],[-.53+dy,.28,.31+dd,0,0,-sd*.01]],mCoat,4,Math.PI/4,77);
+    // lap: hugs the thigh; its end ring is wider and deeper than the flap's first ring so the flap's top cap is hidden inside it (no lit shelf on the knee)
+    const lap=L([[.05,.24,.26,0,.012],[-.42,.22,.23,0,.012],[-.5,.21,.2,0,0],[-.55,.2,.18,0,0]],mCoat,4,Math.PI/4);
+    const flap=L([[0,.15,.03,0,.035],[-.14,.19,.07,0,.045],[-.22,.18,.05,0,.05]],mCoat,4,Math.PI/4);
+    knees[i].add(flap);pv.add(panel,lap);lap.visible=flap.visible=false;
+    // switch at -.6 rad (above walk amp .45, so a walk never reaches it); from -.45 to -.6 the panel's follow factor fades to 1, so at the switch the panel already lies on the thigh and only the shape swaps
+    pv.updateMatrix=function(){const a=leg.rotation.x,s=a<-.6,any=legs[0].rotation.x<-.6||legs[1].rotation.x<-.6;
+      panel.visible=!s;lap.visible=flap.visible=s;seatA.visible=!any;seatB.visible=any;
+      const f=g.userData.walking?.5:.8,k=Math.min(1,Math.max(0,(-a-.45)/.15));
+      this.rotation.z=leg.rotation.z;this.rotation.x=s?a:a*(f+(1-f)*k);THREE.Object3D.prototype.updateMatrix.call(this)};
+    g.add(pv)}
   const base=.88,up=new THREE.Group();up.position.y=base;g.add(up);
-  // torso: an inverted wedge, broad sharp shoulders tapering to the waist
-  up.add(L([[.94-base,.4,.24],[1.12-base,.44,.26],[1.3-base,.54,.28],[1.4-base,.56,.26],[1.47-base,.36,.2],[1.52-base,.18,.15]],mCoat,6,Math.PI/6));
-  up.add(L([[1.46-base,.13,.13],[1.56-base,.11,.11]],mIn,4,Math.PI/4)); // high collar
-  {const v=new THREE.BufferGeometry(),z=.152,P=[[-.075,1.44,z-.02],[.075,1.44,z-.02],[0,1.1,z-.022]].map(([x,y,zz])=>[x,y-base,zz]);
-   v.setAttribute('position',new THREE.Float32BufferAttribute(P.flat(),3));v.computeVertexNormals();up.add(new THREE.Mesh(v,mIn))}
+  // torso: widest at the chest, then one continuous slope up to the collar (no shoulder plateau); the sleeves hang from the slope
+  up.add(L([[.94-base,.4,.25],[1.1-base,.44,.27],[1.3-base,.52,.28],[1.38-base,.48,.26],[1.45-base,.36,.22],[1.51-base,.26,.18],[1.56-base,.18,.14]],mCoat,6,Math.PI/6));
+  // coat collar: a dark turned-up ring rising out of the shoulder slope, tapering from .29 at the base to .215 at the rim (1.25x the head) and leaning back, so the chin overhangs its front
+  up.add(L([[1.47-base,.29,.25,0,-.005],[1.545-base,.25,.22,0,-.015],[1.6-base,.215,.2,0,-.028]],mDark,6,Math.PI/6));
+  // turtleneck inside it, up into the jaw (its top cap is inside the head loft, so no lit plate shows between hair and collar from above)
+  up.add(L([[1.55-base,.2,.17,0,-.018],[1.6-base,.19,.17,0,-.025],[1.635-base,.14,.13,0,-.028],[1.665-base,.08,.08,0,-.015]],mIn,6,Math.PI/6));
+  up.add(L([[1.5-base,.09,.09],[1.64-base,.085,.085]],mIn,4,Math.PI/4)); // neck, inner tone
+  {// the coat's open front: a bent strip (it follows the chest bulge, 4-6 mm proud of it) whose top tucks under the collar
+   const v=new THREE.BufferGeometry(),[TL,TR,ML,MR,B]=[[-.06,1.46,.103],[.06,1.46,.103],[-.032,1.33,.125],[.032,1.33,.125],[0,1.17,.128]].map(([x,y,z])=>[x,y-base,z]);
+   v.setAttribute('position',new THREE.Float32BufferAttribute([TL,TR,MR, TL,MR,ML, ML,MR,B].flat(),3));v.computeVertexNormals();up.add(new THREE.Mesh(v,mIn))}
   for(const sd of [-1,1]){
-    const sh=new THREE.Group();sh.position.set(sd*.235,1.36-base,0);sh.rotation.z=sd*.07;
-    sh.add(L([[.03,.07,.1],[-.03,.12,.13],[-.3,.1,.1]],mCoat,5,Math.PI));
+    const sh=new THREE.Group();sh.position.set(sd*.23,1.36-base,0);sh.rotation.z=sd*.07;
+    sh.add(L([[.045,.03,.05,0,0,-sd*.06],[0,.12,.14],[-.07,.135,.145],[-.3,.105,.11]],mCoat,5,Math.PI)); // sleeve; the small cap ring sits 6 cm inside the torso (checked for arm swings of +-.25), so the sleeve top runs into the yoke with no bump
     const el=new THREE.Group();el.position.y=-.3;el.rotation.x=-.24;sh.add(el);
-    el.add(L([[.02,.1,.1],[-.27,.09,.09]],mCoat,5,Math.PI));
+    el.add(L([[.02,.1,.1],[-.2,.095,.095]],mCoat,5,Math.PI));el.add(L([[-.19,.1,.1],[-.27,.1,.1]],mDark,5,Math.PI)); // forearm and a dark cuff; the palm starts inside the cuff
     const hand=mkHand(sd);el.add(hand);
     up.add(sh);arms.push(sh);elbows.push(el);hands.push(hand);
   }
-  // head: gem-cut, faceless; a swept faceted hair shell with one sharp fringe plane
+  // head: gem-cut, faceless; a swept faceted hair shell with a short bent fringe lying on the forehead
   const head=new THREE.Group();head.position.set(0,1.59-base,0);head.rotation.x=.05;up.add(head);
-  up.add(L([[1.5-base,.075,.08],[1.62-base,.07,.075]],mSkin,4,Math.PI/4));
-  head.add(L([[0,.03,.04,0,.05],[.06,.12,.15,0,.035],[.13,.155,.19,0,.012],[.2,.155,.19,0,0],[.26,.1,.13,0,-.01]],mSkin,6,0));
-  head.add(L([[.04,.11,.1,0,-.06],[.12,.165,.2,0,-.025],[.2,.172,.21,0,-.008],[.265,.15,.18,0,.004],[.3,.06,.09,0,.0]],mHair,6,Math.PI/6));
-  {const f=new THREE.BufferGeometry(),[A,B,Q,D]=[[.075,.27,.06],[-.075,.255,.055],[-.088,.15,.08],[-.015,.22,.118]];
-   f.setAttribute('position',new THREE.Float32BufferAttribute([A,B,D, B,Q,D, Q,A,D, A,Q,B].flat(),3));f.computeVertexNormals();head.add(new THREE.Mesh(f,mHair))}
+  const skull=L([[0,.03,.04,0,.05],[.06,.12,.15,0,.035],[.13,.155,.19,0,.012],[.2,.155,.19,0,0],[.26,.1,.13,0,-.01]],mSkin,6,0);head.add(skull);
+  {// skin tone, flat per facet: the strip under the fringe (.13-.2) and the crown a step darker, the chin facets (0-.06) slightly darker, the cheeks full tone;
+   // with the head tilted back (petals) the lit face then reads as a shaded face, not a white wedge. The loft itself is unchanged (still faceless).
+   const p=skull.geometry.attributes.position,c=skull.geometry.attributes.color;
+   for(let i=0;i<p.count;i+=3){const y=(p.getY(i)+p.getY(i+1)+p.getY(i+2))/3,k=y>.2?.7:y>.13?.85:y<.06?.82:1;for(let j=i;j<i+3;j++)c.setXYZ(j,c.getX(j)*k,c.getY(j)*k,c.getZ(j)*k)}}
+  // hair shell: fuller at the top (a flat top 6 cm above the crown, like the reference father), so the head sits inside a dark hair outline when tilted back
+  head.add(L([[.04,.11,.1,0,-.06],[.12,.165,.2,0,-.025],[.2,.172,.21,0,-.008],[.265,.17,.2,0,0],[.3,.13,.16,0,.005],[.32,.08,.1,0,.005]],mHair,6,Math.PI/6));
+  {// fringe: two facets folded over the face ridge, corners just outside the temples (1 cm proud of the head's side vertices, so no skin pokes through the plate), lying on the forehead down to y .16 with a straight, slightly swept lower edge
+   // (no V notch, so the exposed face has no 'two-pointed crown' outline), the tip ~5 mm proud of the forehead; it never rises above the hair as a horn
+   const f=new THREE.BufferGeometry(),[LC,CT,RC,CB]=[[-.07,.172,.062],[0,.27,.088],[.068,.15,.066],[-.004,.162,.106]];
+   f.setAttribute('position',new THREE.Float32BufferAttribute([LC,CT,CB, CT,RC,CB].flat(),3));
+   f.setAttribute('color',new THREE.Float32BufferAttribute(new Array(18).fill(.8),3));f.computeVertexNormals();head.add(new THREE.Mesh(f,mHair))}
   // relaxed default stance
   arms[1].rotation.x=.04;elbows[1].rotation.x=-.38;arms[0].rotation.x=-.05;elbows[0].rotation.x=-.3;
-  legs[0].rotation.z=-.035;legs[1].rotation.z=.02;knees[1].rotation.x=.08;head.rotation.y=-.12;up.rotation.z=.015;
+  legs[0].rotation.z=-.035;legs[1].rotation.z=.03;knees[1].rotation.x=.08;head.rotation.y=-.12;up.rotation.z=.015;
   g.userData={legs,knees,ankles,arms,elbows,head,hands,
     walk(ph,amp=.45){
       for(let i=0;i<2;i++){const p=ph+(i?Math.PI:0),sw=Math.sin(p);
@@ -627,33 +661,105 @@ function rock(radius,seed,detail=1){
 }
 
 /* ---------- city helpers ---------- */
-// Facade texture: a grid of windows. lit = share of windows lit (night) — day facades get dark glass.
-function facadeTex(night,seed){
-  return canvasTex(256,256,(c)=>{const r=rng(seed);
-    c.fillStyle=night?'#151515':'#d9d9d9';c.fillRect(0,0,256,256);
-    for(let y=0;y<8;y++)for(let x=0;x<4;x++){
-      const on=night&&r()<.28;c.fillStyle=night?(on?`rgba(255,255,255,${.55+r()*.4})`:'#0a0a0a'):(r()<.15?'#a8a8a8':'#bdbdbd');
-      c.fillRect(x*64+14,y*32+8,36,18)}
+// Facade tile: 4 windows x 4 floors; by day it covers 2.8 x 4.4 units (one floor = 1.1, a little over half the hero), by night 2.4 x 1.2 (the old dense grid).
+// Three variants so neighbouring buildings differ: 0 punched windows (dark lintel, light sill), 1 ribbon/curtain wall
+// with mullions, 2 lighter piers with tall narrow windows. Night tiles light a seeded share of the windows.
+function facadeTex(night,seed,variant=0){
+  return canvasTex(256,384,(c)=>{const r=rng(seed),wall=night?'#151515':'#d9d9d9';
+    c.fillStyle=wall;c.fillRect(0,0,256,384);
+    const glass=p=>night?(r()<p?`rgba(255,255,255,${.55+r()*.4})`:'#0a0a0a'):(r()<.15?'#a4a4a4':'#b8b8b8');
+    for(let y=0;y<4;y++)for(let x=0;x<4;x++){const X=x*64,Y=y*96;
+      if(variant===1){c.fillStyle=glass(.22);c.fillRect(X,Y+26,64,46);c.fillStyle=night?'#1a1a1a':'#cdcdcd';c.fillRect(X,Y+26,5,46);
+        if(!night){c.fillStyle='#e6e6e6';c.fillRect(X,Y+72,64,4)}}
+      else if(variant===2){c.fillStyle=night?'#1b1b1b':'#e4e4e4';c.fillRect(X,Y,10,96);c.fillRect(X+54,Y,10,96);
+        c.fillStyle=glass(.3);c.fillRect(X+18,Y+12,28,70);if(!night){c.fillStyle='#9c9c9c';c.fillRect(X+18,Y+12,28,3)}}
+      else{c.fillStyle=glass(.28);c.fillRect(X+14,Y+20,36,56);if(!night){c.fillStyle='#9c9c9c';c.fillRect(X+14,Y+20,36,3);c.fillStyle='#e8e8e8';c.fillRect(X+12,Y+76,40,3)}}
+    }
+    c.fillStyle=wall;c.fillRect(0,383,1,1); // the texel the roof face samples
   });
 }
-const FACADE={day:null,night:null};
-function building(w,h,d,night,{col=null}={}){
-  if(!FACADE.day){FACADE.day=facadeTex(false,3);FACADE.night=facadeTex(true,4);[FACADE.day,FACADE.night].forEach(t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping})}
-  const g=new THREE.BoxGeometry(w,h,d),uv=g.attributes.uv,n=g.attributes.normal;
-  for(let i=0;i<uv.count;i++){const side=Math.abs(n.getX(i))>.5?d:w,top=Math.abs(n.getY(i))>.5;uv.setXY(i,uv.getX(i)*(top?0:side/2.4),uv.getY(i)*(top?0:h/2.4))}
-  const mat=new THREE.MeshStandardMaterial({map:night?FACADE.night:FACADE.day,color:col??0xffffff,roughness:1,metalness:0,flatShading:true,
-    emissive:night?0xffffff:0x000000,emissiveMap:night?FACADE.night:null,emissiveIntensity:night?.85:0});
-  const m=new THREE.Mesh(g,mat);m.position.y=h/2;return m;
+const FACADE={day:null,night:null,days:null,nights:null,mats:{}};
+function facades(){if(FACADE.day)return;FACADE.days=[0,1,2].map(v=>facadeTex(false,3+v*2,v));FACADE.nights=[0,1,2].map(v=>facadeTex(true,4+v*2,v));
+  FACADE.day=FACADE.days[0];FACADE.night=FACADE.nights[0];[...FACADE.days,...FACADE.nights].forEach(t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping})}
+// Shared trim materials per (night, tint): parapet lip and piers a step lighter than the wall, three lobby-band tones (seeded per
+// building, about +-8 %) darker, door between, roof furniture dark. The door is FrontSide so its back face never fights the band.
+function cityTones(night,col){const k=`${night}|${col}`;if(FACADE.mats[k])return FACADE.mats[k];
+  const C=f=>new THREE.Color(col??0xffffff).multiplyScalar(f);
+  return FACADE.mats[k]=night?{lip:M(0x1e1e1e),bands:[M(0x0d0d0d)],door:M(0x262626,{side:THREE.FrontSide}),dark:M(0x1a1a1a)}
+    :{lip:M(C(.92)),bands:[M(C(.55)),M(C(.6)),M(C(.65))],door:M(C(.78),{side:THREE.FrontSide}),dark:M(C(.5))}}
+// A vertical fin standing fully outside a facade: front, two sides and a top cap (8 triangles, the open back lies on the wall).
+function finGeo(h,wd=.14,dp=.14){const x=wd/2,y=h/2,P=[],q=(a,b,c,d)=>P.push(...a,...b,...c,...a,...c,...d);
+  q([-x,-y,dp],[x,-y,dp],[x,y,dp],[-x,y,dp]);q([-x,-y,0],[-x,-y,dp],[-x,y,dp],[-x,y,0]);q([x,-y,dp],[x,-y,0],[x,y,0],[x,y,dp]);q([-x,y,dp],[x,y,dp],[x,y,0],[-x,y,0]);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.computeVertexNormals();return g}
+// One building: a textured box standing on y=0 (mesh centre at h/2, b.material = the facade, b.geometry = the box, as before),
+// with a parapet lip and, by day, a lobby podium as children. Options: col tint; variant 0-2 (facade tile, else seeded by size);
+// front [nx,nz] = the face that gets the door and the fins; setback = height of a narrower block on top; roof 'mast'|'tank'|'box';
+// piers = instanced vertical fins on the window piers of the front face; lobby=false drops podium + door (far buildings, setback
+// block); lip=false drops the parapet (tops the camera never sees). Night: lip only.
+// The 3D pass renders into a 16-bit depth target, so every trim piece is at least .1 proud of the wall AND draws after the facade
+// (renderOrder 1, doors and roof furniture 2) to win any remaining depth tie; without that the podiums stripe at 10-30 m.
+function building(w,h,d,night,{col=null,variant=null,front=[0,1],setback=0,roof=null,piers=false,lobby=true,lip=true}={}){
+  facades();const T=cityTones(night,col),s=Math.floor((w*7.3+h*3.1+d*5.7)*10),v=variant??s%3,tex=(night?FACADE.nights:FACADE.days)[v],
+    s2=(s*2654435761%1000)/1000,s3=(s*40503%1000)/1000; // two more seeded fractions: podium height and tone
+  const TW=night?2.4:2.8,FL=night?.3:1.1; // tile width and floor pitch: day floors are 1.1 (hero scale), night keeps the old dense grid of lights
+  const band=lobby&&!night&&s2>.25?Math.min(h*.3,1.6+s3*1.4):0,rows=Math.max(1,Math.round((h-band)/FL)),pitch=(h-band)/rows; // one in four has no podium; night facades keep their lights down to the ground
+  const g=new THREE.BoxGeometry(w,h,d),uv=g.attributes.uv,n=g.attributes.normal,colsOf=side=>4*Math.max(1,Math.round(side/TW));
+  for(let i=0;i<uv.count;i++){const top=Math.abs(n.getY(i))>.5,side=Math.abs(n.getX(i))>.5?d:w;
+    uv.setXY(i,top?0:uv.getX(i)*colsOf(side)/4,top?0:1-(1-uv.getY(i))*h/(4*pitch))} // rows anchored at the roof so the bottom one meets the band
+  const mat=new THREE.MeshStandardMaterial({map:tex,color:col??0xffffff,roughness:1,metalness:0,flatShading:true,
+    emissive:night?0xffffff:0x000000,emissiveMap:night?tex:null,emissiveIntensity:night?.85:0});
+  const m=new THREE.Mesh(g,mat);m.position.y=h/2;
+  const add=(o,ro=1)=>{o.renderOrder=ro;m.add(o);return o},fx=front[0],fz=front[1],half=fx?w/2:d/2,fw=fx?d:w; // the front face: its distance from the centre and its width
+  if(lip){const lipH=Math.min(.35,h*.08),o=Math.min(.12,w*.03,d*.03);add(box(w+2*o,lipH,d+2*o,T.lip,0,h/2-lipH*.1,0))} // parapet lip, 40% proud of the roof
+  if(band){add(box(w+.2,band,d+.2,T.bands[Math.floor(s2*4)%T.bands.length],0,-h/2+band/2,0));add(box(w+.3,.1,d+.3,T.lip,0,-h/2+band-.05,0)); // podium (10 cm proud) + its cap strip
+    const dh=Math.min(2,band-.25),dw=fw>5?1.8:1; // door: fully in front of the podium face, never taller than the podium; wide fronts get a double door under a canopy
+    if(h>=5&&Math.min(w,d)>=2.2&&dh>=1.4){const dr=add(box(dw,dh,.12,T.door,fx*(half+.17),-h/2+dh/2,fz*(half+.17)),2);if(fx)dr.rotation.y=Math.PI/2;
+      if(fw>5){const cp=add(box(dw+.6,.08,.5,T.lip,fx*(half+.35),-h/2+dh+.12,fz*(half+.35)),2);if(fx)cp.rotation.y=Math.PI/2}}}
+  if(piers){const c=colsOf(fw),p=fw/c;if(c>1&&c<=16){const im=new THREE.InstancedMesh(finGeo(h-band),T.lip,c-1),m4=new THREE.Matrix4(),q=new THREE.Quaternion().setFromEuler(new THREE.Euler(0,fx?fx*Math.PI/2:(fz>0?0:Math.PI),0));
+    for(let k=1;k<c;k++){const u=-fw/2+k*p;m4.compose(fx?V3(fx*w/2,band/2,u):V3(u,band/2,fz*d/2),q,V3(1,1,1));im.setMatrixAt(k-1,m4)}add(im)}}
+  let top=m,topY=h/2,tw=w,td=d; // roof furniture goes on the topmost block
+  if(setback>0){const sb=building(w*.62,setback,d*.62,night,{col,variant:v,lobby:false});sb.position.set(w*.08,h/2+setback/2,-d*.06);m.add(sb);top=sb;topY=setback/2;tw=w*.62;td=d*.62}
+  const put=o=>{o.renderOrder=2;top.add(o)};
+  if(roof==='mast'){const mh=Math.max(1.5,Math.min(5,h*.12));put(box(.3,.3,.3,T.dark,tw*.3,topY+.15,-td*.25));
+    put(new THREE.Mesh(new THREE.CylinderGeometry(.04,.05,mh,4,1,true),T.dark).translateX(tw*.3).translateY(topY+mh/2).translateZ(-td*.25))}
+  else if(roof==='tank'&&Math.min(tw,td)>2.4){put(box(1.1,.25,1.1,T.bands[0],-tw*.2,topY+.125,td*.15));
+    put(new THREE.Mesh(new THREE.CylinderGeometry(.42,.46,.7,6,1,true),T.lip).translateX(-tw*.2).translateY(topY+.6).translateZ(td*.15))}
+  else if(roof==='box'&&Math.min(tw,td)>2.4)put(box(1.3,.8,1.5,T.bands[0],tw*.2,topY+.4,-td*.2));
+  return m;
 }
-function street(scene,{night=false,z0=12,z1=-90,gap=4.2,seed=1,minH=8,maxH=34}={}){
-  const r=rng(seed);
-  for(const sd of [-1,1])for(let z=z0;z>z1;){const w=3+r()*5,d=4+r()*6,h=minH+r()*(maxH-minH);
-    const b=building(w,h,d,night);b.position.x=sd*(gap+w/2+r()*1.2);b.position.z=z-d/2;scene.add(b);z-=d+.4+r()*1.5}
+// Avenue of buildings on both sides, with a pavement and kerb, lamp posts and bollards for scale. Everything is added to the
+// scene before worldGroup() is called, so it slides with the ground in scene 1. r2 keeps the original r() sequence (same buildings).
+// detail: podium, door and fins only on buildings with z > detail (the ones the camera gets close to); roof furniture inside the fog.
+function street(scene,{night=false,z0=12,z1=-90,gap=4.2,seed=1,minH=8,maxH=34,detail=-50}={}){
+  const r=rng(seed),r2=rng(seed+100),L=z0-z1,zc=(z0+z1)/2;
+  for(const sd of [-1,1])for(let z=z0;z>z1;){const w=3+r()*5,d=4+r()*6,h=minH+r()*(maxH-minH),tall=h>minH+(maxH-minH)*.5,near=z>detail;
+    const setback=tall&&r2()<.55?h*(.2+r2()*.25):0,roof=r2()<.4?(w>3.5&&r2()<.5?'tank':'mast'):null,piers=w>4&&r2()<.45; // same r2 draws as before
+    const b=building(w,h,d,night,{front:[-sd,0],setback,roof:z>-65?roof:null,piers:near&&piers,lobby:near});
+    b.position.x=sd*(gap+w/2+r()*1.2);b.position.z=z-d/2;scene.add(b);z-=d+.4+r()*1.5}
+  const pv=M(night?0x222222:0xdadada),kb=M(night?0x303030:0xbdbdbd),pole=M(night?0x2a2a2a:0x4e4e4e),bol=M(night?0x333333:0x8e8e8e);
+  for(const sd of [-1,1]){scene.add(box(2.8,.14,L,pv,sd*(gap+.1),.07,zc),box(.1,.17,L,kb,sd*(gap-1.3),.085,zc))} // pavement step (>= 10 % darker than the road) + kerb line
+  const nl=Math.floor(L/11),lp=new THREE.InstancedMesh(new THREE.CylinderGeometry(.045,.055,4.2,6,1,true),pole,nl*2),lh=new THREE.InstancedMesh(new THREE.BoxGeometry(.6,.14,.26),pole,nl*2),
+    nb=Math.floor(L/8),bo=new THREE.InstancedMesh(new THREE.BoxGeometry(.12,.7,.12),bol,nb*2),m4=new THREE.Matrix4(); // open tubes (ends hidden) and square bollards: 12 triangles each
+  for(let i=0;i<nl;i++)for(const sd of [-1,1]){const z=z0-5-i*11,j=i*2+(sd>0);
+    m4.makeTranslation(sd*(gap-.5),.14+2.1,z);lp.setMatrixAt(j,m4);m4.makeTranslation(sd*(gap-.7),.14+4.2,z);lh.setMatrixAt(j,m4)} // post + head leaning over the road
+  for(let i=0;i<nb;i++)for(const sd of [-1,1]){m4.makeTranslation(sd*(gap-1.1),.14+.35,z0-2.5-i*8);bo.setMatrixAt(i*2+(sd>0),m4)}
+  scene.add(lp,lh,bo);
 }
+/* cabin case in the left hand: a chamfered hard shell (.2 wide × .46 tall × .34 long) with a rib line round it, a carry handle
+   (bar on two posts) that the closed fist wraps, two 6-sided wheels under the outer bottom edge and the trolley-handle caps on top; ~190
+   triangles. The group pivots at the bar, which sits inside the fist (hand-local y −.058, palm side), and hangs almost plumb while
+   the arm is pushed out a little so the shell clears the coat. Wheels and caps sit on the outer edge (the inner edge is hidden by the
+   shell from every scene camera). Its wheels stay ≈ .18 above the ground at full swing. */
 function suitcase(person){
-  const el=person.userData.elbows[1],c=new THREE.Group(),m=M(0x2a2a2a);
-  c.add(box(.13,.44,.32,m,0,-.36,0),box(.03,.06,.03,M(0x111111),0,-.12,0),box(.08,.02,.03,M(0x111111),0,-.1,0));
-  c.position.set(0,-.3,.02);el.add(c);person.userData.arms[1].rotation.z=.12;person.userData.hands?.[1]?.userData.grip(1);return c;
+  const el=person.userData.elbows[1],c=new THREE.Group(),shell=M(0x454545),trim=M(0x5a5a5a),dark=M(0x2a2a2a),W=.2,H=.46,D=.34,b=.014;
+  const s=new THREE.Group();s.position.y=-(H+.055);c.add(s);
+  s.add(loft([[0,W-2*b,D-2*b,.1],[b,W,D,.3],[H-b,W,D,.3],[H,W-2*b,D-2*b,.1]],shell,{sides:8}));
+  s.add(loft([[H*.6,W+.012,D+.012,.3],[H*.6+.016,W+.012,D+.012,.3]],trim,{sides:8,caps:false})); // rib line round the shell
+  s.add(box(.02,.02,.15,trim,0,H+.055,0),box(.02,.05,.02,trim,0,H+.025,-.058),box(.02,.05,.02,trim,0,H+.025,.058)); // carry handle: bar on two posts, in the trim grey so it still shows against the dark corridor floor
+  [-.06,.06].forEach(z=>s.add(box(.026,.014,.026,trim,.066,H+.005,z))); // trolley-handle caps on the outer top edge (+x, away from the leg), where the back three-quarter cameras see them
+  const wg=new THREE.CylinderGeometry(.028,.028,.026,6,1);wg.rotateZ(Math.PI/2);
+  [-.12,.12].forEach(z=>{const w=new THREE.Mesh(wg,dark);w.position.set(.09,.002,z);s.add(w)}); // wheels under the outer bottom edge, proud of the chamfer, so they read as bumps in the silhouette
+  c.position.set(-.026,-.313,0);c.rotation.z=-.17;el.add(c);person.userData.arms[1].rotation.z=.2;person.userData.hands?.[1]?.userData.grip(1);return c;
 }
 const rain=(n,area,seed)=>{const r=rng(seed),p=[];for(let i=0;i<n;i++){const x=(r()-.5)*area,y=r()*14,z=(r()-.5)*area;p.push(x,y,z,x+.02,y-.45,z)}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));
@@ -759,10 +865,33 @@ const SCENES=[
 /* 2 — a small daisy in a crack of the pavement; his steps pass by */
 {key:'crack',bg:'#e9e9e9',dark:()=>false,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0xe9e9e9);scene.fog=new THREE.Fog(0xe9e9e9,3,18);
-  lights(scene,{dir:[0xffffff,.8,[2,5,3]]});scene.add(ground(0xdedede));
-  const r=rng(12),cm=B(0x9a9a9a);let x=-6,z=.3;
-  while(x<6){const nx=x+.25+r()*.5,nz=z+(r()-.5)*.35,len=Math.hypot(nx-x,nz-z),seg=box(len,.004,.03,cm,(x+nx)/2,.003,(z+nz)/2);seg.rotation.y=-Math.atan2(nz-z,nx-x);scene.add(seg);x=nx;z=nz}
-  for(let i=0;i<40;i++){const s=box(.25+r()*.6,.01,.18+r()*.3,M(0xf7f7f7),(r()-.5)*10,.005,(r()-.5)*6);s.rotation.y=r()*3;scene.add(s)} // snow patches
+  lights(scene,{dir:[0xffffff,.8,[2,5,3]]});const base=ground(0x7a7a7a);base.position.y=-.004;scene.add(base); // the walking surface is y=0; this darker base .004 below only shows in the slab joints (the slabs saturate to white under this light, so the joint tone must sit well below #ac to read)
+  const r=rng(12),m4=new THREE.Matrix4(),c=new THREE.Color();
+  // pavement: instanced flat slab quads at y=0 (no side faces, so the joints are purely the dark base, never a lit bevel), .72 pitch, .04 joints, five rows between the kerb and the camera, tone jittered per slab
+  const P=.72,cols=40,rows=5,sg=new THREE.PlaneGeometry(P-.04,P-.04);sg.rotateX(-Math.PI/2);const slabs=new THREE.InstancedMesh(sg,M(0xe2e2e2,{side:THREE.FrontSide}),cols*rows);
+  for(let i=0;i<cols;i++)for(let j=0;j<rows;j++){const k=i*rows+j;m4.makeTranslation((i-cols/2+.5)*P,0,-1.35+j*P);slabs.setMatrixAt(k,m4);slabs.setColorAt(k,c.setScalar(.94+r()*.08))}
+  slabs.receiveShadow=true;scene.add(slabs);
+  // a kerb behind his path with a lighter top, and the darker road beyond it (its top just above the base plane)
+  scene.add(box(30,.12,.28,M(0xc8c8c8),0,.04,-1.85),box(30,.012,.22,M(0xdadada),0,.103,-1.86),box(30,.01,9,M(0xbcbcbc),0,-.007,-6.5));
+  // the crack: a chain that wanders about z≈.24 (mean-reverting, clamped: between the kerb and the caption band — for 0<x≤3, the stretch under the caption at t .45–.75 when the camera is lowest, it sinks toward z .18 and stays under .24; for x>3, the stretch the camera reaches last, toward .10 under .22; the ribbon edges are clamped too), is forced through the daisy's spot, and throws side branches.
+  // Path and branch draws come from rng(12) in the same order as before (the slab tones are unchanged); widths and hairlines draw from rng(13).
+  const nodes=[],branches=[],wAt=x=>lerp(.072,.04,clamp(Math.abs(x)/6))*(1+.14*Math.sin(x*7.3)),zl=x=>x>3?.245:x>.5?.275:.4; // zl: the ribbon's far edge limit toward the camera
+  const branch=(x,z,a,n,w)=>{const b=[[x,z,w]];for(let i=0;i<n;i++){const l=.1+r()*.18,nx=x+Math.cos(a)*l,nz=clamp(z+Math.sin(a)*l,-.2,x>3?.24:x>0?.27:.38);x=nx;z=nz;a+=(r()-.5)*.8;w*=.72;b.push([x,z,w])}branches.push(b)}; // branches too stay out of the camera's foreground
+  let x=-7.5,z=.3,n=0;nodes.push([x,z]);
+  while(x<7.5){const late=x>3,mid=x>0&&!late;let nx=x+.25+r()*.5,nz=clamp(z+(r()-.5)*.35-(z-(late?.1:mid?.18:.24))*.25,-.1,late?.22:mid?.24:.36);if(x<0&&nx>=0){nx=0;nz=.27}nodes.push([nx,nz]);
+    if(n%5==2)branch(nx,nz,Math.atan2(nz-z,nx-x)+(nz>.25?-1:1)*(.7+r()*.5),3,wAt(nx)*.5);x=nx;z=nz;n++}
+  // a fracture, not a cable: flat mitred ribbons (one quad per segment, no side faces, no notches at the kinks) with the width jittered per node — widest near the daisy, tapering to .02 at both ends — a darker core ribbon at .45 of the width on top, and hairline forks off every other node
+  const r2=rng(13),ribbon=(pts,y,k=1)=>{const pos=[],N=pts.length,P2=(a,b)=>{const dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1;return[-dz/l,dx/l]};
+    for(let i=0;i<N;i++){const p=pts[i],n0=i>0?P2(pts[i-1],p):null,n1=i<N-1?P2(p,pts[i+1]):null;let nx,nz,m=1;
+      if(n0&&n1){nx=n0[0]+n1[0];nz=n0[1]+n1[1];const l=Math.hypot(nx,nz)||1;nx/=l;nz/=l;m=Math.min(1.5,1/Math.max(.4,nx*n1[0]+nz*n1[1]))}else{[nx,nz]=n0||n1}
+      const h=p[2]*k*.5*m,zm=zl(p[0]);p.L=[p[0]+nx*h,Math.min(zm,p[1]+nz*h)];p.R=[p[0]-nx*h,Math.min(zm,p[1]-nz*h)]}
+    for(let i=0;i<N-1;i++){const a=pts[i],b=pts[i+1];pos.push(a.L[0],y,a.L[1],b.L[0],y,b.L[1],b.R[0],y,b.R[1],a.L[0],y,a.L[1],b.R[0],y,b.R[1],a.R[0],y,a.R[1])}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));return g};
+  nodes.forEach((p,i)=>{const e=Math.min(i,nodes.length-1-i);p[2]=(e<2?.02:wAt(p[0])*(.65+.45*r2()))*(p[0]===0?1.15:1)}); // node widths (×.65–1.1 jitter); the daisy's node stays the widest
+  const hair=[];nodes.forEach((p,i)=>{if(i%2||i==0||i>=nodes.length-1)return;const q=nodes[i+1],a=Math.atan2(q[1]-p[1],q[0]-p[0])+(r2()<.5?1:-1)*(.5+r2()*.6),l=.06+r2()*.1;
+    hair.push([[p[0],p[1],p[2]*.35],[p[0]+Math.cos(a)*l,clamp(p[1]+Math.sin(a)*l,-.15,zl(p[0])-.01),.004]])}); // hairline forks: a sliver from the node, tapering to nothing
+  const cm=B(0x484848),core=B(0x363636),merge=gs=>{const pos=[];gs.forEach(g=>pos.push(...g.attributes.position.array));const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));return g};
+  scene.add(new THREE.Mesh(merge([ribbon(nodes,.003),...branches.map(b=>ribbon(b,.003)),...hair.map(h=>ribbon(h,.003))]),cm),new THREE.Mesh(merge([ribbon(nodes,.005,.45),...branches.map(b=>ribbon(b,.005,.45))]),core));
   const d=makeDaisy({r:.09,stem:.16});d.position.set(0,.16,.25);d.userData.head.rotation.x=.35;scene.add(d);
   const world=worldGroup(scene);
   const me=makePerson();me.rotation.y=Math.PI/2;me.position.set(0,0,-1.1);scene.add(me);
@@ -773,19 +902,42 @@ const SCENES=[
     camera.position.set(lerp(.5,.2,t),lerp(.3,.24,t),lerp(1.5,1.1,t));camera.lookAt(0,.25,-.4);
   }};
 }},
+
 /* 3 — the office corridor after the last train */
 {key:'office',bg:'#000',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0);scene.fog=new THREE.Fog(0,6,48);
   scene.add(new THREE.HemisphereLight(0x888888,0x111111,.35));
-  const wall=M(0x1a1a1a),len=90;
-  scene.add(box(4.4,.1,len,M(0x101010),0,-.05,-len/2+10),box(4.4,.1,len,M(0x080808),0,3.05,-len/2+10),box(.1,3.1,len,wall,-2.2,1.5,-len/2+10),box(.1,3.1,len,wall,2.2,1.5,-len/2+10));
+  const wall=M(0x1a1a1a),len=90,z0=-len/2+10;
+  scene.add(box(4.4,.1,len,M(0x101010),0,-.05,z0),box(4.4,.1,len,M(0x080808),0,3.05,z0));
+  // every repeated part is one InstancedMesh: wall bays with a door opening, lintels, skirting, doors recessed .1 into the wall with a lighter
+  // frame border, a dark glass panel and a lever handle, a floor seam per bay, lamp troughs with the lens set up inside a dark rim
+  const inst=(geo,mat,places)=>{const im=new THREE.InstancedMesh(geo,mat,places.length),m4=new THREE.Matrix4();places.forEach((p,i)=>{m4.makeTranslation(p[0],p[1],p[2]);im.setMatrixAt(i,m4)});scene.add(im);return im};
+  const PX=(w,h)=>new THREE.PlaneGeometry(w,h).rotateY(Math.PI/2),PY=(w,d)=>new THREE.PlaneGeometry(w,d).rotateX(Math.PI/2),DS={side:THREE.DoubleSide}; // flat parts: planes facing ±x, or down
+  const bays=[];for(let z=6;z>-65;z-=5)bays.push(z); // bays beyond z=-65 would never leave the fog
+  // doors alternate: even bays open on the left wall, odd bays on the right, so each wall reads door / blank wall / door
+  const doors=bays.map((z,i)=>[z,i%2?1:-1]),blanks=bays.map((z,i)=>[z,i%2?-1:1]),put=(list,f)=>list.map(([z,s])=>f(z,s));
+  const DW=1.1,DH=2.2,XF=2.25; // door opening width and height; the wall is .2 thick (inner face ±2.15) and the door face sits at ±2.25
+  inst(new THREE.BoxGeometry(.2,3.1,5-DW),wall,put(doors,(z,s)=>[s*2.25,1.55,z]));                   // wall beside a door (door centred on z-2.5)
+  inst(new THREE.BoxGeometry(.2,3.1,5),wall,put(blanks,(z,s)=>[s*2.25,1.55,z-.55]));                 // blank bay: the full 5 m of wall
+  inst(new THREE.BoxGeometry(.2,3.1-DH,DW),wall,put(doors,(z,s)=>[s*2.25,(3.1+DH)/2,z-2.5]));        // lintel over the opening
+  inst(PX(5-DW,.12),M(0x262626),put(doors,(z,s)=>[s*2.14,.06,z]));                                   // skirting
+  inst(PX(5,.12),M(0x262626),put(blanks,(z,s)=>[s*2.14,.06,z-.55]));
+  inst(new THREE.BoxGeometry(.04,DH,DW),M(0x3a3a3a),put(doors,(z,s)=>[s*(XF+.045),DH/2,z-2.5]));     // lighter frame plate at the back of the recess
+  inst(new THREE.BoxGeometry(.04,DH-.08,DW-.1),M(0x2a2a2a),put(doors,(z,s)=>[s*XF,(DH-.08)/2,z-2.5])); // door slab, a border of frame shows around it
+  inst(PX(.5,.9),B(0x050505,DS),put(doors,(z,s)=>[s*(XF-.022),1.55,z-2.5]));                         // dark glass panel in the upper half (1.1-2.0), clear of the handle
+  const hm=M(0x6e6e6e);                                                                              // lever handle: a stub out of the door and a bar along the corridor, so it stands into the lamp light
+  inst(new THREE.BoxGeometry(.07,.024,.024),hm,put(doors,(z,s)=>[s*(XF-.05),1.0,z-2.1]));            // at 1.0, a .09 strip of door leaf between the bar and the glass
+  inst(new THREE.BoxGeometry(.026,.026,.18),hm,put(doors,(z,s)=>[s*(XF-.085),1.0,z-2.17]));
+  inst(PY(4.3,.06),M(0x2a2a2a),bays.map(z=>[0,.002,z+2.5]));                                        // floor seam at each bay line
+  inst(loftGeo([[0,1.44,.9,.03],[.06,1.44,.9,.03]],{sides:8,caps:false}),M(0x141414),bays.map(z=>[0,2.94,z])); // lamp trough: an open band hanging from the ceiling
+  inst(PY(1.32,.78),B(0xffffff,DS),bays.map(z=>[0,2.985,z]));                                       // the lens, recessed inside the band
+  const odd=bays.filter((_,i)=>i%2);                                                                // a small lit sign on the right wall every other bay, no text
+  inst(new THREE.BoxGeometry(.06,.14,.3),M(0x111111),odd.map(z=>[2.12,2.55,z+.9]));
+  inst(PX(.26,.1),B(0x777777,DS),odd.map(z=>[2.088,2.55,z+.9]));
   const beamMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
-  for(let z=6;z>-75;z-=5){
-    scene.add(box(1.3,.03,.8,B(0xffffff),0,3,z));
+  for(const z of bays){
     const cone=new THREE.Mesh(new THREE.CylinderGeometry(.6,1.6,3,4,1,true),beamMat);cone.rotation.y=Math.PI/4;cone.position.set(0,1.5,z);scene.add(cone);
     const pool=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.8),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.07,depthWrite:false}));pool.rotation.x=-Math.PI/2;pool.position.set(0,.01,z);scene.add(pool);
-    // glass office doors, dark
-    scene.add(box(.05,2.3,1.4,M(0x2a2a2a),-2.14,1.15,z-2.5),box(.05,2.3,1.4,M(0x2a2a2a),2.14,1.15,z-2.5));
   }
   const pl=new THREE.PointLight(0xffffff,1.2,14);scene.add(pl);
   const world=worldGroup(scene,[pl]);
@@ -801,15 +953,31 @@ const SCENES=[
 {key:'desk',bg:'#050505',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x050505);scene.fog=new THREE.Fog(0x050505,4,14);
   scene.add(new THREE.HemisphereLight(0x666666,0x080808,.3));scene.add(ground(0x0c0c0c));
-  const dm=M(0x2a2a2a);scene.add(box(1.8,.05,.8,dm,0,.74,0),box(.05,.72,.7,dm,-.85,.36,0),box(.05,.72,.7,dm,.85,.36,0));
-  // monitor raised to eye height; its stand is a slim neck behind the panel on a flat foot, never in front of the screen
+  const bevelBox=(w,h,d,b,mat,x=0,y=0,z=0,c=.12)=>{const m=loft([[0,w-2*b,d-2*b,c],[b,w,d,c],[h-b,w,d,c],[h,w-2*b,d-2*b,c]],mat,{sides:8});m.position.set(x,y,z);return m};
+  // desk: a thick chamfered top (its surface stays at y=.765, so keyboard, papers, cup and hands do not move), a drawer pedestal on the far side, a solid panel on the near side, a mouse
+  const dm=M(0x303030),dk=M(0x262626);
+  scene.add(bevelBox(1.8,.07,.8,.02,dm,0,.695,0),box(.42,.69,.72,dk,-.64,.345,0),box(.06,.69,.72,dk,.85,.345,0));
+  [.23,.46].forEach(y=>scene.add(box(.4,.012,.012,M(0x484848),-.64,y,-.364)));         // seams between three drawer fronts, on the -z face the orbiting camera sees
+  [.115,.345,.575].forEach(y=>scene.add(box(.16,.018,.02,M(0x4a4a4a),-.64,y,-.368)));  // drawer handles
+  scene.add(bevelBox(.06,.03,.1,.008,M(0x2e2e2e),.36,.765,-.05,.3));                   // mouse beside the keyboard
+  // monitor raised to eye height; its stand is a slim neck behind the panel on a flat foot, never in front of the screen.
+  // A frame .015 proud of the panel leaves the screen inset behind a thin dark inner bezel
   scene.add(box(.7,.42,.03,M(0x111111),.1,1.12,-.25),box(.24,.012,.16,M(0x111111),.1,.771,-.32),box(.07,.36,.025,M(0x111111),.1,.95,-.285));
+  const bz=M(0x242424);scene.add(box(.74,.03,.016,bz,.1,1.335,-.227),box(.74,.03,.016,bz,.1,.925,-.227),box(.03,.38,.016,bz,-.255,1.13,-.227),box(.03,.38,.016,bz,.455,1.13,-.227));
   const screen=new THREE.Mesh(new THREE.PlaneGeometry(.64,.36),B(0xe8e8e8));screen.position.set(.1,1.13,-.233);scene.add(screen);
   const glowL=new THREE.PointLight(0xffffff,1.1,4);glowL.position.set(.1,1.13,.25);scene.add(glowL);
   const r=rng(19);for(let i=0;i<5;i++)scene.add(box(.3,.03+r()*.08,.22,M(0xd0d0d0),-.55+r()*.15,.79+i*.0,.05+r()*.1));
   const cup=new THREE.Mesh(new THREE.CylinderGeometry(.045,.035,.11,7),M(0xdddddd));cup.position.set(.62,.82,.08);scene.add(cup);
   const d=makeDaisy({r:.06,stem:.13});d.position.set(.62,.98,.08);d.userData.head.rotation.x=.5;scene.add(d);
-  scene.add(box(.5,.05,.45,M(0x1a1a1a),0,.47,.62),box(.5,.55,.05,M(0x1a1a1a),0,.75,.86));
+  // office chair: chamfered seat cushion, a tilted back on a short spine (lumbar gap), gas column and a five-arm star base on castors.
+  // The column stands behind the coat's seat (z > .74) so no part of the chair enters the coat
+  const cm=M(0x2a2a2a),cd=M(0x1c1c1c),chair=new THREE.Group();chair.position.set(0,0,.62);scene.add(chair);
+  chair.add(bevelBox(.5,.07,.47,.02,cm,0,.425,0,.25),box(.08,.17,.04,cd,0,.52,.25));
+  const back=bevelBox(.46,.42,.05,.015,cm,0,0,0,.25);back.position.set(0,.6,.245);back.rotation.x=.12;chair.add(back); // mid-back (top ~1.02, shoulder height) leaning away from him: a wedge of air between spine and backrest
+  const col=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.34,6),cd);col.position.set(0,.27,.16);chair.add(col);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(.06,.075,.07,6),cd);hub.position.set(0,.085,.16);chair.add(hub);
+  for(let i=0;i<5;i++){const a=i*Math.PI*2/5+Math.PI/5,arm=box(.04,.03,.34,cd,Math.sin(a)*.17,.055,.16+Math.cos(a)*.17);arm.rotation.y=a;chair.add(arm);
+    const c=new THREE.Mesh(new THREE.SphereGeometry(.03,6,4),cd);c.position.set(Math.sin(a)*.32,.03,.16+Math.cos(a)*.32);chair.add(c)}
   const me=makePerson();me.userData.sit();me.rotation.y=Math.PI;me.position.set(0,-.48,.62);/* hands on the keyboard: elbows at y ~.835 so the forearms clear the desk, arms turned slightly in so both hands land on the keys, palms down */
   me.userData.arms.forEach((a,i)=>a.rotation.set(-1.42,0,i?-.2:.2));me.userData.elbows.forEach(e=>e.rotation.x=-.15);me.userData.hands?.forEach(h=>{h.rotation.y=0;h.userData.grip(.35)});
   { // keyboard under his hands: a thin dark slab with a grid of keys
@@ -827,9 +995,22 @@ const SCENES=[
 {key:'skyline',bg:'#e6e6e6',dark:()=>false,build(){
   const scene=new THREE.Scene();scene.background=gradTex('#f3f3f3','#d8d8d8');scene.fog=new THREE.Fog(0xe6e6e6,10,110);
   lights(scene,{dir:[0xffffff,.9,[-3,4,2]]});scene.add(ground(0xeeeeee));
-  const r=rng(33);for(let i=0;i<40;i++){const b=building(3+r()*6,10+r()*45,3+r()*6,false);b.position.x=(r()-.5)*90;b.position.z=-30-r()*60;scene.add(b)}
-  scene.add(box(30,.9,.4,M(0xcfcfcf),0,.45,-1.2)); // railing of the overpass
-  const me=makePerson();me.rotation.y=Math.PI;me.position.set(-.1,0,0);me.userData.arms[1].rotation.z=.25;scene.add(me);
+  const r=rng(33),r2=rng(34);for(let i=0;i<40;i++){const w=3+r()*6,h=10+r()*45,d=3+r()*6,x=(r()-.5)*90,z=-30-r()*60;
+    const b=building(w,h,d,false,{lobby:z>-52,setback:h>32&&r2()<.6?h*.25:0,roof:r2()<.45?(r2()<.5?'mast':'tank'):null});b.position.x=x;b.position.z=z;scene.add(b)} // podiums only on the nearer half: beyond 50 m they are a few pixels
+  for(let i=0;i<6;i++){const b=building(2+r2()*1.2,44+r2()*16,2+r2()*1.2,false,{roof:'mast',lobby:false});b.position.x=(r2()-.5)*80;b.position.z=-50-r2()*35;scene.add(b)} // slender towers (x/z only: building() already stands them on y=0)
+  // a darker strip of ground and a row of low blocks at the foot of the towers so they do not float in the haze; the blocks are
+  // real building() boxes (window rows, parapet, three facade variants) rather than blank crates
+  {const gb=new THREE.Mesh(new THREE.PlaneGeometry(200,30),M(0xd8d8d8,{side:THREE.FrontSide}));gb.rotation.x=-Math.PI/2;gb.position.set(0,.05,-38);gb.renderOrder=1;scene.add(gb)}
+  for(let i=0;i<16;i++){const w=4+r2()*5,h=2.2+r2()*2.3,d=3+r2()*4;const b=building(w,h,d,false,{lobby:false,variant:i%3});b.position.x=-42+i*5.6+r2()*2;b.position.z=-24-r2()*9;scene.add(b)} // x/z only (y is the building's own h/2)
+  // railing of the overpass: concrete base, instanced posts, a top rail at 1.12 (hip-high on the 1.75 hero, and above the caption
+  // for the whole .12-.75 window); his left hand rests on the rail
+  const RZ=-.48,RY=1.12;scene.add(box(30,.42,.3,M(0xc4c4c4),0,.21,RZ),box(30,.07,.1,M(0xb8b8b8),0,RY,RZ));
+  {const posts=new THREE.InstancedMesh(new THREE.BoxGeometry(.05,.7,.05),M(0xa8a8a8),25),m4=new THREE.Matrix4();for(let i=0;i<25;i++){m4.makeTranslation(-14.4+i*1.2,.42+.35,RZ);posts.setMatrixAt(i,m4)}scene.add(posts)}
+  const me=makePerson();me.rotation.y=Math.PI;me.position.set(-.1,0,0);scene.add(me);
+  // left hand on the rail (measured, vertex-level: palm touches the rail top, nothing below it over the rail, fingertips hang
+  // 4-5 cm past the far face): elbow bent, wrist cocked up a little, fingers almost straight, thumb laid flat beside the palm
+  {const {arms,elbows,hands}=me.userData;arms[1].rotation.set(-.845,0,.32);elbows[1].rotation.x=-.78;
+    if(hands){const h=hands[1];h.rotation.set(.454,0,0);h.userData.grip(.06);const th=h.children[5];th.rotation.x=0;th.children[1].rotation.x=.05}} // children[5] = thumb group (its child[1] = distal joint)
   return{scene,update(t,time){
     me.rotation.y=Math.PI+Math.sin(time*.5)*.03;
     camera.position.set(lerp(-.8,.7,t),lerp(1.55,1.75,t),lerp(1.9,1.5,t));camera.lookAt(.3,1.7,-20);
@@ -839,10 +1020,38 @@ const SCENES=[
 {key:'grid',bg:'#151515',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x151515);scene.fog=new THREE.Fog(0x151515,10,60);
   lights(scene,{hemi:[0x888888,0x111111,.5],dir:null});scene.add(ground(0x1c1c1c));
-  const r=rng(41),blocks=[];
-  for(let gx=-6;gx<=6;gx++)for(let gz=-6;gz<=6;gz++){if(r()<.15)continue;const h=1+r()*r()*9,b=building(2.6,h,2.6,true);b.position.x=gx*4;b.position.z=gz*4;b.material=b.material.clone();b.material.emissiveIntensity=0;b.userData.d=Math.hypot(gx,gz)+r()*1.5;scene.add(b);blocks.push(b)}
+  // blocks with mixed footprints (single, double, L-plan, slender tower); the inner blocks carry a lighter inset roof deck (the dark roof
+  // around it reads as a parapet) and some roof furniture (lift heads, tanks, masts), so the skyline is not a lattice of equal boxes.
+  // Instanced roof parts are not frustum-culled, so the fogged outer ring goes without them to stay near the 2× triangle budget.
+  const r=rng(41),blocks=[],plate=[],lift=[],tank=[],mast=[],taken=new Set(),merged=new Set();
+  // roof draws are taken per block in the same order and number as before (so the block layout is unchanged) and applied by place():
+  // the lift head takes one corner quadrant (never nearer than .4 of the way out), the tank the opposite corner (only on footprints ≥ 2.2
+  // so its .32 radius stays on the deck), a mast one of the two free corners, so no roof piece interpenetrates another.
+  const roofDraws=(h,inner)=>{const R={};if(!inner)return R;if(h>3.6){R.u=r();R.v=r();if(h>5&&r()<.5){r();r();R.tank=true}}if(h>6&&r()<.6){R.mast=true;R.c=r()<.5;r()}return R};
+  const place=(w,h,d,x,z,dist,inner,R)=>{const b=building(w,h,d,true);b.position.x=x;b.position.z=z;const mats=[];
+    b.traverse(o=>{if(o.isMesh&&o.material&&o.material.emissiveMap){o.material=o.material.clone();o.material.emissiveIntensity=0;mats.push(o.material)}});
+    scene.add(b);blocks.push({mats,d:dist});if(!inner)return;
+    plate.push([x,h+.06,z,w-.3,.1,d-.3]);
+    let sx=1,sz=1;
+    if(R.u!==undefined){const ax=Math.max(0,w/2-.7),az=Math.max(0,d/2-.7);sx=R.u<.5?-1:1;sz=R.v<.5?-1:1;
+      lift.push([x+sx*ax*(.4+Math.abs(R.u-.5)*1.2),h+.335,z+sz*az*(.4+Math.abs(R.v-.5)*1.2),.7,.45,.7]);
+      if(R.tank&&w>=2.2&&d>=2.2)tank.push([x-sx*(w/2-.5),h+.36,z-sz*(d/2-.5),1,1,1])}
+    if(R.mast)mast.push([x+(w/2-.3)*(R.c?sx:-sx),h+.81,z+(d/2-.3)*(R.c?-sz:sz),.06,1.4,.06])};
+  const put=(w,h,d,x,z,dist,inner)=>place(w,h,d,x,z,dist,inner,roofDraws(h,inner));
+  for(let gx=-6;gx<=6;gx++)for(let gz=-6;gz<=6;gz++){if(taken.has(gx+','+gz))continue;if(r()<.15)continue;
+    const h=1+r()*r()*9,k=r(),x=gx*4,z=gz*4,dist=Math.hypot(gx,gz)+r()*1.5,inner=Math.abs(gx)<=4&&Math.abs(gz)<=4;
+    if(k<.16&&gz<6&&!taken.has(gx+','+(gz+1))){taken.add(gx+','+(gz+1));merged.add(gx+','+gz);put(2.6,h,6.6,x,z+2,dist,inner)} // double block over two cells (the street between them is dropped below)
+    else if(k<.28){const RA=roofDraws(h,inner),hB=h*(.7+r()*.6),RB=roofDraws(hB,inner);                                  // L-plan: two wings; the taller one takes the corner and the
+      if(hB>=h){place(1.4,h,1.2,x+.6,z-.7,dist,inner,RA);place(1.2,hB,2.6,x-.7,z,dist,inner,RB)}                         // shorter one butts against its wall, so the boxes never overlap
+      else{place(2.6,h,1.2,x,z-.7,dist,inner,RA);place(1.2,hB,1.4,x-.7,z+.6,dist,inner,RB)}}                             // (no hidden coplanar faces to z-fight at any distance)
+    else if(k<.36)put(1.5,h*1.5+1,1.5,x,z,dist,inner);                                                             // slender tower
+    else put(2.2+r()*.6,h,2.2+r()*.6,x,z,dist,inner)}
+  const unit=new THREE.BoxGeometry(1,1,1),m4=new THREE.Matrix4(),q0=new THREE.Quaternion();
+  const mk=(list,mat,geo=unit)=>{if(!list.length)return;const im=new THREE.InstancedMesh(geo,mat,list.length);list.forEach(([x,y,z,sx,sy,sz],i)=>{m4.compose(V3(x,y,z),q0,V3(sx,sy,sz));im.setMatrixAt(i,m4)});scene.add(im)};
+  mk(plate,M(0x2c2c2c));mk(lift,M(0x202020));mk(mast,M(0x303030));mk(tank,M(0x262626),new THREE.CylinderGeometry(.32,.32,.5,6,1));
   // street grid, revealed outward from the centre
-  const segs=[];for(let i=-7;i<=7;i++){for(let j=-7;j<7;j++){const a=i*4+2,b0=j*4+2,b1=b0+4;segs.push([[a,.03,b0],[a,.03,b1],Math.hypot(i,j)],[[b0,.03,a],[b1,.03,a],Math.hypot(j,i)])}}
+  const segs=[];for(let i=-7;i<=7;i++){for(let j=-7;j<7;j++){const a=i*4+2,b0=j*4+2,b1=b0+4;segs.push([[a,.03,b0],[a,.03,b1],Math.hypot(i,j)]);
+    if(!merged.has((j+1)+','+i))segs.push([[b0,.03,a],[b1,.03,a],Math.hypot(j,i)])}}   // no street line under a double block
   segs.sort((p,q)=>p[2]-q[2]);const arr=new Float32Array(segs.length*6);segs.forEach(([p,q],i)=>arr.set([...p,...q],i*6));
   const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.BufferAttribute(arr,3));
   scene.add(new THREE.LineSegments(lg,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.75,fog:true})));
@@ -850,24 +1059,78 @@ const SCENES=[
   const me=makePerson({body:0x555555,jacket:0x444444});me.position.set(2,0,2);me.rotation.y=-2.4;scene.add(me);
   return{scene,update(t,time){
     const g=ease(clamp(t*1.2)),R=g*11;lg.setDrawRange(0,Math.floor(segs.length*g)*2);
-    blocks.forEach(b=>b.material.emissiveIntensity=smooth(b.userData.d-1,b.userData.d,R)*.9);
+    blocks.forEach(b=>{const e=smooth(b.d-1,b.d,R)*.9;b.mats.forEach(m=>m.emissiveIntensity=e)});
     const a=lerp(.4,1.4,t);camera.position.set(Math.sin(a)*lerp(9,26,t),lerp(4,22,t),Math.cos(a)*lerp(9,26,t));camera.lookAt(0,0,0);
   }};
 }},
 /* 7 — the platform: trains rush past, nobody stops */
 {key:'subway',bg:'#0c0c0c',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x0c0c0c);scene.fog=new THREE.Fog(0x0c0c0c,6,40);
-  lights(scene,{hemi:[0x999999,0x111111,.45],dir:[0xffffff,.35,[2,6,4]]});
-  scene.add(box(60,.4,4,M(0x2a2a2a),0,-.2,1),box(60,.02,.12,B(0xdddddd),0,.01,-.95),box(60,.2,3,M(0x0a0a0a),0,-1.1,-2.5));
-  for(let x=-28;x<=28;x+=5)scene.add(box(.35,4,.35,M(0x222222),x,2,2.3),box(1.6,.04,.25,B(0xffffff),x,3.95,1));
-  const train=new THREE.Group(),wm=B(0xf0f0f0);
-  for(let c=0;c<6;c++){const car=box(9.4,2.6,2.6,M(0x3a3a3a),c*9.7,.6,-2.5);train.add(car);for(let w=-3.6;w<=3.6;w+=1.2)train.add(box(.8,.7,.02,wm,c*9.7+w,1,-1.19))}
-  scene.add(train);
+  lights(scene,{hemi:[0x999999,0x111111,.6],dir:[0xffffff,.5,[2,6,4]]});
+  const q0=new THREE.Quaternion(),m4=new THREE.Matrix4();
+  const inst=(geo,mat,list,parent=scene)=>{const im=new THREE.InstancedMesh(geo,mat,list.length);list.forEach((p,i)=>{m4.compose(V3(p[0],p[1],p[2]),q0,V3(1,1,1));im.setMatrixAt(i,m4)});parent.add(im);return im};
+  const bevelBox=(w,h,d,b,mat,x=0,y=0,z=0)=>{const m=loft([[0,w-2*b,d-2*b,.1],[b,w,d,.3],[h-b,w,d,.3],[h,w-2*b,d-2*b,.1]],mat,{sides:8});m.position.set(x,y,z);return m};
+  // a closed profile [[y,z],…] extruded along x over length L: non-indexed so every face is flat, with a small per-face tone jitter
+  const prism=(pts,L,seed)=>{const pos=[],col=[],r=rng(seed),n=pts.length,h=L/2;
+    const face=(...v)=>{const k=1+(r()-.5)*.1;v.forEach(p=>{pos.push(...p);col.push(k,k,k)})};
+    const cy=pts.reduce((s,p)=>s+p[0],0)/n,cz=pts.reduce((s,p)=>s+p[1],0)/n;
+    for(let i=0;i<n;i++){const[ay,az]=pts[i],[by,bz]=pts[(i+1)%n];
+      face([-h,ay,az],[h,ay,az],[h,by,bz],[-h,ay,az],[h,by,bz],[-h,by,bz]);
+      face([h,cy,cz],[h,ay,az],[h,by,bz]);face([-h,cy,cz],[-h,by,bz],[-h,ay,az])}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeVertexNormals();return g};
+  // a hollow rectangular frame (outer w×h, lip t, standing d proud of z=0) so a pane behind it reads as an inset panel: 24 triangles
+  const frameGeo=(w,h,t,d)=>{const pos=[],o=[[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]],n=[[-w/2+t,-h/2+t],[w/2-t,-h/2+t],[w/2-t,h/2-t],[-w/2+t,h/2-t]];
+    const quad=(a,b,c,e)=>pos.push(...a,...b,...c,...a,...c,...e);
+    for(let i=0;i<4;i++){const j=(i+1)%4,[ox,oy]=o[i],[px,py]=o[j],[ix,iy]=n[i],[jx,jy]=n[j];
+      quad([ox,oy,d],[px,py,d],[jx,jy,d],[ix,iy,d]);quad([ix,iy,d],[jx,jy,d],[jx,jy,0],[ix,iy,0]);quad([ox,oy,0],[px,py,0],[px,py,d],[ox,oy,d])}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();return g};
+  const range=(a,b,s)=>{const o=[];for(let x=a;x<=b;x+=s)o.push(x);return o};
+  // platform: slab with a lighter top, the white edge line, a raised tactile strip behind it, seams across the floor
+  // (the film pass renders into a 16-bit depth target, so every proud panel below sits ≥ .03 in front of the face behind it)
+  scene.add(box(60,.4,4,M(0x343434),0,-.2,1),box(60,.03,.3,M(0x4a4a4a),0,.015,-.58),box(60,.02,.12,B(0xdddddd),0,.01,-.95));
+  inst(new THREE.BoxGeometry(.03,.01,3.9),M(0x1c1c1c),range(-30,30,5).map(x=>[x,.005,1.05]));
+  // track bed: ballast and two rails lying on it (the bed is hidden behind the platform edge from the scene camera, so no sleepers)
+  scene.add(box(60,.2,4,M(0x141414),0,-1,-3));
+  [-.72,.72].forEach(z=>scene.add(box(60,.1,.07,M(0x6a6a6a),0,-.85,-2.5+z)));
+  // far tunnel wall with a dado band, a strip light along the top and blank name boards
+  scene.add(box(60,4.6,.3,M(0x242424),0,1.3,-5.25),box(60,1.1,.08,M(0x363636),0,.65,-5.07),box(60,.06,.08,B(0xcfcfcf),0,3.42,-5.07));
+  [-14,-6,2,10].forEach(x=>scene.add(box(2.6,.7,.08,M(0x111111),x,1.75,-5.06),box(2.3,.44,.06,B(0xc4c4c4),x,1.75,-4.99)));
+  // ceiling with recessed light troughs; pillars with plinth and capital; small lit sign boxes on the two nearest pillars
+  scene.add(box(60,.12,9.4,M(0x161616),0,3.66,-.9));
+  const px=range(-28,28,5);
+  inst(new THREE.BoxGeometry(.36,3.3,.36),M(0x262626),px.map(x=>[x,1.77,2.3]));
+  inst(new THREE.BoxGeometry(.56,.12,.56),M(0x343434),px.map(x=>[x,.06,2.3]));
+  inst(new THREE.BoxGeometry(.56,.18,.56),M(0x343434),px.map(x=>[x,3.51,2.3]));
+  inst(new THREE.BoxGeometry(2,.12,.42),M(0x0e0e0e),px.map(x=>[x,3.55,1]));
+  inst(new THREE.BoxGeometry(1.8,.05,.28),B(0xffffff),px.map(x=>[x,3.475,1]));
+  [2,-3].forEach(x=>scene.add(box(.3,.16,.07,M(0x111111),x,2.4,2.515),box(.26,.1,.012,B(0xb4b4b4),x,2.4,2.556)));   // above the frame at .35, so no blank white slab near the lens
+  // bench behind him, facing the tracks: bevelled seat and back on two open leg frames (two posts and a stretcher per end), so it reads from any side
+  const bench=new THREE.Group();bench.position.set(-1.6,0,1.9);
+  bench.add(bevelBox(1.5,.08,.44,.015,M(0x3c3c3c),0,.42,0),bevelBox(1.5,.26,.05,.01,M(0x363636),0,.64,.2));
+  const bm=M(0x1e1e1e);[-.66,.66].forEach(x=>{[-.16,.16].forEach(z=>bench.add(box(.06,.42,.06,bm,x,.21,z)));bench.add(box(.06,.04,.38,bm,x,.1,0),box(.05,.26,.05,bm,x,.59,.2))});
+  scene.add(bench);
+  // train: six cars on a bevelled-roof profile, inset windows in dark frames, two door pairs per car, roof units, gangways, bogies on the rails
+  const train=new THREE.Group();train.position.z=-2.5;scene.add(train);
+  const prof=[[-.35,-1.15],[-.35,1.15],[-.12,1.3],[1.95,1.3],[2.28,1.12],[2.5,.6],[2.5,-.6],[2.28,-1.12],[1.95,-1.3],[-.12,-1.3]];
+  const carGeo=prism(prof,9.4,7),mBody=M(0x5a5a5a,{vertexColors:true}),wm=B(0xf0f0f0),N=6,P=9.7;
+  const win=[],dwin=[],leaf=[],pocket=[],roof=[],bogie=[];
+  for(let c=0;c<N;c++){const cx=c*P,car=new THREE.Mesh(carGeo,mBody);car.position.x=cx;train.add(car);
+    [-4,-1.2,0,1.2,4].forEach(w=>win.push([cx+w,1.3,1.3]));
+    [-2.5,2.5].forEach(dx=>{pocket.push([cx+dx,.96,1.325]);[-.34,.34].forEach(o=>{leaf.push([cx+dx+o,.95,1.345]);dwin.push([cx+dx+o,1.4,1.405])})});   // pocket .02–1.9, leaves .04–1.86: both end below the roof shoulder (1.95)
+    [-2.4,2.4].forEach(dx=>roof.push([cx+dx,2.6,0]));[-3.1,3.1].forEach(dx=>bogie.push([cx+dx,-.56,0]));
+    if(c<N-1)train.add(box(.5,2.3,1.7,M(0x1c1c1c),cx+P/2,1.1,0))}
+  inst(frameGeo(.96,.86,.05,.06),M(0x161616),win,train);inst(new THREE.PlaneGeometry(.86,.76),wm,win.map(([x,y,z])=>[x,y,z+.028]),train);
+  inst(new THREE.PlaneGeometry(1.4,1.88),M(0x121212),pocket,train);inst(new THREE.BoxGeometry(.64,1.82,.05),M(0x484848),leaf,train);inst(new THREE.PlaneGeometry(.4,.5),wm,dwin,train);
+  inst(new THREE.BoxGeometry(1.9,.2,1.2),M(0x3c3c3c),roof,train);inst(new THREE.BoxGeometry(2,.48,1.8),M(0x141414),bogie,train);
+  const fx=(N-1)*P+4.7;train.add(box(.05,.95,1.9,M(0x141414),fx+.025,1.55,0),box(.06,.2,.9,B(0xd8d8d8),fx+.03,2.2,0));   // cab: windscreen and destination display
+  [-.75,.75].forEach(z=>train.add(box(.06,.14,.22,B(0xffffff),fx+.03,.5,z),box(.05,.08,.16,B(0x999999),-4.725,.5,z)));   // headlights, tail lights
+  const hl=glow(1.6,.7);hl.position.set(fx+.2,.5,1.32);train.add(hl);
+  const tl=new THREE.PointLight(0xffffff,0,7);tl.position.set(-1,1.6,-.9);scene.add(tl);                                   // the passing windows light him
   const me=makePerson();me.rotation.y=Math.PI+.25;me.position.set(0,0,.2);scene.add(me);
-  const P=24,pm=M(0xf4f4f2,{flatShading:false}),pg=petalGeo(.08,.011,{seg:4,cross:2});
-  const petals=[...Array(P)].map((_,i)=>{const m=new THREE.Mesh(pg,pm);scene.add(m);return{m,o:i*1.7,s:.5+(i%5)*.2}});
+  const PN=24,pm=M(0xf4f4f2,{flatShading:false}),pg=petalGeo(.08,.011,{seg:4,cross:2});
+  const petals=[...Array(PN)].map((_,i)=>{const m=new THREE.Mesh(pg,pm);scene.add(m);return{m,o:i*1.7,s:.5+(i%5)*.2}});
   return{scene,update(t,time){
-    train.position.x=((time*22)%110)-80;
+    train.position.x=((time*22)%110)-80;const x=train.position.x;tl.intensity=smooth(-56,-51,x)*(1-smooth(2,7,x))*.9;
     petals.forEach(({m,o,s})=>{const k=(time*s+o)%6;m.position.set(-3+k*1.4,.3+Math.sin(time*2+o)*.4+k*.25,-.6+Math.sin(o)*.4);m.rotation.set(time*3+o,time*2,o)});
     camera.position.set(lerp(3.2,1.6,t),lerp(1.4,1.6,t),lerp(4.5,3.4,t));camera.lookAt(lerp(-.5,0,t),1.1,-.8);
   }};
@@ -876,26 +1139,58 @@ const SCENES=[
 {key:'store',bg:'#060606',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x060606);scene.fog=new THREE.Fog(0x060606,8,30);
   scene.add(new THREE.HemisphereLight(0x555555,0x050505,.35));scene.add(ground(0x101010));
-  // the shop: a bright open box seen through its front glass
-  const W=6,H=3,D=3.6,lit=B(0xf3f3f0),sh=new THREE.Group();
-  sh.add(box(W,H,.1,lit,0,H/2,-D),box(.1,H,D,B(0xe4e4e0),-W/2,H/2,-D/2),box(.1,H,D,B(0xe4e4e0),W/2,H/2,-D/2),box(W,.1,D,B(0xdcdcd8),0,H,-D/2),box(W,.02,D,B(0xd2d2ce),0,.01,-D/2));
-  for(let x=-2.2;x<=2.2;x+=1.1)sh.add(box(.04,.06,D-.4,B(0xffffff),x,H-.06,-D/2)); // ceiling tubes
-  const sm=B(0xc4c4c0),r=rng(31);
-  [-1.3,0].forEach(z=>{for(let x=-2.3;x<=2.3;x+=1.3){sh.add(box(1.1,1.5,.42,sm,x,.75,z-2.2));for(let s=0;s<4;s++)for(let k=0;k<6;k++)if(r()<.8)sh.add(box(.12,.16+r()*.1,.1,B(0x8a8a8a+((r()*4|0)*0x111111)),x-.45+k*.18,.22+s*.36,z-1.98))}});
-  sh.add(box(1.6,1,.6,B(0xb0b0ac),2.1,.5,-1.2),box(.5,.3,.3,M(0x1a1a1a),2.2,1.15,-.9)); // counter + register
-  // front: window counter along the glass, mullions, sign band
-  sh.add(box(W-.4,.05,.45,M(0x8a8a8a),0,1.05,-.25),box(W,.5,.12,M(0x1c1c1c),0,H+.25,0));
-  for(let x=-W/2;x<=W/2+.01;x+=1.5)sh.add(box(.06,H,.06,M(0x151515),x,H/2,0));
-  sh.add(box(W,.06,.06,M(0x151515),0,.5,0));
-  const sign=new THREE.Mesh(new THREE.PlaneGeometry(W-.3,.32),B(0xffffff));sign.position.set(0,H+.25,.07);sh.add(sign);
+  // The shop is a self-lit box (B materials) seen through its glass. Inside, a tone ladder keeps the shapes legible once the film
+  // glow blooms: ceiling #b0 < side walls #c8 < back wall #dc; shelf backs #a0 with #3a edge strips; products #3a–#84 in three heights.
+  // Outside, everything is a dark silhouette against that glow: pilasters, mullions, a bevelled sign box, a door with an awning, a kerb.
+  const W=6,H=3,D=3.6,PV=.12,sh=new THREE.Group();sh.position.y=PV;
+  const bevelBox=(w,h,d,b,mat,x=0,y=0,z=0)=>{const m=loft([[0,w-2*b,d-2*b,.1],[b,w,d,.3],[h-b,w,d,.3],[h,w-2*b,d-2*b,.1]],mat,{sides:8});m.position.set(x,y,z);return m};
+  scene.add(box(W+2.6,PV,5,M(0x1a1a1a),0,PV/2,-1.2),box(W+2.6,PV+.01,.13,M(0x2e2e2e),0,PV/2+.005,1.245)); // pavement and a lighter kerb stone (.01 taller and .01 proud of the pavement front: no coplanar faces); the shop floor sits on it
+  sh.add(box(W,H,.1,B(0xdcdcd8),0,H/2,-D),box(.1,H,D,B(0xc8c8c4),-W/2,H/2,-D/2),box(.1,H,D,B(0xc8c8c4),W/2,H/2,-D/2),box(W,.1,D,B(0xb0b0ac),0,H,-D/2),box(W,.02,D,B(0xb4b4b0),0,.01,-D/2));
+  for(let x=-2.2;x<=2.2;x+=1.1)sh.add(box(.05,.06,D-.6,B(0xffffff),x,H-.07,-D/2)); // ceiling tubes
+  [-1.65,-.55,.55,1.65].forEach(x=>sh.add(box(.03,.03,D-.3,B(0x8a8a86),x,H-.115,-D/2)));[-.9,-1.8,-2.7].forEach(z=>sh.add(box(W-.3,.03,.03,B(0x8a8a86),0,H-.115,z))); // ceiling grid, hung just under the tubes (the slab is H-.05..H+.05)
+  // gondola shelves: back panel, two sides, a dark kick, four boards with a dark front edge; products are one InstancedMesh toned per instance
+  const r=rng(31),PR=[],PC=[],pb=B(0xa0a09c),ps=B(0xc8c8c4),pe=B(0x3a3a3a),pk=B(0x505050),tone=[0x3a3a3a,0x525252,0x6a6a6a,0x848484];
+  [-3.3,-2.1].forEach(z=>{for(let x=-2.25;x<=2.26;x+=1.5){
+    sh.add(box(1.1,1.5,.04,pb,x,.75,z-.19),box(.03,1.5,.42,pb,x-.55,.75,z),box(.03,1.5,.42,pb,x+.55,.75,z),box(1.08,.1,.38,pk,x,.05,z));
+    for(let s=0;s<4;s++){const y=.12+s*.36;sh.add(box(1.08,.03,.42,ps,x,y,z),box(1.08,.025,.03,pe,x,y,z+.225));
+      for(let k=0;k<6;k++)if(r()<.82){const h=.16+(r()*3|0)*.05;PR.push([x-.45+k*.18,y+.015+h/2,z+.05,h]);PC.push(tone[r()*4|0])}}}});
+  const pg=new THREE.InstancedMesh(new THREE.BoxGeometry(.12,1,.1),B(0xffffff),PR.length),m4=new THREE.Matrix4(),q0=new THREE.Quaternion(),c3=new THREE.Color();
+  PR.forEach(([x,y,z,h],i)=>{m4.compose(V3(x,y,z),q0,V3(1,h,1));pg.setMatrixAt(i,m4);pg.setColorAt(i,c3.setHex(PC[i]))});sh.add(pg);
+  // counter with a darker top plate and kick, register with a tilted screen
+  sh.add(box(1.6,.8,.6,B(0xa8a8a4),2.1,.5,-1.2),box(1.7,.06,.7,B(0x7a7a76),2.1,.93,-1.2),box(1.5,.1,.5,B(0x404040),2.1,.05,-1.2),box(.42,.26,.3,B(0x202020),2.25,1.09,-1.2));
+  const scr=box(.3,.18,.02,B(0x707070),2.25,1.3,-1.2);scr.rotation.x=-.3;sh.add(scr);
+  // window counter along the glass: a bevelled slab with a front lip on three brackets, across the window bays only
+  const CW=4.9,CX=.52;sh.add(bevelBox(CW,.06,.45,.015,B(0x7a7a76),CX,.92,-.25),box(CW,.05,.03,B(0x262626),CX,.895,-.04)); // top at world 1.10: forearm undersides 1.096/1.102
+  [-.3,1.35,2.95].forEach(x=>sh.add(box(.05,.28,.3,B(0x202020),x,.78,-.15)));
+  // shop front: pilasters, mullions, head and sill rails, a door bay at the left with a push bar and kick plate, an awning over it
+  const fr=B(0x121212);
+  sh.add(box(.3,H+.64,.3,fr,-W/2-.15,(H+.64)/2,-.02),box(.3,H+.64,.3,fr,W/2+.15,(H+.64)/2,-.02));
+  [-1.95,-.3,1.35].forEach(x=>sh.add(box(.07,H,.07,fr,x,H/2,0)));
+  sh.add(box(W,.1,.08,fr,0,H-.05,0),box(W,.06,.07,fr,0,H-.34,0),box(4.95,.1,.1,fr,.525,.5,0));
+  sh.add(box(1.05,.12,.08,fr,-2.475,2.2,0),box(.1,2.14,.05,fr,-2.95,1.09,0),box(.06,2.14,.05,fr,-2.02,1.09,0),box(.9,.1,.05,fr,-2.46,2.09,0),box(.9,.06,.05,fr,-2.46,1.0,0),box(.9,.3,.05,B(0x262626),-2.46,.17,.03),box(.7,.04,.04,B(0x8a8a8a),-2.46,1.02,.06));
+  const aw=box(1.25,.04,.62,B(0x2e2e2e),-2.47,2.42,.3);aw.rotation.x=.3;sh.add(aw,box(1.25,.12,.03,B(0x1c1c1c),-2.47,2.28,.6));
+  // sign box: a bevelled dark box with a lit face carrying one dark mark (no text). Layered faces stand >= .03 apart: the film pass
+  // renders into a 16-bit depth target, so anything thinner z-fights at 5-9 units.
+  sh.add(bevelBox(W+.3,.6,.34,.03,B(0x1a1a1a),0,H+.02,-.02));
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(W-.6,.34),B(0xffffff));sign.position.set(0,H+.32,.18);sh.add(sign);
+  sh.add(box(.5,.24,.02,B(0x303030),-W/2+.9,H+.32,.2));
   scene.add(sh);
-  const stool=box(.3,.05,.3,M(0x222222),.4,.72,-.55);scene.add(stool,box(.04,.7,.04,M(0x222222),.4,.36,-.55));
-  const me=makePerson();me.userData.sit();me.position.set(.4,-.23,-.55);me.userData.arms.forEach(a=>a.rotation.x=-1.0);me.userData.elbows.forEach(e=>e.rotation.x=-.9);me.userData.head.rotation.x=.15;scene.add(me);
-  const cup=new THREE.Mesh(new THREE.CylinderGeometry(.04,.032,.12,8),M(0xeeeeee));cup.position.set(.4,1.14,-.18);scene.add(cup);
-  // light spilling onto the wet pavement
-  const spill=new THREE.Mesh(new THREE.PlaneGeometry(W+1,5),B(0xffffff,{transparent:true,opacity:.14,depthWrite:false}));spill.rotation.x=-Math.PI/2;spill.position.set(0,.012,2.4);scene.add(spill);
-  const gl=glow(9,.25);gl.position.set(0,1.6,.6);scene.add(gl);
-  const lamp=box(.08,4.2,.08,M(0x181818),-4.5,2.1,2.2);scene.add(lamp,(()=>{const g=glow(1.6,.6);g.position.set(-4.3,4.2,2.2);return g})());
+  // outside: a bin in front of the right bay, near the kerb; it stays silhouetted against the lit glass for the whole dolly, one tone so the lid never reads as a lit slab
+  const bin=new THREE.Mesh(new THREE.CylinderGeometry(.17,.15,.72,6),B(0x121212));bin.position.set(2.3,PV+.36,.9);scene.add(bin,box(.38,.05,.38,B(0x121212),2.3,PV+.745,.9));
+  // stool: hexagonal seat and base (on the floor slab top), a post and a footrest ring; he perches with his heels on the ring, forearms on the counter
+  const sm=B(0x161616),stool=new THREE.Group();stool.position.set(.4,PV+.02,-.68);
+  stool.add(loft([[.7,.34,.34],[.75,.36,.36]],sm,{sides:6}),loft([[0,.34,.34],[.03,.3,.3]],sm,{sides:6}));
+  const post=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.7,6),sm);post.position.y=.35;stool.add(post);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.265,.015,4,8),sm);ring.rotation.x=Math.PI/2;ring.position.y=.30;stool.add(ring);scene.add(stool); // tube top .455, soles .458
+  const me=makePerson();me.userData.sit();me.position.set(.4,PV-.16,-.68);
+  me.userData.arms.forEach(a=>a.rotation.x=-.97);me.userData.elbows.forEach(e=>e.rotation.x=-.6);me.userData.knees.forEach(k=>k.rotation.x=2.0);me.userData.ankles.forEach(a=>a.rotation.x=-.5);me.userData.head.rotation.x=.15;scene.add(me);
+  const cup=new THREE.Mesh(new THREE.CylinderGeometry(.04,.032,.12,8),M(0xeeeeee));cup.position.set(.4,PV+1.04,-.3);scene.add(cup);
+  // light spilling onto the wet pavement and the road
+  const spill=new THREE.Mesh(new THREE.PlaneGeometry(W+1,4.6),B(0xffffff,{transparent:true,opacity:.14,depthWrite:false}));spill.rotation.x=-Math.PI/2;spill.position.set(0,.012,3.6);scene.add(spill);
+  const spill2=new THREE.Mesh(new THREE.PlaneGeometry(W-.4,1.2),B(0xffffff,{transparent:true,opacity:.1,depthWrite:false}));spill2.rotation.x=-Math.PI/2;spill2.position.set(.3,PV+.004,.62);scene.add(spill2);
+  const gl=glow(9,.22);gl.position.set(0,1.6,.6);scene.add(gl);
+  const lamp=new THREE.Group();lamp.position.set(-4.1,PV,1.0);lamp.add(box(.26,.3,.26,B(0x161616),0,.15,0),box(.1,4.1,.1,B(0x121212),0,2.2,0),box(.34,.12,.22,B(0x1e1e1e),.1,4.3,0));scene.add(lamp); // plinth x -4.23..-3.97: fully on the pavement (x +-4.3)
+  const lg=glow(1.6,.6);lg.position.set(-3.9,PV+4.25,1.0);scene.add(lg);
   const rn=rain(700,18,12);rn.position.z=3;scene.add(rn);
   return{scene,update(t,time){
     rn.position.y=-(time*8%14)+3;cup.rotation.y=time*.2;sign.material.color.setScalar(.92+Math.sin(time*13)*.03*(Math.sin(time*.7)>.8?1:0));
@@ -907,7 +1202,9 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=new THREE.Color(0xf5f5f5);scene.fog=new THREE.Fog(0xf5f5f5,3,45);
   lights(scene,{hemi:[0xffffff,0x999999,.9],dir:[0xffffff,.4,[3,6,2]]});
   const g=ground(0xf5f5f5);g.material=B(0xf5f5f5);scene.add(g);
-  const r=rng(21);for(let i=0;i<80;i++){const x=(r()-.5)*40,z=14-r()*70;if(Math.abs(x)<4.5)continue;const b=building(1.5+r()*3,15+r()*40,1.5+r()*3,false,{col:0x6a6a6a});b.position.x=x;b.position.z=z;scene.add(b)}
+  const r=rng(21),r2=rng(22);for(let i=0;i<80;i++){const x=(r()-.5)*40,z=14-r()*70;if(Math.abs(x)<4.5)continue;const w=1.5+r()*3,h=15+r()*40,d=1.5+r()*3,near=Math.abs(x)<9;
+    const piers=near&&w>2.4&&r2()<.65;r2();r2(); // same r2 draws as before (setbacks and masts sat above the top of the frame and are gone)
+    const b=building(w,h,d,false,{col:0x6a6a6a,front:[x<0?1:-1,0],piers,lobby:near,lip:h<32});b.position.x=x;b.position.z=z;scene.add(b)} // podium + fins only along the avenue; parapets only where the camera can see a top
   return{scene,update(t,time){
     const z=12-t*30;camera.position.set(Math.sin(t*4)*.5,1.7+t*2,z);camera.lookAt(Math.sin(t*4+.6)*.6,lerp(3,9,t),z-12);
   }};
@@ -917,14 +1214,42 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=new THREE.Color(0xc9c9c9);scene.fog=new THREE.Fog(0xc9c9c9,14,40);
   lights(scene,{hemi:[0xffffff,0x777777,.9],dir:[0xffffff,.5,[2,8,1]]});scene.add(ground(0xb8b8b8));
   for(let i=-3;i<=3;i++)scene.add(box(.4,.005,2.4,B(0xe6e6e6),i*1,.004,0)); // crossing stripes
-  const N=160,um=new THREE.InstancedMesh(new THREE.ConeGeometry(.5,.22,8),M(0x141414),N),r=rng(66),U=[],m4=new THREE.Matrix4();
-  for(let i=0;i<N;i++){U.push({x:(r()-.5)*16,z:(r()-.5)*22,v:(r()<.5?1:-1)*(.8+r()*.6)})}
-  scene.add(um);
-  const me=new THREE.Mesh(new THREE.ConeGeometry(.5,.22,8),M(0x141414));me.position.set(.1,1.8,.2);scene.add(me);
-    const rn=rain(900,24,9);scene.add(rn);
+  // A real umbrella in 64 triangles: an 8-gore canopy with a ridge along every rib and a scalloped hem, a ferrule, a square shaft
+  // and a J handle. Each part carries its grey as a vertex colour, so one merged geometry draws the whole crowd as one InstancedMesh
+  // (umbrella + a body with two legs, a shoulder step and a head under it, 140 triangles per person, 22.4k for the crowd). 15 % of the crowd is a lighter grey; his is the
+  // biggest and blackest, with a pale ferrule, and sits in his right hand instead of floating.
+  const TAU=Math.PI*2,merge=parts=>{const pos=[],col=[],v=V3();
+    parts.forEach(([g,tone,m])=>{const q=g.index?g.toNonIndexed():g,p=q.attributes.position,c=q.attributes.color;for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);if(m)v.applyMatrix4(m);pos.push(v.x,v.y,v.z);if(tone!=null)col.push(tone,tone,tone);else col.push(c.getX(i),c.getY(i),c.getZ(i))}});
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeVertexNormals();return g};
+  const canopyGeo=(R,h)=>{const P=[],pt=(a,r,y)=>[Math.sin(a)*r,y,Math.cos(a)*r];
+    for(let k=0;k<8;k++){const a0=k/8*TAU,a1=(k+1)/8*TAU,am=(k+.5)/8*TAU,A=[0,h,0],I0=pt(a0,R*.52,h*.6),I1=pt(a1,R*.52,h*.6),E0=pt(a0,R,0),E1=pt(a1,R,0),Em=pt(am,R*.9,.03);
+      P.push(A,I0,I1, I0,E0,Em, I0,Em,I1, I1,Em,E1)}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P.flat(),3));return g};
+  const tubeGeo=(pts,r)=>{const P=[],rings=pts.map((p,i)=>{const T=V3().subVectors(pts[Math.min(i+1,pts.length-1)],pts[Math.max(i-1,0)]).normalize(),N1=V3(1,0,0),N2=V3().crossVectors(T,N1).normalize();
+      return[0,1,2,3].map(j=>{const a=(j+.5)/4*TAU;return p.clone().addScaledVector(N1,Math.cos(a)*r).addScaledVector(N2,Math.sin(a)*r)})});
+    for(let i=0;i<rings.length-1;i++)for(let j=0;j<4;j++){const a=rings[i][j],b=rings[i][(j+1)%4],c=rings[i+1][(j+1)%4],d=rings[i+1][j];P.push(a,b,c,a,c,d)}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P.map(p=>[p.x,p.y,p.z]).flat(),3));return g};
+  const hook=[0,1,2].map(i=>{const a=i/2*Math.PI;return V3(0,-.74-.05*Math.sin(a),.05-.05*Math.cos(a))});
+  const sq={sides:4,rot:Math.PI/4},nc=Object.assign({caps:false},sq),umbrellaGeo=(R,h,tone)=>merge([[canopyGeo(R,h),tone],[loftGeo([[h-.01,.03,.03],[h+.1,.014,.014]],nc),.42],[loftGeo([[-.74,.03,.03],[h,.03,.03]],nc),.26],[tubeGeo(hook,.013),.2]]);
+  // body: two 4-sided legs with a .06 gap, a 6-sided torso with a real shoulder step (.46 wide at 1.48 -> .18 neck at 1.56) and a head; no caps (all hidden)
+  const bodyGeo=merge([[loftGeo([[0,.15,.17,0,0,-.085],[.88,.16,.18,0,0,-.085]],nc),.12],[loftGeo([[0,.15,.17,0,0,.085],[.88,.16,.18,0,0,.085]],nc),.12],
+    [loftGeo([[.84,.3,.21],[1.3,.38,.24],[1.48,.46,.26],[1.56,.18,.14]],{sides:6,caps:false}),.12],[loftGeo([[1.52,.13,.13],[1.62,.19,.2],[1.76,.13,.15]],{sides:6,caps:false}),.13]]);
+  const crowdGeo=merge([[bodyGeo,null],[umbrellaGeo(.5,.3,.11),null,new THREE.Matrix4().makeTranslation(.17,2.0,.1)]]);
+  const N=160,crowd=new THREE.InstancedMesh(crowdGeo,M(0xffffff,{vertexColors:true}),N),r=rng(66),U=[],m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),p=V3(),s=V3(),c3=new THREE.Color();
+  for(let i=0;i<N;i++){U.push({x:(r()-.5)*16,z:(r()-.5)*22,v:(r()<.5?1:-1)*(.8+r()*.6),rot:r()*TAU,tilt:(r()-.5)*.1,s:.9+r()*.16});crowd.setColorAt(i,c3.setScalar(r()<.15?1.8:1))}
+  crowd.castShadow=true;scene.add(crowd);
+  // him: standing still in the flow, the umbrella held up in his right hand; only the canopy twirls
+  const me=makePerson();me.position.set(.1,0,.2);me.rotation.y=.3;scene.add(me);
+  const H=me.userData;H.arms[0].rotation.x=-.3;H.elbows[0].rotation.x=-2.25;H.hands[0].userData.grip(1);me.updateMatrixWorld(true);
+  const fist=H.hands[0].localToWorld(V3(0,-.05,0)),um=M(0xffffff,{vertexColors:true});
+  const uc=new THREE.Mesh(merge([[canopyGeo(.58,.33),.075],[loftGeo([[.32,.03,.03],[.44,.014,.014]],sq),.85]]),um);
+  const us=new THREE.Mesh(merge([[loftGeo([[-.74,.03,.03],[.33,.03,.03]],nc),.26],[tubeGeo(hook,.013),.2]]),um);
+  uc.position.set(fist.x,fist.y+.64,fist.z);us.position.copy(uc.position);us.rotation.y=me.rotation.y;scene.add(uc,us);
+  const rn=rain(900,24,9);scene.add(rn);
   return{scene,update(t,time){
-    U.forEach((u,i)=>{let z=((u.z+time*u.v*.8)%22+33)%22-11;if(Math.abs(u.x-.1)<.95&&Math.abs(z-.2)<.95)z+=1.9*Math.sign(z-.2||1);m4.makeTranslation(u.x,1.75+(i%3)*.04,z);um.setMatrixAt(i,m4)});um.instanceMatrix.needsUpdate=true;
-    me.rotation.y=time*.2;rn.position.y=-(time*9%14)+4;
+    U.forEach((u,i)=>{let z=((u.z+time*u.v*.8)%22+33)%22-11;if(Math.abs(u.x-.1)<1.25&&Math.abs(z-.2)<1.25)z+=2.5*Math.sign(z-.2||1);
+      m4.compose(p.set(u.x,0,z),q.setFromEuler(e.set(u.tilt,u.rot,0)),s.set(u.s,u.s,u.s));crowd.setMatrixAt(i,m4)});crowd.instanceMatrix.needsUpdate=true;
+    uc.rotation.y=time*.2;rn.position.y=-(time*9%14)+4;
     camera.position.set(lerp(.4,2.5,t),lerp(16,6,ease(t)),lerp(.6,7,ease(t)));camera.lookAt(.1,1.5,.2);
   }};
 }},
@@ -938,13 +1263,25 @@ const SCENES=[
   scene.add(new THREE.HemisphereLight(0xffffff,0x555555,.9));const d=new THREE.DirectionalLight(0xffffff,.5);d.position.set(2,5,3);scene.add(d);
   const top=new THREE.Mesh(new THREE.PlaneGeometry(240,.02),B(0x999999));top.position.z=-30;scene.add(top);
   const st=stars(700,60,{seed:5,minY:-60});st.geometry.attributes.position.array.forEach((v,i,a)=>{if(i%3===1)a[i]=-Math.abs(v)-.5});scene.add(st);
-  // the light world: a desk, a chair, a laptop left open
-  const desk=(m)=>{const g=new THREE.Group();g.add(box(1.4,.05,.7,m,-1.8,.74,0),box(.05,.72,.05,m,-2.45,.36,-.3),box(.05,.72,.05,m,-1.15,.36,-.3),box(.05,.72,.05,m,-2.45,.36,.3),box(.05,.72,.05,m,-1.15,.36,.3),
-    box(.45,.03,.32,m,-1.8,.78,0),box(.45,.3,.02,m,-1.8,.93,-.15),box(.45,.05,.45,m,-1.8,.46,.6),box(.45,.5,.05,m,-1.8,.7,.82));return g};
-  const light=new THREE.Group();light.add(desk(M(0xbbbbbb)));
+  const bevelBox=(w,h,d,b,mat,x=0,y=0,z=0,c=.12)=>{const m=loft([[0,w-2*b,d-2*b,c],[b,w,d,c],[h-b,w,d,c],[h,w-2*b,d-2*b,c]],mat,{sides:8});m.position.set(x,y,z);return m};
+  // the light world: a desk (thick chamfered top on two side panels and a modesty panel), a chair with four legs and a slatted back, a laptop left open as a hinged wedge.
+  // desk(top, panels, legs/laptop, dark key area, screen) so the mirrored copy is built from the same models in its own tones
+  const desk=(mt,ms,ml,mk,msc)=>{const g=new THREE.Group();
+    g.add(bevelBox(1.4,.07,.7,.02,mt,-1.8,.695,0),box(.06,.695,.62,ms,-2.47,.3475,0),box(.06,.695,.62,ms,-1.13,.3475,0),box(1.28,.42,.05,ms,-1.8,.48,-.28));
+    const lap=new THREE.Group();lap.position.set(-1.8,.765,.02);g.add(lap);
+    lap.add(bevelBox(.42,.022,.29,.006,ml,0,0,0,.3),box(.36,.004,.13,mk,0,.023,-.01),box(.1,.003,.06,mk,0,.023,.1));
+    const hinge=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.4,6),mk);hinge.rotation.z=Math.PI/2;hinge.position.set(0,.022,-.14);lap.add(hinge);
+    const lid=new THREE.Group();lid.position.set(0,.022,-.14);lid.rotation.x=-.32;lap.add(lid);
+    lid.add(bevelBox(.42,.27,.018,.005,ml,0,0,0,.3),box(.37,.22,.004,msc,0,.145,.01));
+    const cx=-2.2,cz=.5; // chair pushed half under the desk and to one side, so its back slat clears the laptop lid from the scene camera
+    g.add(bevelBox(.44,.06,.44,.015,ms,cx,.44,cz,.25),box(.44,.14,.04,ms,cx,.86,cz+.19));
+    [[-.19,-.19],[.19,-.19],[-.19,.19],[.19,.19]].forEach(([dx,dz])=>g.add(box(.045,.44,.045,ml,cx+dx,.22,cz+dz)));
+    [-.19,.19].forEach(dx=>g.add(box(.045,.45,.045,ml,cx+dx,.725,cz+.19)));
+    return g};
+  const light=new THREE.Group();light.add(desk(M(0xc8c8c8),M(0xaaaaaa),M(0x777777),M(0x4a4a4a),B(0x333333,{side:THREE.DoubleSide})));
   const me=makePerson();me.position.set(.4,0,.2);me.rotation.y=-.4;light.add(me);scene.add(light);
   const pale=M(0x555555),dark=new THREE.Group();
-  const m2=makePerson({mat:pale});m2.position.copy(me.position);m2.rotation.y=me.rotation.y;dark.add(m2,desk(M(0x333333)));dark.scale.y=-1;scene.add(dark);
+  const m2=makePerson({mat:pale});m2.position.copy(me.position);m2.rotation.y=me.rotation.y;dark.add(m2,desk(M(0x3a3a3a),M(0x2c2c2c),M(0x202020),M(0x151515),B(0x999999,{side:THREE.DoubleSide})));dark.scale.y=-1;scene.add(dark); // the mirrored world keeps a lit screen so it reads too
   return{scene,update(t,time){
     const a=lerp(-.35,.45,t);camera.position.set(Math.sin(a)*8.5,0,Math.cos(a)*8.5);camera.up.set(0,1,0);camera.lookAt(-.6,0,0);
     camera.rotateZ(ease(smooth(.15,.85,t))*Math.PI);
@@ -957,9 +1294,42 @@ const SCENES=[
   const rim=new THREE.DirectionalLight(0xffffff,.8);rim.position.set(5,-2,-4);scene.add(rim);
   const gl=glow(10,.18);gl.position.set(0,-2.5,-2);scene.add(gl);
   const me=makePerson({body:0x4a4a4a,jacket:0x3a3a3a});const pivot=new THREE.Group();pivot.add(me);me.position.set(0,-.95,0);scene.add(pivot);
-  const r=rng(12),papers=[],pm=new THREE.MeshBasicMaterial({color:0xdddddd,side:THREE.DoubleSide});
-  for(let i=0;i<40;i++){const p=new THREE.Mesh(new THREE.PlaneGeometry(.21,.3),pm);p.userData={o:V3((r()-.5)*7,(r()-.5)*5,(r()-.5)*7),s:V3(r(),r(),r())};scene.add(p);papers.push(p)}
+  // sheets of paper: one layer curled across its height (4 bands, 8 triangles), lit so the bands shade differently; three curl profiles
+  const sheet=(w,h,curl,k=2)=>{const P=[],R=4,pt=(i,j)=>[(i-.5)*w,(j/R-.5)*h,curl*Math.pow(j/R,k)];
+    for(let j=0;j<R;j++){const a=pt(0,j),b=pt(1,j),c=pt(1,j+1),d=pt(0,j+1);P.push(...a,...b,...c,...a,...c,...d)}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.computeVertexNormals();return g};
+  // 0x60 keeps even a band facing both key and hemi light grey (~#d8 after the film pass) instead of clipping to white. The sheets and the small
+  // props are taken out of the shadow pass explicitly in update() (see noShadow below), not via a transparent flag.
+  const r=rng(12),papers=[],pm=M(0x606060),sg=[sheet(.21,.3,.05),sheet(.21,.3,.035,1),sheet(.21,.3,.07,3)];
+  // orbit origins stay > 1.1 from the pivot axis (so nothing passes through him) and > .8 from each other (fewer sheets crossing). They are also
+  // checked against the scene camera over the whole orbit (sway ±.4 included): a sheet in front of him must never project onto his silhouette
+  // (it read as a patch stuck on his chest) and nothing may sit on the caption strip (lower middle of the frame) while the caption shows (t .12–.75).
+  // Rejected candidates are simply re-drawn from the same rng(12), so the layout stays deterministic.
+  const cam=V3(),fw=V3(),rt=V3(),cu=V3(),v=V3(),TAN=Math.tan(Math.PI/8);
+  const clear=(p,e)=>{for(let t=.04;t<.97;t+=.04){const a=t*1.6;cam.set(Math.sin(a)*6,lerp(1.5,-.5,t),Math.cos(a)*6);const D=cam.length();
+      fw.copy(cam).negate().normalize();rt.crossVectors(fw,UP).normalize();cu.crossVectors(rt,fw);
+      for(const dx of[-.4,0,.4])for(const dy of[-.4,0,.4]){v.set(p.x+dx,p.y+dy-t*1.5,p.z).sub(cam);const z=v.dot(fw);if(z<.5)return false;
+        const x=v.dot(rt),y=v.dot(cu),s=D/z;
+        if(z<D-.3&&Math.abs(x*s)<.45+Math.abs(y*s)*.3+e*s&&y*s>-1.1-e*s&&y*s<.9+e*s)return false; // in front of him, over his silhouette (lean included)
+        if(t>.1&&t<.77){const ny=y/(z*TAN),nx=x/(z*TAN*1.6),eh=e/(z*TAN);if(ny>-.82-eh&&ny<-.68+eh&&Math.abs(nx)<.47+eh/1.6)return false}}} // on the caption line
+    return true};
+  const drift=(o,X,Y,e=.2)=>{let p;for(let n=0;n<60;n++){p=V3((r()-.5)*X,(r()-.5)*Y,(r()-.5)*X);if(Math.hypot(p.x,p.z)>1.1&&papers.every(q=>q.userData.o.distanceTo(p)>.8)&&clear(p,e))break}
+    o.userData={o:p,s:V3(r(),r(),r())};scene.add(o);papers.push(o)};
+  for(let i=0;i<40;i++){const p=new THREE.Mesh(sg[i%3],pm);if(i%10<3)p.scale.setScalar(.75);drift(p,7,5)}
+  // a few small things drifting with the papers: two pens, a mug, a phone, a notebook (6/8-sided, each under ~90 triangles). The film pass renders
+  // into a 16-bit depth target (three.js r128 render-target default), so at this 6–8 unit orbit two parallel faces closer than ~.012 world
+  // (.006 here, the props are scaled ×2) z-fight into a hatched lattice: hence open tubes where a disc would sit on a cap, a notebook with
+  // no spine and an open ring of pages between thicker covers, and the phone's screen as a block on top of the slab rather than a film on it
+  const pen=()=>{const g=new THREE.Group(),lt=M(0x9a9a9a);g.add(new THREE.Mesh(new THREE.CylinderGeometry(.007,.007,.14,6,1,true),M(0x505050))); // open-ended mid-grey barrel, light tip and clip: a pen, not a dark stick
+    const tip=new THREE.Mesh(new THREE.CylinderGeometry(.002,.0065,.022,6,1),lt);tip.position.y=-.076;g.add(tip,box(.006,.045,.006,lt,.012,.04,0));return g}; // the tip cone starts inside the barrel; the clip stands .006 off it
+  const mug=()=>{const g=new THREE.Group(),m=M(0x9a9a9a);g.add(loft([[0,.07,.07,0],[.09,.08,.08,0]],m,{sides:6,caps:false}),box(.03,.01,.012,m,.052,.072,0),box(.03,.01,.012,m,.052,.024,0),box(.008,.058,.012,m,.066,.048,0)); // 0x9a so the key-lit side stays grey after the film pass
+    const bot=new THREE.Mesh(new THREE.CircleGeometry(.03,6),m);bot.rotation.x=-Math.PI/2;bot.position.y=.002;const cf=new THREE.Mesh(new THREE.CircleGeometry(.033,6),B(0x151515));cf.rotation.x=-Math.PI/2;cf.position.y=.078;g.add(bot,cf);return g}; // open cup: bottom disc inside, dark coffee 12 mm below the rim
+  const phone=()=>{const g=new THREE.Group();g.add(loft([[0,.064,.134,.3],[.005,.07,.14,.3],[.01,.064,.134,.3]],M(0x303030),{sides:8}),box(.058,.01,.126,B(0x6a6a6a),0,.015,0));return g}; // chamfered slab, lighter screen block on top
+  const book=()=>{const g=new THREE.Group(),cm=M(0x343434);g.add(loft([[0,.12,.16,.1],[.008,.12,.16,.1]],cm,{sides:8}),loft([[.02,.12,.16,.1],[.028,.12,.16,.1]],cm,{sides:8}),loft([[.008,.158,.212,0],[.02,.158,.212,0]],M(0xb0b0b0),{sides:4,rot:Math.PI/4,caps:false}));return g}; // two covers, an open ring of pages (sides 4 at π/4 = an axis-aligned rectangle at .707 scale)
+  [pen(),pen(),mug(),phone(),book()].forEach(o=>{o.scale.setScalar(2);drift(o,4,3)}); // x2 and kept within 2 of him so the mug and notebook read as silhouettes at the 6-unit orbit
+  let noShadow=false;
   return{scene,update(t,time){
+    if(!noShadow){noShadow=true;papers.forEach(p=>p.traverse(o=>{o.receiveShadow=o.castShadow=false}))} // explicit opt-out once buildAll() has flagged them: as shadow receivers the thin sheets showed a shadow-acne lattice at grazing key angles, and their shadows on him were specks
     me.userData.float(time);pivot.rotation.set(Math.sin(time*.3)*.1,t*1.2,lerp(-.25,.35,t));
     papers.forEach(p=>{const u=p.userData;p.position.set(u.o.x+Math.sin(time*.3+u.s.x*6)*.4,u.o.y+Math.sin(time*.4+u.s.y*6)*.4-t*1.5,u.o.z);p.rotation.set(time*.3*u.s.x+u.s.y*6,time*.2*u.s.y,u.s.z*6)});
     const a=t*1.6;camera.position.set(Math.sin(a)*6,lerp(1.5,-.5,t),Math.cos(a)*6);camera.lookAt(0,0,0);
@@ -975,36 +1345,49 @@ const SCENES=[
   const hs=new THREE.Sprite(new THREE.SpriteMaterial({map:halo,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false}));hs.scale.set(9.6,9.6,1);put(hs,1);
   const ring=put(new THREE.Mesh(new THREE.TorusGeometry(3,.025,6,160),flat(0xffffff,1)),2);
   put(new THREE.Mesh(new THREE.CircleGeometry(2.985,128),flat(0x000000,1)),3);
-  // skyline in front of the eclipse, with a few lit windows
+  // skyline in front of the eclipse: flat cut-outs with varied rooflines (setbacks, stair heads, water tanks, billboards, gables, masts) and a few lit windows
   {const r=rng(77),sky=new THREE.Group(),mb=flat(0x060606,1),mw=flat(0x8a8a8a,1);let x=-14;
-   while(x<14){const w=.6+r()*1.5,h=.6+r()*(Math.abs(x)<4?2.2:4.5);const b=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mb);b.position.set(x+w/2,-4.4+h/2,4);b.renderOrder=5;sky.add(b);
-     if(r()<.5&&h>1.5){const a=new THREE.Mesh(new THREE.PlaneGeometry(.03,.5),mb);a.position.set(x+w*.5,-4.4+h+.25,4);a.renderOrder=5;sky.add(a)}
+   const P=(w,h,cx,cy)=>{const b=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mb);b.position.set(cx,cy,4);b.renderOrder=5;sky.add(b);return b};
+   // Roof furniture stays off the blocks whose top can reach the halo band or the caption line: the halo and the caption both project onto
+   // this plane (z=4) inside |x|<2.5 and above y≈-2.4 at both camera positions, so a piece is emitted only on blocks beside that column
+   // (|cx|>3.5; billboards |cx|>4.5) or when its top stays below -2.6. The rng draws are unchanged, so the block layout is the same.
+   while(x<14){const w=.5+r()*1.8,h=.6+r()*(Math.abs(x)<4?2.2:4.5),top=-4.4+h,cx=x+w/2;P(w,h,cx,-4.4+h/2);
+     const k=r(),side=Math.abs(cx)>3.5,clear=(hh)=>side||top+hh<-2.6;
+     if(k<.28){const w2=w*(.35+r()*.4),h2=.25+r()*.6,ox=(r()-.5)*(w-w2);if(clear(h2))P(w2,h2,cx+ox,top+h2/2)}            // setback storey
+     else if(k<.5){const sw=.22+r()*.15,sh=.2+r()*.15;if(clear(.36)){P(sw,sh,cx-w*.25,top+.1);                           // stair head …
+       const tx=cx+w*.22;P(.26,.24,tx,top+.24);P(.025,.13,tx-.09,top+.065);P(.025,.13,tx+.09,top+.065)}}                 // … and a water tank on two legs
+     else if(k<.62){if(Math.abs(cx)>4.5||top+.6<-2.6){const bw=w*.6;P(.03,.3,cx-bw*.4,top+.15);P(.03,.3,cx+bw*.4,top+.15);P(bw,.3,cx,top+.45)}} // billboard frame on posts
+     else if(k<.72&&w<1.1){const gx=x+w*(.3+r()*.4),gy=top+.2+r()*.3;if(clear(.5)){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([x,top,4,x+w,top,4,gx,gy,4],3));const m=new THREE.Mesh(g,mb);m.renderOrder=5;sky.add(m)}} // gable
+     if(r()<.5&&h>1.5){const mx=x+w*(.3+r()*.4);if(clear(.5))P(.03,.5,mx,top+.25)}                                        // antenna mast
      for(let wy=-4.2;wy<-4.4+h-.2;wy+=.22)for(let wx=x+.12;wx<x+w-.12;wx+=.18)if(r()<.12){const q=new THREE.Mesh(new THREE.PlaneGeometry(.06,.08),mw);q.position.set(wx,wy,4.01);q.renderOrder=6;sky.add(q)}
      x+=w+r()*.15}
    scene.add(sky)}
-  // crows: black silhouettes against the halo; broad wings ending in spread "finger" primaries, wedge tail
+  // crows: black silhouettes against the halo. Five-sided lofted body and six-sided head (a plump faceted outline instead of a diamond),
+  // cambered two-quad wings that never thin to a line, spread "finger" primaries, wedge tail
   function makeCrow(){
     const m=flat(0x050505,1),g=new THREE.Group(),add=(geo,ord=8)=>{const o=new THREE.Mesh(geo,m);o.renderOrder=ord;return o};
     const tri=(pts)=>{const q=new THREE.BufferGeometry();q.setAttribute('position',new THREE.Float32BufferAttribute(pts.flat(),3));return add(q)};
-    const body=add(new THREE.OctahedronGeometry(1,0));body.scale.set(.46,.13,.14);g.add(body);
-    const head=add(new THREE.SphereGeometry(.105,8,6));head.position.set(.42,.05,0);head.scale.set(1.15,1,1);g.add(head);
-    const beak=add(new THREE.ConeGeometry(.045,.2,4));beak.rotation.z=-Math.PI/2;beak.position.set(.6,.03,0);g.add(beak);
+    const along=(secs,sides)=>{const o=add(loftGeo(secs,{sides}));o.rotation.z=-Math.PI/2;return o}; // loft axis y → +x (beak end)
+    g.add(along([[-.42,.04,.05,.4],[-.22,.1,.1,.4],[-.04,.15,.15,.4],[.16,.14,.14,.4],[.3,.1,.1,.4],[.4,.06,.07,.4]],5));
+    const head=along([[-.1,.12,.13,.4],[-.03,.18,.17,.4],[.06,.16,.15,.4],[.11,.08,.09,.4]],6);head.position.set(.46,.06,0);g.add(head);
+    const beak=add(new THREE.ConeGeometry(.045,.2,4));beak.rotation.z=-Math.PI/2;beak.position.set(.64,.05,0);g.add(beak);
     g.add(tri([[-.36,0,.05],[-.36,0,-.05],[-.82,0,-.17],[-.36,0,.05],[-.82,0,-.17],[-.82,0,.17],[-.82,0,.17],[-.82,0,-.17],[-.88,0,0]]));
     const wings=[];
     for(const sd of [1,-1]){
       const root=new THREE.Group();root.position.set(.05,.04,0);
-      root.add(tri([[.22,0,0],[-.3,0,0],[-.26,0,.48*sd],[.22,0,0],[-.26,0,.48*sd],[.18,0,.48*sd]]));
+      root.add(tri([[.24,0,0],[-.3,0,0],[-.28,.04,.26*sd],[.24,0,0],[-.28,.04,.26*sd],[.22,.04,.26*sd],
+                    [.22,.04,.26*sd],[-.28,.04,.26*sd],[-.26,0,.48*sd],[.22,.04,.26*sd],[-.26,0,.48*sd],[.18,0,.48*sd]]));
       const tip=new THREE.Group();tip.position.z=.48*sd;root.add(tip);
-      tip.add(tri([[.18,0,0],[-.26,0,0],[-.2,0,.22*sd],[.18,0,0],[-.2,0,.22*sd],[.12,0,.24*sd]]));
+      tip.add(tri([[.18,0,0],[-.26,0,0],[-.2,.02,.22*sd],[.18,0,0],[-.2,.02,.22*sd],[.12,.02,.24*sd]]));
       // five primaries fanning out from the hand
       for(let i=0;i<5;i++){const x0=.12-i*.075,len=.32-i*.03,sw=-.05-i*.07;
-        tip.add(tri([[x0,0,.2*sd],[x0-.06,0,.2*sd],[x0-.03+sw,0,(.2+len)*sd]]))}
+        tip.add(tri([[x0,.02,.2*sd],[x0-.06,.02,.2*sd],[x0-.03+sw,0,(.2+len)*sd]]))}
       g.add(root);wings.push({root,tip,sd});
     }
     g.userData.flap=(ph)=>wings.forEach(({root,tip,sd})=>{root.rotation.x=sd*(.1+Math.sin(ph)*.5);tip.rotation.x=sd*(-.15+Math.sin(ph-.6)*.4)});
     return g;
   }
-  const birds=[[1.5,0,0,0],[1.05,-1.6,.5,1.7],[.85,-2.6,-.6,3.1],[.7,-3.4,.4,4.4]].map(([s,dx,dy,ph])=>{const b=makeCrow();b.scale.setScalar(s);scene.add(b);return{b,dx,dy,ph,s}});
+  const birds=[[1.5,0,0,0],[1.05,-1.6,.5,1.7],[.85,-2.6,-.6,3.1],[.7,-3.4,.4,4.4],[.4,-4.6,1.1,2.3],[.34,-5.3,.3,5.2]].map(([s,dx,dy,ph])=>{const b=makeCrow();b.scale.setScalar(s);scene.add(b);return{b,dx,dy,ph,s}});
   return{scene,update(t,time){
     ring.material.color.setScalar(.6+.4*smooth(0,.4,t));hs.material.opacity=.45+.55*smooth(0,.4,t);
     birds.forEach(({b,dx,dy,ph,s},i)=>{
@@ -1021,18 +1404,49 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=gradTex('#050505','#1d1d1d');scene.fog=new THREE.Fog(0x111111,8,30);
   lights(scene,{hemi:[0x888888,0x111111,.55],dir:[0xffffff,.8,[1,6,3]]});scene.add(ground(0x161616));
   const me=makePerson();me.rotation.y=.3;me.userData.head.rotation.x=-.55;scene.add(me);
-  // torn-off calendar pages, one per day, drifting down around him
-  const pg=new THREE.PlaneGeometry(.34,.42),N=26,r=rng(55);
+  // torn-off calendar pages, one per day, drifting down around him. A leaf is a .34 × .42 sheet with a paper thickness, curled toward
+  // its top and torn off along the top edge (24 triangles: front + back; the .005 edge faces are invisible at this scale); the back samples a blank corner of the page texture
+  const leaf=(seed,curl)=>{const C=3,R=2,W=.34,H=.42,T=.005,jr=rng(seed),P=[],U=[],tear=[...Array(C+1)].map(()=>.05+jr()*.016); // tear .05–.066 deep: the stub sits in the blank margin under the DAY lettering, so the letters are never cut into comb teeth
+    const pos=(i,j,back)=>{const y=j/R*H-(j===R?tear[i]:0);return[[(i/C-.5)*W,y-H/2,curl*Math.pow(j/R,2.2)-(back?T:0)],y/H]};
+    const tri=(a,b,c)=>{P.push(...a[0],...b[0],...c[0]);U.push(...a[1],...b[1],...c[1])},quad=(a,b,c,d)=>{tri(a,b,c);tri(a,c,d)};
+    const F=(i,j)=>{const p=pos(i,j);return[p[0],[i/C,p[1]]]},K=(i,j,back)=>[pos(i,j,back)[0],[.06,.5]];
+    for(let i=0;i<C;i++)for(let j=0;j<R;j++){quad(F(i,j),F(i+1,j),F(i+1,j+1),F(i,j+1));quad(K(i,j,1),K(i,j+1,1),K(i+1,j+1,1),K(i+1,j,1))}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.computeVertexNormals();return g};
+  const pg=[leaf(1,.03),leaf(2,.05),leaf(3,.02)],N=26,r=rng(55);
+  // a page's place (a, R) is drawn again (same rng(55), so still deterministic) while, seen from the scene camera, its fall would cross his
+  // silhouette in front of him (a page over his face reads as stuck to him) or it would sit, falling or landed, on the caption strip (lower
+  // middle of the frame) while the caption shows (t .12–.75). The fall path depends on t only, so the test is exact.
+  const cam=V3(),fw=V3(),rt=V3(),cu=V3(),pv=V3(),TAN=Math.tan(Math.PI/8),E=.22;
+  const bad=(a,R,seed,o)=>{for(let t=.01;t<1;t+=.01){const k=clamp((t*1.25-o*.9)*3);if(k<=0)continue;
+      cam.set(lerp(3.5,2,t),lerp(1.2,2,t),lerp(5,4,t));pv.set(0,lerp(2,1.6,t),0);fw.copy(pv).sub(cam).normalize();rt.crossVectors(fw,UP).normalize();cu.crossVectors(rt,fw);
+      pv.set(0,.9,0).sub(cam);const zh=pv.dot(fw),xh=pv.dot(rt),yh=pv.dot(cu); // his centre in view space
+      const sw=Math.sin(k*9+seed)*(1-k)*.6;pv.set(Math.sin(a)*R+Math.cos(a)*sw,lerp(6.5,.02,k),Math.cos(a)*R*.8-Math.sin(a)*sw).sub(cam);const z=pv.dot(fw),x=pv.dot(rt),y=pv.dot(cu);
+      if(z<zh-.25){const s=zh/z;if(Math.abs(x*s-xh)<.45+E*s&&y*s>yh-1-E*s&&y*s<yh+1+E*s)return true} // in front of him, over his silhouette
+      if(t>.12&&t<.76){const ny=y/(z*TAN),nx=x/(z*TAN*1.6),eh=E/(z*TAN);if(ny>-.82-eh&&ny<-.68+eh&&Math.abs(nx)<.45+eh/1.6)return true}} // on the caption line while the caption shows
+    return false};
   const fall=[...Array(N)].map((_,i)=>{const day=i+1,tex=canvasTex(128,160,(c,w,h)=>{c.fillStyle='#f2f2ef';c.fillRect(0,0,w,h);c.fillStyle='#1a1a1a';c.fillRect(0,0,w,26);
       c.fillStyle='#f2f2ef';c.font='14px serif';c.textAlign='center';c.fillText('DAY',w/2,18);c.fillStyle='#222';c.font='72px serif';c.fillText(String(day),w/2,118)});
-    const m=new THREE.Mesh(pg,new THREE.MeshStandardMaterial({map:tex,side:THREE.DoubleSide,roughness:1}));scene.add(m);
-    return{m,o:i/N,seed:i*1.37,a:r()*Math.PI*2,R:.7+r()*1.6}});
+    const m=new THREE.Mesh(pg[i%3],new THREE.MeshStandardMaterial({map:tex,color:0xbcbcbc,side:THREE.DoubleSide,roughness:1,flatShading:true}));scene.add(m); // toned down so a landed page reads as paper, not as a light
+    let a,R;for(let n=0;n<60;n++){a=r()*Math.PI*2;R=1.15+r()*1.2;if(!bad(a,R,i*1.37,i/N))break} // R >= 1.15 and a tangential sway (below), so none swings through him in 3D either
+    return{m,o:i/N,seed:i*1.37,a,R}});
+  // where landed pages overlap (centres within .4 in xz) the later one rests 7 mm higher than the pages under it, so they stack instead of cutting through each other on one plane
+  fall.forEach((s,i)=>{s.x=Math.sin(s.a)*s.R;s.z=Math.cos(s.a)*s.R*.8;s.rest=.008;for(let j=0;j<i;j++)if(Math.hypot(fall[j].x-s.x,fall[j].z-s.z)<.4)s.rest=Math.max(s.rest,fall[j].rest+.007)});
   const dawn=glow(30,0);dawn.position.set(0,1,-18);scene.add(dawn);
+  // landing: over the last 15 % of a fall the spin eases out to lying flat (angles re-wound to the nearest turn, frozen when the
+  // blend starts), and the sheet is held up by its lowest corner so no leaf ever cuts through the floor while it is still turning
+  const near=(x,b)=>b+Math.atan2(Math.sin(x-b),Math.cos(x-b)),q=new THREE.Quaternion(),v=V3(),CORNERS=[];
+  for(const x of[-.17,.17])for(const y of[-.21,.21])for(const z of[-.005,.05])CORNERS.push(V3(x,y,z));
   return{scene,update(t,time){
-    fall.forEach(({m,o,seed,a,R})=>{const k=clamp((t*1.25-o*.9)*3);m.visible=k>0;if(!m.visible)return;
-      const y=lerp(6.5,.02,k),sw=Math.sin(k*9+seed)*(1-k)*.6;
-      m.position.set(Math.sin(a)*R+sw,y,Math.cos(a)*R*.8);
-      if(k<1)m.rotation.set(time*1.6+seed,seed,Math.sin(time*2.5+seed)*.8);else m.rotation.set(-Math.PI/2,0,seed)});
+    fall.forEach(s=>{const {m,o,seed,a,R,rest}=s,k=clamp((t*1.25-o*.9)*3);m.visible=k>0;if(!m.visible)return;
+      // pages never receive shadows (buildAll() turns it on; a thin curled sheet at a grazing key angle, or two landed pages at near-equal depth,
+      // showed a shadow-acne lattice) and stop casting once landed (page-on-page self-shadow); they keep their ground shadow while falling
+      m.receiveShadow=false;m.castShadow=k<1;
+      const sw=Math.sin(k*9+seed)*(1-k)*.6,f=clamp((k-.85)/.15);
+      if(f<=0){s.land=null;m.rotation.set(time*1.6+seed,seed,Math.sin(time*2.5+seed)*.8)}
+      else{if(!s.land)s.land=[near(time*1.6+seed,-Math.PI/2),near(seed,0),near(Math.sin(time*2.5+seed)*.8,seed)];
+        m.rotation.set(lerp(s.land[0],-Math.PI/2,f),lerp(s.land[1],0,f),lerp(s.land[2],seed,f))}
+      let lo=0;if(k>.8){q.setFromEuler(m.rotation);for(const c of CORNERS)lo=Math.min(lo,v.copy(c).applyQuaternion(q).y)}
+      m.position.set(Math.sin(a)*R+Math.cos(a)*sw,Math.max(lerp(6.5,rest,k),.003-lo),Math.cos(a)*R*.8-Math.sin(a)*sw)});
     dawn.material.opacity=smooth(.5,1,t)*.5;
     camera.position.set(lerp(3.5,2,t),lerp(1.2,2,t),lerp(5,4,t));camera.lookAt(0,lerp(2,1.6,t),0);
   }};
@@ -1041,21 +1455,35 @@ const SCENES=[
 {key:'shards',bg:'#1c1c1c',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x1c1c1c);scene.fog=new THREE.Fog(0x1c1c1c,6,30);
   lights(scene,{hemi:[0xbbbbbb,0x111111,.6],dir:[0xffffff,1,[3,5,4]]});
+  const fill=new THREE.PointLight(0xffffff,.5,10);scene.add(fill); // low fill from the camera side so the curled figure is not only rim-lit
   const dad=makePerson({body:0x0e0e0e,jacket:0x232323});dad.rotation.y=.4;scene.add(dad);
   // curled up tight: knees to chest, arms wrapped round them, head buried
   const H=dad.userData;H.legs.forEach(l=>l.rotation.x=-1.75);H.knees.forEach(k=>k.rotation.x=2.25);
   H.arms.forEach((a,i)=>a.rotation.set(-.85,0,(i?-1:1)*.45));H.elbows.forEach(e=>e.rotation.x=-1.0);H.head.rotation.x=.9;
-  const N=320,r=rng(31),geo=new THREE.TetrahedronGeometry(.5,0);
-  const im=new THREE.InstancedMesh(geo,M(0xffffff),N),data=[],c=new THREE.Color();
-  for(let i=0;i<N;i++){const dir=V3(r()-.5,(r()-.5)*.8,r()-.5).normalize();data.push({dir,d:.6+r()*1.2,sp:2+r()*9,rot:V3(r()*6,r()*6,r()*6),vr:V3(r()-.5,r()-.5,r()-.5).multiplyScalar(6),s:V3(.2+r()*1.2,.05+r()*.12,.2+r()*.9)});c.setScalar(.12+r()*.45);im.setColorAt(i,c)}
-  scene.add(im);
+  // the pieces, as in the film: thin plates and planks, sticks, a few flat triangular wedges — three instanced meshes (320 pieces),
+  // most of them #18–#3a, some mid-grey, 8 % white-lit; nothing starts closer than 1.2 so he stays visible
+  // the shard material carries a flat emissive floor (#26) so a face the lights miss never drops below the #1c backdrop (near plates showed
+  // their unlit side as a black hole in the frame); the tone bands below are a step lower to compensate, so lit faces stay as dark as before (f080–f083)
+  const r=rng(31),c=new THREE.Color(),data=[],mk=(geo,n)=>{const im=new THREE.InstancedMesh(geo,M(0xffffff,{emissive:0x262626}),n);im.frustumCulled=false;scene.add(im);return im};
+  const plates=mk(new THREE.BoxGeometry(1,.04,1),160),sticks=mk(new THREE.BoxGeometry(.06,.06,1),110),wedges=mk(new THREE.TetrahedronGeometry(.5,0),50);
+  [[plates,0],[sticks,1],[wedges,2]].forEach(([im,kind])=>{for(let i=0;i<im.count;i++){
+    const dir=V3(r()-.5,(r()-.5)*.8,r()-.5).normalize(),d=1.2+r()*1.4;let s;
+    if(kind===0){const w=.3+r()*.9;s=V3(w,1,w*(.3+r()*.8))}else if(kind===1)s=V3(.5+r()*.9,.5+r()*.9,.35+r()*1.2);else{const w=.4+r()*.9;s=V3(w,.15,w)}
+    if(d<1.8)s.multiplyScalar(.6);
+    data.push({im,i,dir,d,sp:2+r()*9,rot:V3(r()*6,r()*6,r()*6),vr:V3(r()-.5,r()-.5,r()-.5).multiplyScalar(6),s});
+    const k=r();c.setScalar(k<.08?(dir.y<-.05?.15:.9):k<.2?(dir.y<-.05?.05+r()*.15:.22+r()*.18):.05+r()*.15);im.setColorAt(i,c)}}); // white-lit and mid tones only on pieces flying upward (same draws; the ones that end low in frame, behind the caption, take the dark band so the caption zone stays calm)
+  // pieces whose flight would pass within reach of the orbiting camera (a big unlit face filling a corner, two plates crossing right in front of the
+  // lens) are mirrored to the far side of him (azimuth + π, no rng draws), so every other piece keeps its reviewed place
+  const cp=V3(),pp=V3();data.forEach(s=>{const lim=s.im===sticks?.7:1.2;for(let t=0;t<=1;t+=.02){const a=t*Math.PI*.7+.3,R=lerp(3.6,7,t);cp.set(Math.sin(a)*R,lerp(.5,1.4,t),Math.cos(a)*R);
+    pp.copy(s.dir).multiplyScalar(s.d+ease(t)*s.sp);if(pp.distanceTo(cp)<lim){s.dir.x*=-1;s.dir.z*=-1;s.flipped=true;break}}});
   const m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler();
   return{scene,update(t,time){
     const ex=ease(t);
-    data.forEach((s,i)=>{const p=s.dir.clone().multiplyScalar(s.d+ex*s.sp);e.set(s.rot.x+s.vr.x*ex+time*.1,s.rot.y+s.vr.y*ex,s.rot.z+s.vr.z*ex);q.setFromEuler(e);m.compose(p,q,s.s);im.setMatrixAt(i,m)});
-    im.instanceMatrix.needsUpdate=true;
+    data.forEach(s=>{const p=s.dir.clone().multiplyScalar(s.d+ex*s.sp);e.set(s.rot.x+s.vr.x*ex+time*.1,s.rot.y+s.vr.y*ex,s.rot.z+s.vr.z*ex);q.setFromEuler(e);m.compose(p,q,s.s);s.im.setMatrixAt(s.i,m)});
+    [plates,sticks,wedges].forEach(im=>im.instanceMatrix.needsUpdate=true);
     dad.position.set(0,-.55,0);dad.rotation.set(.25,.4+t*.3,0);
-    const a=t*Math.PI*.7+.3;camera.position.set(Math.sin(a)*lerp(3.6,7,t),lerp(.5,1.4,t),Math.cos(a)*lerp(3.6,7,t));camera.lookAt(0,0,0);
+    const a=t*Math.PI*.7+.3,R=lerp(3.6,7,t);camera.position.set(Math.sin(a)*R,lerp(.5,1.4,t),Math.cos(a)*R);camera.lookAt(0,0,0);
+    fill.position.set(Math.sin(a)*2.2,1.2,Math.cos(a)*2.2);
   }};
 }},
 /* 16 — rowing alone through a flooded city in the rain */
@@ -1063,48 +1491,99 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=gradTex('#000','#1e1e1e');scene.fog=new THREE.Fog(0x080808,14,80);
   scene.add(stars(600,90,{seed:13,minY:20}));
   scene.add(new THREE.HemisphereLight(0x8a8a8a,0x050505,.55));const moon=new THREE.DirectionalLight(0xffffff,1.1);moon.position.set(-6,8,10);scene.add(moon);
-  const water=ground(0x0c0c0c);water.material=M(0x0c0c0c,{roughness:.35,metalness:.2,side:THREE.FrontSide});scene.add(water);
+  const water=ground(0x0c0c0c);water.material=M(0x202020,{roughness:.45,metalness:.1,side:THREE.FrontSide});scene.add(water); // lifted a step so the dark hull and its smear read on it
   const r=rng(17);
   for(let i=0;i<22;i++){
     const x=-40+i*4+(r()-.5)*2,z=-14-r()*30,w=2+r()*4,h=6+r()*30,b=building(w,h,2+r()*4,true);b.position.set(x,h/2,z);scene.add(b);
     const ref=new THREE.Mesh(b.geometry,new THREE.MeshBasicMaterial({map:FACADE.night,transparent:true,opacity:.18,depthWrite:false}));ref.scale.y=-1;ref.position.set(x,-h/2,z);scene.add(ref);
   }
   const rn=rain(1400,40,6);scene.add(rn);
-  const hg=new THREE.BoxGeometry(2.8,.45,1,6,1,1),hp=hg.attributes.position;
-  for(let i=0;i<hp.count;i++){let x=hp.getX(i),y=hp.getY(i),z=hp.getZ(i);const end=Math.abs(x)/1.4;z*=1-end*end*.85;if(y<0){x*=.86;z*=.55}hp.setXYZ(i,x,y+(end*end)*.12*(y>0?1:0),z)}
-  hg.computeVertexNormals();
-  const boat=new THREE.Group(),hull=new THREE.Mesh(hg,M(0x2c2c2c));hull.position.y=.12;boat.add(hull);
-  boat.add(box(.12,.04,.9,M(0x3a3a3a),.1,.32,0));
-  const me=makePerson({body:0x2a2a2a,jacket:0x303030});me.userData.sit();me.position.set(.1,-.42,0);me.rotation.y=Math.PI/2;
-  // two oars; each is re-aimed every frame from the hand that grips it through its oarlock, so hand and oar never separate
-  const oarM=M(0x444444),oars=[-1,1].map(sd=>{const o=new THREE.Group();
-    o.add(box(.035,.035,2.2,oarM,0,0,1.0),box(.035,.18,.42,oarM,0,0,2.0),box(.05,.05,.1,M(0x222222),0,0,.03));o.userData.lock=V3(.3,.42,sd*.5);
-    boat.add(o);return o});
-  boat.add(me,box(.05,.08,.05,M(0x222222),.3,.38,-.5),box(.05,.08,.05,M(0x222222),.3,.38,.5));scene.add(boat);
+  /* plank-and-rib rowing boat, after the reference film: seven stations [x, halfBeam, sheerY, chineY, keelY, rake] from a raked flat
+     transom (-x) to a raked stem (+x); two strakes per side (topside, bilge) + the transom = 51 flat-shaded triangles per shell. */
+  const ST=[[-1.72,.42,.44,.13,-.04,-.05],[-1.2,.55,.45,.06,-.13,0],[-.5,.60,.46,.04,-.15,0],[.3,.58,.48,.05,-.15,0],[1.0,.47,.52,.09,-.13,0],[1.45,.30,.58,.16,-.09,.04],[1.82,0,.66,.36,.02,.08]];
+  const pts=(s,k,dt,db)=>{const [x,hb,sy,cy,ky,rk]=s;return[[x*k,sy+dt,hb*k],[x*k-rk,cy+db,hb*.82*k],[x*k-2*rk,ky+db,0]]};
+  const shell=(k,dt,db,jit)=>{const P=ST.map(s=>pts(s,k,dt,db)),pos=[],col=[],jr=rng(3);
+    const tri=(a,b,c)=>{pos.push(...a,...b,...c);const v=1+(jr()-.5)*jit;col.push(v,v,v,v,v,v,v,v,v)};
+    for(let i=0;i<6;i++)for(const sd of[-1,1])for(let j=0;j<2;j++){const f=p=>[p[0],p[1],p[2]*sd],a=f(P[i][j]),b=f(P[i][j+1]),c=f(P[i+1][j+1]),d=f(P[i+1][j]);
+      if(sd>0){tri(a,b,c);tri(a,c,d)}else{tri(a,d,c);tri(a,c,b)}}
+    const [G,C,K]=P[0],Gm=[G[0],G[1],-G[2]],Cm=[C[0],C[1],-C[2]];tri(K,C,G);tri(K,G,Gm);tri(K,Gm,Cm); // transom
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeVertexNormals();return g};
+  // gunwale rail: a .07 ribbon (top, outer and inner faces) riding the sheer line, a tone lighter, meeting at the stem
+  const railGeo=(()=>{const pos=[],top=.035,bot=-.012,o=.025,w=.07,q=(a,b,c,d)=>pos.push(...a,...b,...c,...a,...c,...d);
+    for(const sd of[-1,1])for(let i=0;i<6;i++){const R=s=>{const zo=sd*(s[1]+o),zi=sd*Math.max(s[1]-w+o,0);return[[s[0],s[2]+top,zo],[s[0],s[2]+top,zi],[s[0],s[2]+bot,zo],[s[0],s[2]+bot,zi]]},[a0,b0,c0,d0]=R(ST[i]),[a1,b1,c1,d1]=R(ST[i+1]);
+      if(sd>0){q(a0,a1,b1,b0);q(c0,c1,a1,a0);q(b0,b1,d1,d0)}else{q(a0,b0,b1,a1);q(c0,a0,a1,c1);q(b0,d0,d1,b1)}}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();return g})();
+  const at=x=>{let i=0;while(i<5&&ST[i+1][0]<x)i++;const a=ST[i],b=ST[i+1],u=clamp((x-a[0])/(b[0]-a[0]));return[1,2,3,4].map(k=>lerp(a[k],b[k],u))}; // section at x: [halfBeam, sheerY, chineY, keelY]
+  const railM=M(0x5a5a5a),darkM=M(0x1c1c1c),boat=new THREE.Group();
+  boat.add(new THREE.Mesh(shell(1,0,0,.08),M(0x1a1a1a,{vertexColors:true})),new THREE.Mesh(shell(.96,-.012,.03,.06),M(0x3a3a3a,{vertexColors:true})),new THREE.Mesh(railGeo,railM)); // hull, inner planking a tone lighter, rail
+  const stem=box(.06,.56,.06,railM,1.735,.45,0);stem.rotation.z=-.25;boat.add(stem,box(.07,.045,.9,railM,-1.72,.452,0)); // stem post (parallel to the raked stem, its bottom end inside the hull at y≈.17 where the bow is as wide as the post, top .02–.03 proud of the rail), transom cap
+  const fbM=M(0x2e2e2e);boat.add(box(2.4,.006,.2,fbM,-.14,.017,0),box(2.0,.006,.08,fbM,-.21,.017,.16),box(2.0,.006,.08,fbM,-.21,.017,-.16)); // duckboard: three floor planks with their tops at +.02 under his soles, each kept inside the inner planking's bilge (planks.js)
+  const bar=(p,q,w,m)=>{const a=V3(...p),b=V3(...q),d=b.clone().sub(a),k=box(w,d.length(),w,m);k.position.copy(a.add(b).multiplyScalar(.5));k.quaternion.setFromUnitVectors(UP,d.normalize());return k};
+  [-1.3,-.45,.75].forEach(x=>{const [hb,sy,cy]=at(x);for(const sd of[-1,1])boat.add(bar([x,-.03,sd*.2],[x,cy+.02,sd*hb*.8],.035,darkM),bar([x,cy+.02,sd*hb*.8],[x,sy-.03,sd*(hb-.04)],.035,darkM))}); // ribs: bilge + topside pieces
+  [[-1.05,.41],[.12,.45],[1.1,.41]].forEach(([x,y])=>{const [hb,sy,cy]=at(x),w=2*(hb*.82+hb*.18*clamp((y+.02-cy)/(sy-cy)))*.95;boat.add(box(w,.04,.24,M(0x383838),x,y,0),box(w-.04,.01,.2,M(0x4e4e4e),x,y+.025,0))}); // three thwarts, lighter inset tops; the rowing thwart (top .48, .03 under the rail) carries him
+  // oarlocks: two thole pins on the outer edge of the rail; the shaft rests on the rail between them (as low as it can go, so the oar runs steeply to the water and its visible run stays above the caption)
+  const [hbL,syL]=at(.45),ly=syL+.035,lz=hbL+.012;
+  [-1,1].forEach(sd=>{const z=sd*lz;boat.add(box(.02,.09,.024,darkM,.405,ly+.045,z),box(.02,.09,.024,darkM,.495,ly+.045,z))});
+  const me=makePerson({body:0x2a2a2a,jacket:0x303030});me.userData.sit();me.position.set(.1,-.425,0);me.rotation.y=Math.PI/2; // soles on the duckboard, thighs on the middle thwart
+  // two oars (2.2 long, blade 1.75-2.2; the blade stays under the opaque water at every stroke phase); each is re-aimed every frame from the hand that grips it through its oarlock, so hand and oar never separate
+  const oarM=M(0x4a4a4a),bladeGeo=loftGeo([[0,.045,.09,0],[.2,.045,.27,0],[.45,.03,.23,0]],{sides:4,rot:Math.PI/4}),shaftGeo=new THREE.CylinderGeometry(.022,.022,2.2,6,1,true);shaftGeo.rotateX(Math.PI/2);
+  const oars=[-1,1].map(sd=>{const o=new THREE.Group(),sh=new THREE.Mesh(shaftGeo,oarM),bl=new THREE.Mesh(bladeGeo,oarM);sh.position.z=1.0;bl.rotation.x=Math.PI/2;bl.position.z=1.75;
+    o.add(sh,bl,box(.05,.05,.1,M(0x222222),0,0,.03));o.userData.lock=V3(.45,ly+.038,sd*lz);boat.add(o);return o}); // lock .038 over the rail top: shaft radius .022 + the drop across the rail's outer edge
+  boat.add(me);scene.add(boat);
+  // on the water: a dark smear under the hull (the film's inverted reflection) and a few lighter wake dashes; these stay level while the hull bobs
+  const SH=canvasTex(128,128,c=>{const g=c.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,128,128)});
+  const wake=new THREE.Group(),smear=new THREE.Mesh(new THREE.PlaneGeometry(5,2.8),new THREE.MeshBasicMaterial({map:SH,transparent:true,opacity:.9,depthWrite:false}));smear.rotation.x=-Math.PI/2;smear.position.y=.006;smear.renderOrder=1;wake.add(smear);
+  const dm=B(0x8a8a8a);[[-.35,.7],[.7,.66],[-2.15,.2],[-2.4,-.14]].forEach(([x,z])=>wake.add(box(.3,.004,.018,dm,x,.012,z)));scene.add(wake); // dashes touch the hull at the waterline, two trail the transom
   const {arms,elbows}=me.userData,grip=V3(),dir=V3(),Z=V3(0,0,1);me.userData.hands?.forEach(h=>h.userData.grip(1));
   return{scene,update(t,time){
-    const x=lerp(-6,8,t);boat.position.set(x,Math.sin(time*1.3)*.04,0);boat.rotation.z=Math.sin(time*1.1)*.03;
-    // stroke: reach forward with straight arms, then pull the hands in to the chest
+    const x=lerp(-6,8,t);boat.position.set(x,Math.sin(time*1.3)*.04,0);boat.rotation.z=Math.sin(time*1.1)*.03;wake.position.x=x;
+    // stroke: reach forward with straight arms, then pull the hands in toward the lower ribs; the hands stay .15–.17 below the shoulders through the whole stroke
     const ph=time*1.6,s=Math.sin(ph),pull=(1-s)/2;
-    arms.forEach(a=>{a.rotation.x=lerp(-1.25,-.55,pull);a.rotation.z=0});elbows.forEach(e=>e.rotation.x=lerp(-.1,-1.25,pull));
+    arms.forEach(a=>{a.rotation.x=lerp(-1.25,-.6,pull);a.rotation.z=0});elbows.forEach(e=>e.rotation.x=lerp(-.15,-1.2,pull));
     boat.updateMatrixWorld(true);
     oars.forEach((o,i)=>{const el=elbows[1-i]; // hero faces +x, so his right hand (elbows[0]) is on the boat's +z side
       grip.set(0,-.33,0);el.localToWorld(grip);boat.worldToLocal(grip);
       dir.copy(o.userData.lock).sub(grip).normalize();
       o.position.copy(grip);o.quaternion.setFromUnitVectors(Z,dir)});
     rn.position.y=-(time*9%7);rn.position.x=x;
-    camera.position.set(x-1.5+t*3,lerp(1.5,.8,t),lerp(7,5.5,t));camera.lookAt(x,1.6,-4);
+    camera.position.set(x-1.5+t*3,lerp(1.5,.8,t),lerp(7,5.5,t));camera.lookAt(x,1.3,-4); // lookAt lowered 1.6→1.3 (the frame shifts ~20 px): keeps the near oar's visible run above the caption band with a natural arm pose
   }};
 }},
 /* 17 — dawn on the rooftop, a small potted daisy */
 {key:'rooftop',bg:'#ece8e1',dark:()=>false,build(){
   const scene=new THREE.Scene();scene.background=gradTex('#f6f1e8','#d9d6d0');scene.fog=new THREE.Fog(0xe4e0d8,8,70);
   lights(scene,{hemi:[0xffffff,0x9a9a9a,.9],dir:[0xfff4e0,.8,[-4,3,-6]]});
-  scene.add(box(10,.3,8,M(0xcfcfcf),0,-.15,0),box(10,.5,.15,M(0xbdbdbd),0,.25,-4),box(.15,.5,8,M(0xbdbdbd),-5,.25,0),box(1.2,1.6,1.2,M(0xb0b0b0),3.2,.8,1.6),box(.05,2.4,.05,M(0x777777),3.2,2.8,1.6));
-  const r=rng(71);for(let i=0;i<30;i++){const b=building(3+r()*5,4+r()*22,3+r()*5,false);b.position.set((r()-.5)*80,-26,-20-r()*45);scene.add(b)}
-  const pot=new THREE.Mesh(new THREE.CylinderGeometry(.16,.12,.24,6),M(0x8a8a8a));pot.position.set(.55,.12,-.2);scene.add(pot);
+  const r=rng(71),r2=rng(72),m4=new THREE.Matrix4(),c=new THREE.Color(); // r: the skyline (same layout as before), r2: panel tones
+  // roof: the walking surface is y=0 — roofing panels as flat quads at 0 (five columns, so no seam runs under his feet) over a darker slab whose top is .004 lower, so the .04 seams are plain dark tar joints with no lit edge
+  scene.add(box(10,.3,8,M(0x9c9c9c),0,-.154,0));
+  const pg=new THREE.PlaneGeometry(1.84,2.427);pg.rotateX(-Math.PI/2);const panels=new THREE.InstancedMesh(pg,M(0xc6c6c6,{side:THREE.FrontSide}),15);
+  for(let i=0;i<5;i++)for(let j=0;j<3;j++){const k=i*3+j;m4.makeTranslation((i-2)*1.88,0,(j-1)*2.467);panels.setMatrixAt(k,m4);panels.setColorAt(k,c.setScalar(.95+r2()*.07))}
+  panels.receiveShadow=true;scene.add(panels);
+  const wall=M(0xbdbdbd),cope=M(0xdcdcdc);
+  [[0,-3.85,10,.3,10.1,.4],[0,3.85,10,.3,10.1,.4],[-4.85,0,.3,7.4,.4,7.3],[4.85,0,.3,7.4,.4,7.3]].forEach(([x,z,w,d,cw,cd])=>scene.add(box(w,.57,d,wall,x,.265,z),box(cw,.06,cd,cope,x,.58,z)));
+  // door bulkhead with the antenna mast (back right), a water tank on legs and an AC unit in the back-left corner — all left of or behind him, so his reaching hand always reads against the bare back parapet
+  const bh=new THREE.Group();bh.position.set(3.6,0,-2.55);
+  bh.add(box(1.4,2.05,1.3,M(0xb6b6b6),0,1.025,0),box(1.56,.1,1.46,M(0xcdcdcd),0,2.1,0),box(.78,1.9,.05,M(0x4e4e4e),0,.95,.66),box(.05,.05,.05,M(0x8a8a8a),.28,1.0,.7),box(.05,2.0,.05,M(0x6a6a6a),-.5,3.1,-.4),box(.5,.03,.03,M(0x6a6a6a),-.5,4.05,-.4));
+  scene.add(bh);
+  // water tank: four short legs and a platform, an eight-sided drum with two darker hoop bands (the one form that says 'tank'), an eight-sided cap, and a down-pipe from the outlet at the drum's base with an elbow and a vertical run into the roof
+  const tk=new THREE.Group();tk.position.set(-3.5,0,-2.2);const pipeM=M(0x7a7a7a);
+  [[-.3,-.3],[.3,-.3],[-.3,.3],[.3,.3]].forEach(([x,z])=>tk.add(box(.07,.45,.07,M(0x707070),x,.225,z)));
+  const tank=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.8,8),M(0xc2c2c2));tank.position.y=.93;const cap=new THREE.Mesh(new THREE.ConeGeometry(.45,.22,8),M(0xd2d2d2));cap.position.y=1.44;
+  const hoopGeo=new THREE.CylinderGeometry(.432,.432,.025,8,1,true),hoopM=M(0x8a8a8a),hoops=[.797,1.063].map(y=>{const h=new THREE.Mesh(hoopGeo,hoopM);h.position.y=y;return h});
+  tk.add(box(.8,.08,.8,M(0x8a8a8a),0,.49,0),tank,cap,...hoops,box(.12,.04,.04,pipeM,.42,.56,.05),box(.05,.05,.05,pipeM,.48,.56,.05),box(.04,.56,.04,pipeM,.48,.28,.05));scene.add(tk);
+  const bevelBox=(w,h,d,b,mat,x=0,y=0,z=0)=>{const m=loft([[0,w-2*b,d-2*b,.1],[b,w,d,.3],[h-b,w,d,.3],[h,w-2*b,d-2*b,.1]],mat,{sides:8});m.position.set(x,y,z);return m};
+  const ac=new THREE.Group();ac.position.set(-4.15,0,-3.15);
+  const fan=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.03,8),M(0x9a9a9a));fan.position.y=.795;const fanIn=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.012,8),M(0x3a3a3a));fanIn.position.y=.815;
+  ac.add(box(.9,.08,.5,M(0x7a7a7a),0,.04,0),bevelBox(1.0,.7,.55,.02,M(0xc0c0c0),0,.08,0),box(.7,.4,.012,M(0x9a9a9a),0,.45,.28),fan,fanIn);scene.add(ac);
+  // the pot as a faceted planter standing on the panels: saucer, six-sided body, recessed dark soil, a lighter rim ring; the daisy itself is unchanged
+  const pot=new THREE.Group();pot.position.set(.55,0,-.2);
+  const saucer=new THREE.Mesh(new THREE.CylinderGeometry(.21,.19,.025,6),M(0x767676));saucer.position.y=.0125;
+  const soil=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.012,6),M(0x3c3c3c));soil.position.y=.232;
+  const rim=new THREE.Mesh(new THREE.CylinderGeometry(.18,.165,.035,6,1,true),M(0xa0a0a0));rim.position.y=.2475; // the rim's bottom edge sits exactly on the body's top edge (r .165 at y .23), so nothing shows through under it
+  pot.add(saucer,loft([[.02,.2,.2,0],[.05,.24,.24,0],[.23,.33,.33,0]],M(0x8e8e8e),{sides:6}),soil,rim);scene.add(pot);
   const d=makeDaisy({r:.11,stem:.22});d.position.set(.55,.46,-.2);d.userData.head.rotation.x=.3;scene.add(d);
   const me=makePerson();me.position.set(0,0,0);me.rotation.y=.9;me.userData.head.rotation.x=.45;me.userData.arms[1].rotation.x=-.7;me.userData.elbows[1].rotation.x=-.3;scene.add(me);
+  for(let i=0;i<30;i++){const b=building(3+r()*5,4+r()*22,3+r()*5,false);b.position.set((r()-.5)*80,-26,-20-r()*45);scene.add(b)} // first draws from rng(71): the original skyline layout
   const sun=glow(16,.8);sun.position.set(-14,4,-60);scene.add(sun);
   return{scene,update(t,time){
     sun.position.y=lerp(-2,9,t);d.rotation.z=Math.sin(time*1.1)*.05;
@@ -1115,21 +1594,65 @@ const SCENES=[
 {key:'room',bg:'#f7f7f7',dark:()=>false,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0xf2f2f2);scene.fog=new THREE.Fog(0xf2f2f2,6,24);
   lights(scene,{hemi:[0xffffff,0x999999,.95],dir:[0xffffff,.5,[-3,6,3]]});scene.add(ground(0xf4f4f4));
-  scene.add(box(6,3.2,.1,M(0xe6e6e6),.5,1.6,-1.4),box(.1,3.2,5,M(0xdedede),-2.5,1.6,1));
-  // window onto the night city
+  const bevelBox=(w,h,d,b,mat,x=0,y=0,z=0,c=.12)=>{const m=loft([[0,w-2*b,d-2*b,c],[b,w,d,c],[h-b,w,d,c],[h,w-2*b,d-2*b,c]],mat,{sides:8});m.position.set(x,y,z);return m};
+  const SHADOW=canvasTex(128,128,c=>{const g=c.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(0,0,0,.5)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,128,128)});
+  const contactShadow=(w,d,o=.6)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:SHADOW,transparent:true,opacity:o,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.y=.005;m.renderOrder=1;return m};
+  // walls: the back wall is one mesh with the window cut out (four front quads plus the four reveal faces, 16 triangles) so the window sits in a real reveal; skirting along both walls
+  const wm=M(0xe6e6e6),wallGeo=(()=>{const P=[],Q=(a,b,c,d)=>P.push(...a,...b,...c,...a,...c,...d),z=-1.35,zb=-1.45,x0=-2.5,x1=3.5,wx0=.6,wx1=2.2,wy0=1.2,wy1=2.2,H=3.2;
+    Q([x0,0,z],[wx0,0,z],[wx0,H,z],[x0,H,z]);Q([wx1,0,z],[x1,0,z],[x1,H,z],[wx1,H,z]);Q([wx0,0,z],[wx1,0,z],[wx1,wy0,z],[wx0,wy0,z]);Q([wx0,wy1,z],[wx1,wy1,z],[wx1,H,z],[wx0,H,z]);
+    Q([wx0,wy0,zb],[wx0,wy0,z],[wx0,wy1,z],[wx0,wy1,zb]);Q([wx1,wy0,z],[wx1,wy0,zb],[wx1,wy1,zb],[wx1,wy1,z]);Q([wx0,wy0,zb],[wx1,wy0,zb],[wx1,wy0,z],[wx0,wy0,z]);Q([wx0,wy1,z],[wx1,wy1,z],[wx1,wy1,zb],[wx0,wy1,zb]);
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.computeVertexNormals();return g})();
+  scene.add(new THREE.Mesh(wallGeo,wm),box(.1,3.2,5,M(0xdedede),-2.5,1.6,1));
+  // a door in the side wall beyond the bed's foot: an architrave proud of the wall, the slab set back inside it, a small handle; the skirting stops at the jambs
+  const DZ=2.0,am=M(0xececec);scene.add(box(.02,2.1,.9,M(0xd4d4d4),-2.44,1.05,DZ),box(.05,2.2,.08,am,-2.43,1.1,DZ-.49),box(.05,2.2,.08,am,-2.43,1.1,DZ+.49),box(.05,.08,1.06,am,-2.43,2.16,DZ),box(.06,.022,.1,M(0x8a8a8a),-2.4,1.0,DZ+.33));
+  const sk=M(0xd2d2d2);scene.add(box(6,.1,.04,sk,.5,.05,-1.33),box(.04,.1,DZ-.53+1.5,sk,-2.43,.05,(DZ-.53-1.5)/2),box(.04,.1,3.5-DZ-.53,sk,-2.43,.05,(3.5+DZ+.53)/2));
+  // rug under the bed, showing on the camera side: a field inside a darker border, two planes under the bed's contact shadow. Under this lighting (hemi .95 + dir .5 + rim)
+  // and the film pass's glow an upward face lighter than ~0x90 clips to the floor's white (0xa4 measured 252), so the field is 0x8c (measures ~229) and the border 0x74
+  [[1.6,2.5,0x747474,.003],[1.48,2.38,0x8c8c8c,.005]].forEach(([w,d,c,y])=>{const r=new THREE.Mesh(new THREE.PlaneGeometry(w,d),M(c,{side:THREE.FrontSide}));r.rotation.x=-Math.PI/2;r.position.set(-1.3,y,-.05);scene.add(r)});
+  // window onto the night city, set back in the reveal behind a deep sill, a head and a mullion
   const city=canvasTex(512,320,(c)=>{const r=rng(8);c.fillStyle='#141414';c.fillRect(0,0,512,320);
     for(let i=0;i<40;i++){const w=20+r()*50,h=60+r()*230,x=r()*512;c.fillStyle='#050505';c.fillRect(x,320-h,w,h);
       for(let y=320-h+6;y<316;y+=10)for(let k=x+4;k<x+w-6;k+=9)if(r()<.3){c.fillStyle=`rgba(255,255,255,${.4+r()*.5})`;c.fillRect(k,y,4,5)}}});
-  const win=new THREE.Mesh(new THREE.PlaneGeometry(1.6,1),new THREE.MeshBasicMaterial({map:city}));win.position.set(1.4,1.7,-1.34);scene.add(win);
-  scene.add(box(1.7,.06,.12,M(0xcccccc),1.4,1.17,-1.3),box(1.7,.05,.06,M(0xcccccc),1.4,2.22,-1.32),box(.05,1.05,.06,M(0xcccccc),1.4,1.7,-1.32));
-  const frame=M(0xc4c4c4),bed=new THREE.Group();
-  bed.add(box(.95,.12,2,frame,0,.35,0),box(.9,.18,1.95,M(0xffffff),0,.5,0),box(.6,.12,.4,M(0xf2f2f2),0,.65,-.72));
-  [-1,1].forEach(s=>{bed.add(box(.04,.9,.04,frame,s*.46,.45,-1),box(.04,.6,.04,frame,s*.46,.3,1))});
-  bed.position.set(-1.6,0,-.2);scene.add(bed);
+  const win=new THREE.Mesh(new THREE.PlaneGeometry(1.6,1),new THREE.MeshBasicMaterial({map:city}));win.position.set(1.4,1.7,-1.43);scene.add(win);
+  const wf=M(0xcccccc);scene.add(box(1.72,.06,.2,wf,1.4,1.175,-1.32),box(1.6,.05,.08,wf,1.4,2.175,-1.395),box(.05,1,.06,wf,1.4,1.7,-1.405));
+  // bed, after the reference hospital bed: tube frame on castors, head and foot boards of a rounded top rail, a lower rail and five spindles,
+  // a base slab resting on the side rails, a rounded mattress with a sheet, a pillow and a wide soft shadow on the floor (the reference bed carries no blanket)
+  const frame=M(0xc4c4c4),bed=new THREE.Group();bed.position.set(-1.6,0,-.2);scene.add(bed);
+  const HZ=-1,FZ=1.2,PX=.46,sh=contactShadow(1.8,3,.45);sh.position.set(0,.008,.1);bed.add(sh);
+  bed.add(box(.92,.19,2.16,M(0xcacaca),0,.315,.1),bevelBox(.9,.19,2.12,.04,M(0xe0e0e0),0,.41,.1,.3),box(.86,.03,2.06,M(0xfafafa),0,.615,.1)); // slab .22-.41: on the rails, under the mattress; sheet inside the mattress's top chamfer
+  // pillow: a lower middle slab between two raised ends, so the head rests in it; the ends keep the old top (y=.71) and the head/pillow contact is unchanged
+  const pm=M(0xf4f4f4);bed.add(box(.6,.075,.4,pm,0,.6475,-.72),bevelBox(.16,.1,.4,.025,pm,-.22,.61,-.72,.35),bevelBox(.16,.1,.4,.025,pm,.22,.61,-.72,.35));
+  // every tube end sits inside a post, a joint sphere or a castor, so the cylinders are open-ended (half the triangles)
+  const tube=(r,h,x,y,z,rx=0,rz=0)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,6,1,true),frame);m.position.set(x,y,z);m.rotation.set(rx,0,rz);bed.add(m);return m};
+  const ball=(r,x,y,z,mat=frame)=>{const j=new THREE.Mesh(new THREE.SphereGeometry(r,6,4),mat);j.position.set(x,y,z);bed.add(j);return j};
+  const ends=[[HZ,.95,.62],[FZ,.8,.52]]; // [z, top rail, lower rail]
+  ends.forEach(([z,top,low])=>{
+    [-1,1].forEach(s=>{tube(.028,top-.05,s*PX,(top+.05)/2,z);ball(.032,s*PX,top,z);
+      const c=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,.06,6),M(0x777777));c.rotation.z=Math.PI/2;c.position.set(s*PX,.0346,z);bed.add(c)}); // castor: a hex wheel standing on one flat, enclosing the post's open end
+    tube(.028,PX*2,0,top,z,0,Math.PI/2);tube(.02,PX*2,0,low,z,0,Math.PI/2)});
+  [-1,1].forEach(s=>tube(.02,FZ-HZ,s*PX,.2,(HZ+FZ)/2,Math.PI/2));
+  {const g=new THREE.CylinderGeometry(.012,.012,1,6,1,true); // ten spindles share one geometry as plain meshes rather than an InstancedMesh, so they cast the headboard's barred shadow on the wall (buildAll skips instanced meshes)
+    ends.forEach(([z,top,low])=>{for(let i=-2;i<=2;i++){const sp=new THREE.Mesh(g,frame);sp.position.set(i*.15,(top+low)/2,z);sp.scale.y=top-low;bed.add(sp)}})}
+  // side guard on the camera side as in f106: a U of tube at body height on two uprights off the frame rail, over the torso, clear of the pillow and of his arms
+  const GX=PX+.02,GY=.74,GZ=[-.35,.55];tube(.018,GZ[1]-GZ[0],GX,GY,(GZ[0]+GZ[1])/2,Math.PI/2);GZ.forEach(z=>{tube(.018,GY-.2,GX,(GY+.2)/2,z);ball(.022,GX,GY,z);ball(.024,GX,.2,z)});
   const me=makePerson();me.rotation.x=-Math.PI/2;me.position.set(0,.76,1.08);bed.add(me);me.userData.arms[0].rotation.z=-.5;me.userData.head.rotation.set(.55,0,0); // body on the mattress, head resting on the pillow
-  // desk with lamp and laptop
-  scene.add(box(1.1,.05,.55,M(0xbdbdbd),.6,.74,-1.05),box(.04,.72,.04,M(0xbdbdbd),.1,.36,-1.25),box(.04,.72,.04,M(0xbdbdbd),1.1,.36,-1.25),box(.4,.03,.28,M(0x444444),.5,.78,-1.05),box(.4,.26,.02,M(0x444444),.5,.92,-1.18));
-  const lamp=new THREE.PointLight(0xffffff,.6,4);lamp.position.set(.95,1.1,-1.05);scene.add(lamp,box(.03,.35,.03,M(0x333333),.95,.92,-1.15),(()=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.07,8,6),B(0xffffff));m.scale.y=.6;m.position.set(.95,1.12,-1.1);return m})());
+  // desk: a chamfered top on four .08 legs with a back apron; the laptop is a hinged wedge with the lid leaning back; the lamp has a base disc, a stem, an angled arm and a cone shade around the bulb
+  const dt=M(0xbdbdbd),dl=M(0xb0b0b0);scene.add(bevelBox(1.1,.07,.55,.02,dt,.6,.695,-1.05),box(.98,.07,.05,dl,.6,.66,-1.255));
+  [[.13,-1.25],[1.07,-1.25],[.13,-.85],[1.07,-.85]].forEach(([x,z])=>scene.add(box(.08,.7,.08,dl,x,.35,z)));
+  const lap=new THREE.Group();lap.position.set(.5,.765,-1.05);scene.add(lap);const lm=M(0x4a4a4a),ld=M(0x262626);
+  lap.add(bevelBox(.42,.022,.29,.006,lm,0,0,0,.3),box(.36,.004,.13,ld,0,.023,-.01),box(.1,.003,.06,ld,0,.023,.1));
+  const hinge=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.4,6),ld);hinge.rotation.z=Math.PI/2;hinge.position.set(0,.022,-.14);lap.add(hinge);
+  const lid=new THREE.Group();lid.position.set(0,.022,-.14);lid.rotation.x=-.32;lap.add(lid);
+  lid.add(bevelBox(.42,.27,.018,.005,lm,0,0,0,.3),box(.37,.22,.004,B(0x1e1e1e),0,.145,.01));
+  const lamp=new THREE.PointLight(0xffffff,.6,4);lamp.position.set(.9,1.12,-1.06);scene.add(lamp);
+  const lmm=M(0x3a3a3a),lg=new THREE.Group();lg.position.set(1.0,.765,-1.2);scene.add(lg);
+  const disc=new THREE.Mesh(new THREE.CylinderGeometry(.075,.085,.025,6),lmm);disc.position.y=.0125;lg.add(disc);
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.016,.016,.3,6),lmm);stem.position.y=.175;lg.add(stem);
+  const jt=new THREE.Mesh(new THREE.SphereGeometry(.026,6,4),lmm);jt.position.y=.325;lg.add(jt);
+  const A=V3(0,.325,0),Bp=V3(-.09,.42,.14),dir=Bp.clone().sub(A),arm=new THREE.Mesh(new THREE.CylinderGeometry(.013,.013,dir.length(),6),lmm);
+  arm.position.copy(A).add(Bp).multiplyScalar(.5);arm.quaternion.setFromUnitVectors(UP,dir.clone().normalize());lg.add(arm);
+  const shade=new THREE.Mesh(new THREE.CylinderGeometry(.03,.09,.12,6,1,true),lmm);shade.position.set(-.12,.38,.14);shade.rotation.z=-.5;lg.add(shade);
+  const bulb=new THREE.Mesh(new THREE.SphereGeometry(.028,6,4),B(0xffffff));bulb.position.set(-.135,.355,.14);lg.add(bulb);
   return{scene,update(t,time){
     const k=ease(t);camera.position.set(lerp(2.6,.6,k),lerp(3,1.9,k),lerp(6.5,2.8,k));camera.lookAt(-.7,.8,-.5);
   }};
@@ -1138,18 +1661,29 @@ const SCENES=[
 {key:'call',bg:'#0a0a0a',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=gradTex('#050505','#1a1a1a');scene.fog=new THREE.Fog(0x0c0c0c,6,26);
   lights(scene,{hemi:[0x666666,0x080808,.35],dir:[0xffffff,.25,[-2,6,3]]});scene.add(ground(0x0e0e0e));
-  scene.add(box(30,.15,2.2,M(0x1c1c1c),0,.075,-.2)); // kerb / pavement
-  // shelter: roof, posts, a lit advert panel behind the bench
-  const fm=M(0x1a1a1a);scene.add(box(3.4,.08,1.4,fm,0,2.5,-.3),box(.06,2.4,.06,fm,-1.65,1.3,-.95),box(.06,2.4,.06,fm,1.65,1.3,-.95),box(.06,2.4,.06,fm,-1.65,1.3,.35),box(.06,2.4,.06,fm,1.65,1.3,.35));
-  const ad=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.8),B(0xf2f2f2));ad.position.set(1.05,1.25,-.94);scene.add(ad,box(1.2,1.9,.06,fm,1.05,1.25,-.98));
-  scene.add(box(2.1,.9,.03,new THREE.MeshStandardMaterial({color:0x777777,transparent:true,opacity:.18,roughness:.2}),-.55,1.4,-.95));
+  const bevelBox=(w,h,d,b,mat,x=0,y=0,z=0)=>{const m=loft([[0,w-2*b,d-2*b,.1],[b,w,d,.3],[h-b,w,d,.3],[h,w-2*b,d-2*b,.1]],mat,{sides:8});m.position.set(x,y,z);return m};
+  const PV=.15;scene.add(box(30,PV,2.2,M(0x1c1c1c),0,PV/2,-.2),box(30,PV+.01,.15,M(0x323232),0,PV/2+.005,.835)); // pavement with a lighter kerb stone (.01 taller and .01 proud of the pavement front: no coplanar faces)
+  // shelter: four .1 posts on base plates, a bevelled roof slab with a dark fascia and a lighter gutter, glazing on two sides with rails,
+  // the lit ad panel inset in its own frame, a slatted bench on two end frames, a bus-stop flag outside
+  const fm=M(0x202020),dk=M(0x101010),lt=M(0x3a3a3a);
+  [[-1.7,-1],[1.7,-1],[-1.7,.3],[1.7,.3]].forEach(([x,z])=>scene.add(box(.1,2.35,.1,fm,x,PV+1.175,z),box(.22,.03,.22,fm,x,PV+.015,z)));
+  scene.add(bevelBox(3.8,.16,1.7,.04,M(0x262626),0,2.5,-.35),box(3.8,.1,.03,dk,0,2.57,.515),box(3.84,.05,.08,lt,0,2.48,.53),box(.03,.1,1.7,dk,-1.915,2.57,-.35),box(.03,.1,1.7,dk,1.915,2.57,-.35));
+  const gl=new THREE.MeshStandardMaterial({color:0x777777,transparent:true,opacity:.18,roughness:.2});
+  scene.add(box(1.85,2.05,.02,gl,-.675,PV+1.3,-1.0),box(.02,2.05,1.2,gl,-1.7,PV+1.3,-.35)); // the rear pane ends at the ad frame's left post
+  [[1.95,.05,.05,-.675,PV+.27,-1.0],[1.95,.05,.05,-.675,PV+1.75,-1.0],[1.95,.05,.05,-.675,PV+2.32,-1.0],[.05,.05,1.2,-1.7,PV+.27,-.35],[.05,.05,1.2,-1.7,PV+1.75,-.35],[.05,.05,1.2,-1.7,PV+2.32,-.35]].forEach(([w,h,d,x,y,z])=>scene.add(box(w,h,d,fm,x,y,z)));
+  const ad=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.8),B(0xf2f2f2));ad.position.set(.9,1.25,-.94);scene.add(ad); // ad at x .9: a clear .15 gap between its frame and the front-right post from every camera position (the point light stays where it was)
+  scene.add(box(1.3,1.95,.04,fm,.9,1.225,-1.0),box(1.3,.1,.1,fm,.9,2.2,-.95),box(1.3,.2,.1,fm,.9,.25,-.95),box(.1,2.05,.1,fm,.3,1.225,-.95),box(.1,2.05,.1,fm,1.5,1.225,-.95));
   const adL=new THREE.PointLight(0xffffff,.9,4.5);adL.position.set(1.05,1.3,-.5);scene.add(adL);
-  scene.add(box(2,.06,.42,M(0x2a2a2a),-.3,.62,-.65),box(.05,.5,.05,fm,-1.1,.37,-.65),box(.05,.5,.05,fm,.5,.37,-.65));
-  const me=makePerson();me.userData.sit();me.position.set(-.35,-.33,-.62);me.rotation.y=.25;
+  const wet=new THREE.Mesh(new THREE.PlaneGeometry(1.0,1.5),B(0xffffff,{map:gradTex('rgba(255,255,255,.55)','rgba(255,255,255,0)'),transparent:true,opacity:.7,depthWrite:false}));wet.rotation.x=-Math.PI/2;wet.position.set(.9,PV+.006,-.15);scene.add(wet); // the panel's smear on the wet pavement
+  const slm=M(0x3c3c3c),bf=M(0x242424);[-.165,-.055,.055,.165].forEach(dz=>scene.add(box(2.0,.05,.085,slm,-.3,.565,-.65+dz))); // seat .59: he sits .035 higher than before so his soles rest on the pavement, and the slats came down to meet his thighs
+  [-1.22,.62].forEach(x=>scene.add(box(.06,.4,.06,bf,x,PV+.2,-.8),box(.06,.4,.06,bf,x,PV+.2,-.5),box(.06,.05,.36,bf,x,.515,-.65)));
+  const me=makePerson();me.userData.sit();me.position.set(-.35,-.295,-.62);me.rotation.y=.25;
   const U=me.userData;U.arms[1].rotation.set(-.35,0,.15);U.elbows[1].rotation.x=-2.45;U.arms[0].rotation.x=-.7;U.elbows[0].rotation.x=-.6;U.head.rotation.set(.25,0,-.12);scene.add(me);
   const phone=new THREE.Mesh(new THREE.BoxGeometry(.035,.13,.008),B(0xffffff));scene.add(phone);
   const pg=glow(.5,.35);scene.add(pg);
-  const sl=box(.1,5,.1,M(0x161616),-4,2.5,.6);scene.add(sl,(()=>{const g=glow(2,.5);g.position.set(-3.8,5,.6);return g})());
+  const sp=new THREE.Group();sp.position.set(2.45,PV,.6);const pole=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,2.28,6),M(0x2e2e2e));pole.position.y=1.14;
+  sp.add(pole,box(.46,.46,.06,M(0xc4c4c4),0,2.5,0),box(.34,.09,.05,dk,0,2.42,.045),box(.14,.14,.05,dk,0,2.62,.045));scene.add(sp); // bus-stop flag on top of the pole (the pole ends at the plate's bottom edge, so nothing pierces the face), no text; the two dark marks stand .04 proud of the plate so they cannot z-fight in the 16-bit film-pass depth buffer
+  const sl=box(.1,5,.1,M(0x161616),-4,2.5,.6);scene.add(sl,box(.5,.06,.06,M(0x161616),-3.8,4.95,.6),box(.34,.1,.2,M(0x202020),-3.6,4.95,.6),(()=>{const g=glow(2,.5);g.position.set(-3.6,4.9,.6);return g})());
   const rn=rain(1100,20,21);scene.add(rn);
   // passing headlights now and then
   const car=glow(3,.0);car.position.y=.6;scene.add(car);
@@ -1165,11 +1699,23 @@ const SCENES=[
 {key:'bloom',bg:'#9a9a9a',dark:()=>false,build(){
   const scene=new THREE.Scene();scene.background=gradTex('#4a4a4c','#cfcbc4');scene.fog=new THREE.Fog(0xb8b5b0,40,160);
   lights(scene,{hemi:[0xffffff,0x777777,.9],dir:[0xffffff,.8,[3,5,8]]});scene.add(ground(0x8c8b88,600));
-  const r=rng(81);for(let i=0;i<46;i++){const x=(r()-.5)*120,h=Math.abs(x)<18?4+r()*8:8+r()*26;const b=building(3+r()*6,h,3+r()*6,false,{col:0x6a6a6a});b.position.set(x,0,-40-r()*40);scene.add(b)}
+  // the skyline used to be centred on y=0 (half of every tower buried); it now stands on the ground at half the old nominal height,
+  // so the silhouette and the sun's rise behind it are unchanged. No podiums: at 50-80 m behind the low-rise band they are invisible.
+  const r=rng(81),r2=rng(82);for(let i=0;i<46;i++){const x=(r()-.5)*120,h=(Math.abs(x)<18?4+r()*8:8+r()*26)*.5,w=3+r()*6,d=3+r()*6,z=-40-r()*40;
+    const b=building(w,h,d,false,{col:0x6a6a6a,lobby:false,setback:h>9&&r2()<.55?h*.45:0,roof:h>6&&r2()<.45?(r2()<.6?'mast':'tank'):null});b.position.x=x;b.position.z=z;scene.add(b)}
+  // a low-rise band at the foot of the city so the ground reads as streets, not a sea: low blocks (roofs only) in three tones with a lighter parapet lip
+  {const n=30,lo=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),M(0x5e5d5a),n),lp=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),M(0x7c7b78),n),m4=new THREE.Matrix4(),c=new THREE.Color();
+    for(let i=0;i<n;i++){const w=3+r2()*5,h=1+r2()*1.5,d=3+r2()*4,x=-72+i*4.9+r2()*2,z=-33-r2()*6;m4.makeScale(w,h,d);m4.setPosition(x,h/2,z);lo.setMatrixAt(i,m4);lo.setColorAt(i,c.setScalar(r2()<.2?1.3:.88+r2()*.24));
+      m4.makeScale(w+.3,.22,d+.3);m4.setPosition(x,h+.02,z);lp.setMatrixAt(i,m4)}lp.renderOrder=1;scene.add(lo,lp)}
   // the sun coming up behind the city
   const sun=new THREE.Mesh(new THREE.CircleGeometry(7,64),B(0xfffdf6,{fog:false}));sun.position.set(0,0,-110);scene.add(sun);
   const halo=glow(70,.7);halo.material.fog=false;halo.position.set(0,0,-108);scene.add(halo);
-  const roof=new THREE.Group();roof.add(box(40,.4,14,M(0xd4d4d4),0,-.2,0),box(40,.5,.15,M(0xbdbdbd),0,.25,-7));roof.position.set(0,2,12);scene.add(roof);
+  const roof=new THREE.Group();roof.add(box(40,.4,14,M(0xd4d4d4),0,-.2,0),box(40,.55,.3,M(0xbdbdbd),0,.275,-7),box(40,.06,.42,M(0xdcdcdc),0,.58,-7)); // slab, parapet, coping
+  // rooftop furniture at the sides, out of the caption area: a water tank on a plinth (left), a stair head with a vent (right)
+  {const legs=new THREE.InstancedMesh(new THREE.BoxGeometry(.09,.55,.09),M(0x8a8a8a),4),m4=new THREE.Matrix4();[[-.33,-.33],[.33,-.33],[-.33,.33],[.33,.33]].forEach(([x,z],i)=>{m4.makeTranslation(-1.3+x,.275,-5+z);legs.setMatrixAt(i,m4)});roof.add(legs);
+    roof.add(new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.85,6,1),M(0xb8b8b8)).translateX(-1.3).translateY(.95).translateZ(-5),new THREE.Mesh(new THREE.ConeGeometry(.56,.34,6),M(0x8e8e8e)).translateX(-1.3).translateY(1.54).translateZ(-5))} // water tank on four legs
+  roof.add(box(2,1.3,1.6,M(0xbdbdbd),7.2,.65,-5.2),box(2.2,.1,1.8,M(0xd0d0d0),7.2,1.33,-5.2),box(.8,1.05,.06,M(0x5c5c5c),6.9,.52,-4.38),box(.3,.9,.3,M(0x9a9a9a),8.9,.45,-5.6));
+  roof.position.set(0,2,12);scene.add(roof);
   const me=makePerson();me.position.set(2.2,2,8);me.rotation.y=Math.PI+.15;scene.add(me);
   return{scene,update(t,time){
     const y=lerp(-8,24,ease(clamp(t*1.1)));sun.position.y=y;halo.position.y=y;halo.material.opacity=.45+t*.4;
@@ -1182,15 +1728,27 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=gradTex('#000000','#0b0b0b');scene.fog=new THREE.Fog(0x040404,3,30);
   scene.add(new THREE.HemisphereLight(0x444444,0x000000,.25));
   const key=new THREE.DirectionalLight(0xfff6e6,.9);key.position.set(0,4,-12);scene.add(key,key.target); // light from ahead: rim on him
-  scene.add(ground(0x0a0a0a));
+  const base=ground(0x0a0a0a);base.position.y=-.4;scene.add(base); // backstop under the faceted ground
   const r=rng(91),m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),c=new THREE.Color();
   const sun=new THREE.Mesh(new THREE.CircleGeometry(1.2,48),B(0xfffbef,{fog:false}));sun.position.set(0,11,-70);scene.add(sun);
   const halo=glow(24,.45);halo.material.fog=false;halo.material.depthTest=false;halo.renderOrder=10;halo.position.set(0,11,-69);scene.add(halo);
   const halo2=glow(8,.8);halo2.material.fog=false;halo2.position.set(0,11,-68);scene.add(halo2);
-  // faint stones on the dark ground, so the ground can be seen moving under him
-  const world=new THREE.Group(),stone=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(.06,0),M(0x262626),260);
-  for(let i=0;i<260;i++){e.set(r()*3,r()*3,r()*3);q.setFromEuler(e);const s=.4+r()*1.4;m4.compose(V3((r()-.5)*14,.01,8-r()*44),q,V3(s,s*.5,s));stone.setMatrixAt(i,m4)}
-  world.add(stone);scene.add(world);
+  // faceted ground: two octaves of value noise, flat along his path (|x|<2) so his feet stay on y=0; vertices jittered so the grid never shows
+  const hz=(i,j)=>{const s=Math.sin(i*127.1+j*311.7+3.7)*43758.5453;return s-Math.floor(s)};
+  const vn=(x,z)=>{const i=Math.floor(x),j=Math.floor(z),u=x-i,v=z-j,su=u*u*(3-2*u),sv=v*v*(3-2*v);return lerp(lerp(hz(i,j),hz(i+1,j),su),lerp(hz(i,j+1),hz(i+1,j+1),su),sv)};
+  const H=(x,z)=>((vn(x/6,z/6)-.5)*.5+(vn(x/2+7,z/2+3)-.5)*.18)*smooth(2,4,Math.abs(x));
+  const world=new THREE.Group();scene.add(world);
+  const tg=new THREE.PlaneGeometry(44,60,22,30);tg.rotateX(-Math.PI/2);tg.translate(0,0,-20);
+  const tp=tg.attributes.position,jr=rng(5);
+  for(let i=0;i<tp.count;i++){let x=tp.getX(i),z=tp.getZ(i);if(Math.abs(x)<21.9&&Math.abs(x)>2.1)x+=(jr()-.5)*1.2;if(z>-49.9&&z<9.9)z+=(jr()-.5)*1.2;tp.setXYZ(i,x,H(x,z),z)}
+  const terr=new THREE.Mesh(tg.toNonIndexed(),M(0x0e0e0e));terr.geometry.computeVertexNormals();world.add(terr);
+  const rc=new THREE.Raycaster(),DOWN=V3(0,-1,0),hy=(x,z)=>{rc.set(V3(x,5,z),DOWN);const h=rc.intersectObject(terr,false)[0];return h?h.point.y:H(x,z)}; // height of the triangulated ground (not the analytic noise), so stones sit on the facets
+  // stones in four low-poly shapes (a five-sided lump, a flat wedge, a chunk, a thin chip), instanced, each sitting on the facet it is on
+  const sm=M(0x262626),G=[loftGeo([[0,.12,.09,.3],[.035,.16,.12,.3],[.06,.1,.07,.3]],{sides:5}),new THREE.TetrahedronGeometry(.08,0).scale(1.4,.45,1).translate(0,.025,0),new THREE.DodecahedronGeometry(.055,0).scale(1,.6,1.3).translate(0,.02,0),loftGeo([[0,.22,.12,.2],[.03,.24,.14,.2],[.04,.18,.1,.2]],{sides:4,rot:Math.PI/4})];
+  [90,70,60,50].forEach((n,gi)=>{const st=new THREE.InstancedMesh(G[gi],sm,n);
+    for(let i=0;i<n;i++){let x=(r()-.5)*14;if(Math.abs(x)<.25)x+=(x<0?-1:1)*.3;const z=8-r()*44,s=.5+r()*1.3;e.set((r()-.5)*.3,r()*6.3,(r()-.5)*.3);q.setFromEuler(e);
+      m4.compose(V3(x,hy(x,z)-.006,z),q,V3(s,s*.8,s));st.setMatrixAt(i,m4);st.setColorAt(i,c.setScalar(.8+r()*.45))}
+    world.add(st)});
   const me=makePerson();me.rotation.y=Math.PI;me.position.set(0,0,2);scene.add(me);
   key.position.z=-10;key.target.position.set(0,0,2);
   return{scene,update(t,time){
@@ -1206,13 +1764,15 @@ const SCENES=[
   lights(scene,{hemi:[0x777777,0x050505,.4],dir:[0xffffff,.6,[1,6,2]]});scene.add(stars(400,50,{seed:3}));
   const me=makePerson({body:0x5a5a5a,jacket:0x6a6a6a});me.userData.head.rotation.x=-.3;scene.add(me);
   // small lights drift in from the dark and gather into a ring around him (one place in the ring stays empty)
-  const N=60,dot=new THREE.SphereGeometry(.05,8,6),dm=B(0xffffff),L=[],r=rng(12);
+  // each light is a small faceted sky lantern (a 6-sided loft, 60 triangles: narrow open bottom, wide shoulder near the top, small cap)
+  // glowing from within (emissive .75 so it still blooms white after the film pass; the lower facets stay grey), with its soft halo sprite
+  const N=60,dot=loftGeo([[-.064,.034,.034,0],[-.03,.06,.06,0],[.016,.074,.074,0],[.048,.056,.056,0],[.066,.024,.024,0]],{sides:6}),dm=M(0x8c8c8c,{emissive:0xffffff,emissiveIntensity:.75}),L=[],r=rng(12);
   for(let i=0;i<N;i++){const m=new THREE.Mesh(dot,dm),g=glow(.55,.55);scene.add(m,g);
     L.push({m,g,a:(i+1)/(N+2)*Math.PI*2,R0:6+r()*8,y0:.5+r()*6,sp:3+r()*4,ph:r()*6})}
   return{scene,update(t,time){
     const k=ease(clamp(t*1.25));
     L.forEach(({m,g,a,R0,y0,sp,ph})=>{const ang=a+(1-k)*(sp+time*.25),R=lerp(R0,1.6,k),y=lerp(y0,.35+Math.sin(time*1.5+ph)*.05,k);
-      m.position.set(Math.sin(ang)*R,y,Math.cos(ang)*R);g.position.copy(m.position);g.material.opacity=.35+.25*Math.sin(time*3+ph)});
+      m.position.set(Math.sin(ang)*R,y,Math.cos(ang)*R);m.rotation.y=ph+time*.3;g.position.copy(m.position);g.material.opacity=.35+.25*Math.sin(time*3+ph)});
     const ca=lerp(.3,0,k);camera.position.set(Math.sin(ca)*lerp(9,2.5,k),lerp(2.5,9,k),Math.cos(ca)*lerp(9,2.5,k));camera.lookAt(0,lerp(1.2,.3,k),0);
   }};
 }},

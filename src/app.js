@@ -705,7 +705,7 @@ const SCENES=[
   nodes.forEach((p,i)=>{const e=Math.min(i,nodes.length-1-i);p[2]=(e<2?.02:wAt(p[0])*(.65+.45*r2()))*(p[0]===0?1.15:1)}); // node widths (×.65–1.1 jitter); the daisy's node stays the widest
   const hair=[];nodes.forEach((p,i)=>{if(i%2||i==0||i>=nodes.length-1)return;const q=nodes[i+1],a=Math.atan2(q[1]-p[1],q[0]-p[0])+(r2()<.5?1:-1)*(.5+r2()*.6),l=.06+r2()*.1;
     hair.push([[p[0],p[1],p[2]*.35],[p[0]+Math.cos(a)*l,clamp(p[1]+Math.sin(a)*l,-.15,zl(p[0])-.01),.004]])}); // hairline forks: a sliver from the node, tapering to nothing
-  const cm=B(0x6c6c6c),core=B(0x3a3a3a),merge=gs=>{const pos=[];gs.forEach(g=>pos.push(...g.attributes.position.array));const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));return g};
+  const cm=B(0x484848),core=B(0x363636),merge=gs=>{const pos=[];gs.forEach(g=>pos.push(...g.attributes.position.array));const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));return g};
   scene.add(new THREE.Mesh(merge([ribbon(nodes,.003),...branches.map(b=>ribbon(b,.003)),...hair.map(h=>ribbon(h,.003))]),cm),new THREE.Mesh(merge([ribbon(nodes,.005,.45),...branches.map(b=>ribbon(b,.005,.45))]),core));
   const d=makeDaisy({r:.09,stem:.16});d.position.set(0,.16,.25);d.userData.head.rotation.x=.35;scene.add(d);
   const world=worldGroup(scene);

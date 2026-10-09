@@ -5,16 +5,19 @@ Ordered roughly by value-for-effort. Anything visual should be checked with scre
 ## 1. Character quality (highest impact)
 
 - **Spine and neck pivots.** Expose `up` as a spine joint (and add a neck) so the hero can slump, curl, look up and breathe. Scenes `shards`, `desk`, `room`, `call` and `skyline` all benefit.
-- **Skirt panels in deep poses.** They form a slab when the thighs are raised (`shards`, `sit`). Hide or fold them past a threshold, or hinge them.
+- **Lying pose.** The coat is rigid when he lies down (`room`); the seated/curled poses were solved in v41 with lap and knee pieces, but lying needs a spine.
 - **Two-bone arm IK** so hands can hold the phone, the pot and the keyboard precisely (today each scene is tuned by hand).
 - **Standing idle.** A subtle breathing or weight shift for the still scenes (`end`, `skyline`, `bloom`, `minusone`). No trembling.
 - **Gait polish.** Heel-to-toe roll (heel lifts before toe-off) would make `stroll()` more natural; keep the flat planted foot.
 
 ## 2. Scenes the owner may push back on
 
-- **`subway`:** the train barely reads. Add window light strips moving across the platform and a stronger headlight. Daisy petals still drift in the draft there; the owner removed flowers from most scenes, so consider removing them.
+- **`subway`:** daisy petals still drift there; the owner removed flowers from most scenes, so consider removing them.
+- **`crack`:** the crack reads as a line, not a fracture: one dark tone, ragged width, jogs along slab joints (see model-polish/water-ground.md).
+- **`flood`:** a darker pool or an inverted hull copy under the waterline for hull contact; the thole pins are too small to read.
+- **`desk`:** raise the hero ~.07 so the thighs sit on the chair seat instead of inside it.
+- **`rooftop`:** the AC unit is hidden behind the tank from every camera position; move or remove it.
 - **`field`:** the hero is nearly black against the light; add a faint fill so his walk reads.
-- **`store`:** the shelves are blown out by glow. Lower the interior brightness to about 0.85 so products read, keeping the window bright.
 - **`towers`:** no hero. Consider a tiny figure at the bottom of the frame for scale.
 - **`end`:** the reflection is a mirrored copy. A real planar reflection (render target, or `Reflector` from three/examples) would be nicer.
 - **Scene count:** the owner asked for 25 and later removed one, so it is 24 now. If asked for 25 again, candidates fitting the arc are:
