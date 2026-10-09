@@ -609,10 +609,10 @@ const SCENES=[
   inst(PX(5,.12),M(0x262626),put(blanks,(z,s)=>[s*2.14,.06,z-.55]));
   inst(new THREE.BoxGeometry(.04,DH,DW),M(0x3a3a3a),put(doors,(z,s)=>[s*(XF+.045),DH/2,z-2.5]));     // lighter frame plate at the back of the recess
   inst(new THREE.BoxGeometry(.04,DH-.08,DW-.1),M(0x2a2a2a),put(doors,(z,s)=>[s*XF,(DH-.08)/2,z-2.5])); // door slab, a border of frame shows around it
-  inst(PX(.5,.9),B(0x050505,DS),put(doors,(z,s)=>[s*(XF-.022),1.5,z-2.5]));                          // dark glass panel in the upper half
+  inst(PX(.5,.9),B(0x050505,DS),put(doors,(z,s)=>[s*(XF-.022),1.55,z-2.5]));                         // dark glass panel in the upper half (1.1-2.0), clear of the handle
   const hm=M(0x6e6e6e);                                                                              // lever handle: a stub out of the door and a bar along the corridor, so it stands into the lamp light
-  inst(new THREE.BoxGeometry(.07,.024,.024),hm,put(doors,(z,s)=>[s*(XF-.05),1.05,z-2.1]));
-  inst(new THREE.BoxGeometry(.026,.026,.18),hm,put(doors,(z,s)=>[s*(XF-.085),1.05,z-2.17]));
+  inst(new THREE.BoxGeometry(.07,.024,.024),hm,put(doors,(z,s)=>[s*(XF-.05),1.0,z-2.1]));            // at 1.0, a .09 strip of door leaf between the bar and the glass
+  inst(new THREE.BoxGeometry(.026,.026,.18),hm,put(doors,(z,s)=>[s*(XF-.085),1.0,z-2.17]));
   inst(PY(4.3,.06),M(0x2a2a2a),bays.map(z=>[0,.002,z+2.5]));                                        // floor seam at each bay line
   inst(loftGeo([[0,1.44,.9,.03],[.06,1.44,.9,.03]],{sides:8,caps:false}),M(0x141414),bays.map(z=>[0,2.94,z])); // lamp trough: an open band hanging from the ceiling
   inst(PY(1.32,.78),B(0xffffff,DS),bays.map(z=>[0,2.985,z]));                                       // the lens, recessed inside the band
@@ -642,7 +642,7 @@ const SCENES=[
   // desk: a thick chamfered top (its surface stays at y=.765, so keyboard, papers, cup and hands do not move), a drawer pedestal on the far side, a solid panel on the near side, a mouse
   const dm=M(0x303030),dk=M(0x262626);
   scene.add(bevelBox(1.8,.07,.8,.02,dm,0,.695,0),box(.42,.69,.72,dk,-.64,.345,0),box(.06,.69,.72,dk,.85,.345,0));
-  [.23,.46].forEach(y=>scene.add(box(.4,.006,.006,M(0x3a3a3a),-.64,y,-.362)));         // seams between three drawer fronts, on the -z face the orbiting camera sees
+  [.23,.46].forEach(y=>scene.add(box(.4,.012,.012,M(0x484848),-.64,y,-.364)));         // seams between three drawer fronts, on the -z face the orbiting camera sees
   [.115,.345,.575].forEach(y=>scene.add(box(.16,.018,.02,M(0x4a4a4a),-.64,y,-.368)));  // drawer handles
   scene.add(bevelBox(.06,.03,.1,.008,M(0x2e2e2e),.36,.765,-.05,.3));                   // mouse beside the keyboard
   // monitor raised to eye height; its stand is a slim neck behind the panel on a flat foot, never in front of the screen.
@@ -992,18 +992,20 @@ const SCENES=[
   // a door in the side wall beyond the bed's foot: an architrave proud of the wall, the slab set back inside it, a small handle; the skirting stops at the jambs
   const DZ=2.0,am=M(0xececec);scene.add(box(.02,2.1,.9,M(0xd4d4d4),-2.44,1.05,DZ),box(.05,2.2,.08,am,-2.43,1.1,DZ-.49),box(.05,2.2,.08,am,-2.43,1.1,DZ+.49),box(.05,.08,1.06,am,-2.43,2.16,DZ),box(.06,.022,.1,M(0x8a8a8a),-2.4,1.0,DZ+.33));
   const sk=M(0xd2d2d2);scene.add(box(6,.1,.04,sk,.5,.05,-1.33),box(.04,.1,DZ-.53+1.5,sk,-2.43,.05,(DZ-.53-1.5)/2),box(.04,.1,3.5-DZ-.53,sk,-2.43,.05,(3.5+DZ+.53)/2));
-  const rug=new THREE.Mesh(new THREE.PlaneGeometry(1.6,2.5),M(0xe0e0e0,{side:THREE.FrontSide}));rug.rotation.x=-Math.PI/2;rug.position.set(-1.3,.004,-.08);scene.add(rug); // rug under the bed, showing on the camera side
+  // rug under the bed, showing on the camera side: a field inside a darker border, two planes under the bed's contact shadow. Under this lighting (hemi .95 + dir .5 + rim)
+  // and the film pass's glow an upward face lighter than ~0x90 clips to the floor's white (0xa4 measured 252), so the field is 0x8c (measures ~229) and the border 0x74
+  [[1.6,2.5,0x747474,.003],[1.48,2.38,0x8c8c8c,.005]].forEach(([w,d,c,y])=>{const r=new THREE.Mesh(new THREE.PlaneGeometry(w,d),M(c,{side:THREE.FrontSide}));r.rotation.x=-Math.PI/2;r.position.set(-1.3,y,-.05);scene.add(r)});
   // window onto the night city, set back in the reveal behind a deep sill, a head and a mullion
   const city=canvasTex(512,320,(c)=>{const r=rng(8);c.fillStyle='#141414';c.fillRect(0,0,512,320);
     for(let i=0;i<40;i++){const w=20+r()*50,h=60+r()*230,x=r()*512;c.fillStyle='#050505';c.fillRect(x,320-h,w,h);
       for(let y=320-h+6;y<316;y+=10)for(let k=x+4;k<x+w-6;k+=9)if(r()<.3){c.fillStyle=`rgba(255,255,255,${.4+r()*.5})`;c.fillRect(k,y,4,5)}}});
   const win=new THREE.Mesh(new THREE.PlaneGeometry(1.6,1),new THREE.MeshBasicMaterial({map:city}));win.position.set(1.4,1.7,-1.43);scene.add(win);
-  const wf=M(0xcccccc);scene.add(box(1.72,.06,.2,wf,1.4,1.17,-1.32),box(1.6,.05,.08,wf,1.4,2.175,-1.395),box(.05,1,.06,wf,1.4,1.7,-1.405));
+  const wf=M(0xcccccc);scene.add(box(1.72,.06,.2,wf,1.4,1.175,-1.32),box(1.6,.05,.08,wf,1.4,2.175,-1.395),box(.05,1,.06,wf,1.4,1.7,-1.405));
   // bed, after the reference hospital bed: tube frame on castors, head and foot boards of a rounded top rail, a lower rail and five spindles,
-  // a base slab, a rounded mattress with a sheet, a pillow, a blanket folded over the footboard and a wide soft shadow on the floor
+  // a base slab resting on the side rails, a rounded mattress with a sheet, a pillow and a wide soft shadow on the floor (the reference bed carries no blanket)
   const frame=M(0xc4c4c4),bed=new THREE.Group();bed.position.set(-1.6,0,-.2);scene.add(bed);
   const HZ=-1,FZ=1.2,PX=.46,sh=contactShadow(1.8,3,.45);sh.position.set(0,.008,.1);bed.add(sh);
-  bed.add(box(.92,.1,2.16,M(0xcacaca),0,.31,.1),bevelBox(.9,.19,2.12,.04,M(0xe0e0e0),0,.41,.1,.3),box(.92,.03,2.06,M(0xfafafa),0,.615,.1));
+  bed.add(box(.92,.19,2.16,M(0xcacaca),0,.315,.1),bevelBox(.9,.19,2.12,.04,M(0xe0e0e0),0,.41,.1,.3),box(.86,.03,2.06,M(0xfafafa),0,.615,.1)); // slab .22-.41: on the rails, under the mattress; sheet inside the mattress's top chamfer
   // pillow: a lower middle slab between two raised ends, so the head rests in it; the ends keep the old top (y=.71) and the head/pillow contact is unchanged
   const pm=M(0xf4f4f4);bed.add(box(.6,.075,.4,pm,0,.6475,-.72),bevelBox(.16,.1,.4,.025,pm,-.22,.61,-.72,.35),bevelBox(.16,.1,.4,.025,pm,.22,.61,-.72,.35));
   // every tube end sits inside a post, a joint sphere or a castor, so the cylinders are open-ended (half the triangles)
@@ -1015,12 +1017,10 @@ const SCENES=[
       const c=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,.06,6),M(0x777777));c.rotation.z=Math.PI/2;c.position.set(s*PX,.0346,z);bed.add(c)}); // castor: a hex wheel standing on one flat, enclosing the post's open end
     tube(.028,PX*2,0,top,z,0,Math.PI/2);tube(.02,PX*2,0,low,z,0,Math.PI/2)});
   [-1,1].forEach(s=>tube(.02,FZ-HZ,s*PX,.2,(HZ+FZ)/2,Math.PI/2));
-  {const g=new THREE.CylinderGeometry(.012,.012,1,6,1,true),im=new THREE.InstancedMesh(g,frame,10),m4=new THREE.Matrix4(),q=new THREE.Quaternion();let n=0;
-    ends.forEach(([z,top,low])=>{for(let i=-2;i<=2;i++){m4.compose(V3(i*.15,(top+low)/2,z),q,V3(1,top-low,1));im.setMatrixAt(n++,m4)}});bed.add(im)}
+  {const g=new THREE.CylinderGeometry(.012,.012,1,6,1,true); // ten spindles share one geometry as plain meshes rather than an InstancedMesh, so they cast the headboard's barred shadow on the wall (buildAll skips instanced meshes)
+    ends.forEach(([z,top,low])=>{for(let i=-2;i<=2;i++){const sp=new THREE.Mesh(g,frame);sp.position.set(i*.15,(top+low)/2,z);sp.scale.y=top-low;bed.add(sp)}})}
   // side guard on the camera side as in f106: a U of tube at body height on two uprights off the frame rail, over the torso, clear of the pillow and of his arms
   const GX=PX+.02,GY=.74,GZ=[-.35,.55];tube(.018,GZ[1]-GZ[0],GX,GY,(GZ[0]+GZ[1])/2,Math.PI/2);GZ.forEach(z=>{tube(.018,GY-.2,GX,(GY+.2)/2,z);ball(.022,GX,GY,z);ball(.024,GX,.2,z)});
-  // blanket folded over the footboard rail, off-centre so two spindles stay visible: a rolled top, a short inner panel resting on the sheet, a longer outer panel, three tones
-  const BX=-.12;bed.add(bevelBox(.48,.08,.13,.025,M(0xc4c4c4),BX,.8,FZ,.4),box(.46,.19,.025,M(0xcacaca),BX,.71,FZ-.05),box(.46,.36,.025,M(0xbababa),BX,.63,FZ+.05));
   const me=makePerson();me.rotation.x=-Math.PI/2;me.position.set(0,.76,1.08);bed.add(me);me.userData.arms[0].rotation.z=-.5;me.userData.head.rotation.set(.55,0,0); // body on the mattress, head resting on the pillow
   // desk: a chamfered top on four .08 legs with a back apron; the laptop is a hinged wedge with the lid leaning back; the lamp has a base disc, a stem, an angled arm and a cone shade around the bulb
   const dt=M(0xbdbdbd),dl=M(0xb0b0b0);scene.add(bevelBox(1.1,.07,.55,.02,dt,.6,.695,-1.05),box(.98,.07,.05,dl,.6,.66,-1.255));
