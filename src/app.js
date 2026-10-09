@@ -847,26 +847,58 @@ const SCENES=[
 {key:'store',bg:'#060606',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x060606);scene.fog=new THREE.Fog(0x060606,8,30);
   scene.add(new THREE.HemisphereLight(0x555555,0x050505,.35));scene.add(ground(0x101010));
-  // the shop: a bright open box seen through its front glass
-  const W=6,H=3,D=3.6,lit=B(0xf3f3f0),sh=new THREE.Group();
-  sh.add(box(W,H,.1,lit,0,H/2,-D),box(.1,H,D,B(0xe4e4e0),-W/2,H/2,-D/2),box(.1,H,D,B(0xe4e4e0),W/2,H/2,-D/2),box(W,.1,D,B(0xdcdcd8),0,H,-D/2),box(W,.02,D,B(0xd2d2ce),0,.01,-D/2));
-  for(let x=-2.2;x<=2.2;x+=1.1)sh.add(box(.04,.06,D-.4,B(0xffffff),x,H-.06,-D/2)); // ceiling tubes
-  const sm=B(0xc4c4c0),r=rng(31);
-  [-1.3,0].forEach(z=>{for(let x=-2.3;x<=2.3;x+=1.3){sh.add(box(1.1,1.5,.42,sm,x,.75,z-2.2));for(let s=0;s<4;s++)for(let k=0;k<6;k++)if(r()<.8)sh.add(box(.12,.16+r()*.1,.1,B(0x8a8a8a+((r()*4|0)*0x111111)),x-.45+k*.18,.22+s*.36,z-1.98))}});
-  sh.add(box(1.6,1,.6,B(0xb0b0ac),2.1,.5,-1.2),box(.5,.3,.3,M(0x1a1a1a),2.2,1.15,-.9)); // counter + register
-  // front: window counter along the glass, mullions, sign band
-  sh.add(box(W-.4,.05,.45,M(0x8a8a8a),0,1.05,-.25),box(W,.5,.12,M(0x1c1c1c),0,H+.25,0));
-  for(let x=-W/2;x<=W/2+.01;x+=1.5)sh.add(box(.06,H,.06,M(0x151515),x,H/2,0));
-  sh.add(box(W,.06,.06,M(0x151515),0,.5,0));
-  const sign=new THREE.Mesh(new THREE.PlaneGeometry(W-.3,.32),B(0xffffff));sign.position.set(0,H+.25,.07);sh.add(sign);
+  // The shop is a self-lit box (B materials) seen through its glass. Inside, a tone ladder keeps the shapes legible once the film
+  // glow blooms: ceiling #b0 < side walls #c8 < back wall #dc; shelf backs #a0 with #3a edge strips; products #3a–#84 in three heights.
+  // Outside, everything is a dark silhouette against that glow: pilasters, mullions, a bevelled sign box, a door with an awning, a kerb.
+  const W=6,H=3,D=3.6,PV=.12,sh=new THREE.Group();sh.position.y=PV;
+  const bevelBox=(w,h,d,b,mat,x=0,y=0,z=0)=>{const m=loft([[0,w-2*b,d-2*b,.1],[b,w,d,.3],[h-b,w,d,.3],[h,w-2*b,d-2*b,.1]],mat,{sides:8});m.position.set(x,y,z);return m};
+  scene.add(box(W+2.6,PV,5,M(0x1a1a1a),0,PV/2,-1.2),box(W+2.6,PV+.01,.13,M(0x2e2e2e),0,PV/2+.005,1.245)); // pavement and a lighter kerb stone (.01 taller and .01 proud of the pavement front: no coplanar faces); the shop floor sits on it
+  sh.add(box(W,H,.1,B(0xdcdcd8),0,H/2,-D),box(.1,H,D,B(0xc8c8c4),-W/2,H/2,-D/2),box(.1,H,D,B(0xc8c8c4),W/2,H/2,-D/2),box(W,.1,D,B(0xb0b0ac),0,H,-D/2),box(W,.02,D,B(0xb4b4b0),0,.01,-D/2));
+  for(let x=-2.2;x<=2.2;x+=1.1)sh.add(box(.05,.06,D-.6,B(0xffffff),x,H-.07,-D/2)); // ceiling tubes
+  [-1.65,-.55,.55,1.65].forEach(x=>sh.add(box(.03,.03,D-.3,B(0x8a8a86),x,H-.115,-D/2)));[-.9,-1.8,-2.7].forEach(z=>sh.add(box(W-.3,.03,.03,B(0x8a8a86),0,H-.115,z))); // ceiling grid, hung just under the tubes (the slab is H-.05..H+.05)
+  // gondola shelves: back panel, two sides, a dark kick, four boards with a dark front edge; products are one InstancedMesh toned per instance
+  const r=rng(31),PR=[],PC=[],pb=B(0xa0a09c),ps=B(0xc8c8c4),pe=B(0x3a3a3a),pk=B(0x505050),tone=[0x3a3a3a,0x525252,0x6a6a6a,0x848484];
+  [-3.3,-2.1].forEach(z=>{for(let x=-2.25;x<=2.26;x+=1.5){
+    sh.add(box(1.1,1.5,.04,pb,x,.75,z-.19),box(.03,1.5,.42,pb,x-.55,.75,z),box(.03,1.5,.42,pb,x+.55,.75,z),box(1.08,.1,.38,pk,x,.05,z));
+    for(let s=0;s<4;s++){const y=.12+s*.36;sh.add(box(1.08,.03,.42,ps,x,y,z),box(1.08,.025,.03,pe,x,y,z+.225));
+      for(let k=0;k<6;k++)if(r()<.82){const h=.16+(r()*3|0)*.05;PR.push([x-.45+k*.18,y+.015+h/2,z+.05,h]);PC.push(tone[r()*4|0])}}}});
+  const pg=new THREE.InstancedMesh(new THREE.BoxGeometry(.12,1,.1),B(0xffffff),PR.length),m4=new THREE.Matrix4(),q0=new THREE.Quaternion(),c3=new THREE.Color();
+  PR.forEach(([x,y,z,h],i)=>{m4.compose(V3(x,y,z),q0,V3(1,h,1));pg.setMatrixAt(i,m4);pg.setColorAt(i,c3.setHex(PC[i]))});sh.add(pg);
+  // counter with a darker top plate and kick, register with a tilted screen
+  sh.add(box(1.6,.8,.6,B(0xa8a8a4),2.1,.5,-1.2),box(1.7,.06,.7,B(0x7a7a76),2.1,.93,-1.2),box(1.5,.1,.5,B(0x404040),2.1,.05,-1.2),box(.42,.26,.3,B(0x202020),2.25,1.09,-1.2));
+  const scr=box(.3,.18,.02,B(0x707070),2.25,1.3,-1.2);scr.rotation.x=-.3;sh.add(scr);
+  // window counter along the glass: a bevelled slab with a front lip on three brackets, across the window bays only
+  const CW=4.9,CX=.52;sh.add(bevelBox(CW,.06,.45,.015,B(0x7a7a76),CX,.92,-.25),box(CW,.05,.03,B(0x262626),CX,.895,-.04)); // top at world 1.10: forearm undersides 1.096/1.102
+  [-.3,1.35,2.95].forEach(x=>sh.add(box(.05,.28,.3,B(0x202020),x,.78,-.15)));
+  // shop front: pilasters, mullions, head and sill rails, a door bay at the left with a push bar and kick plate, an awning over it
+  const fr=B(0x121212);
+  sh.add(box(.3,H+.64,.3,fr,-W/2-.15,(H+.64)/2,-.02),box(.3,H+.64,.3,fr,W/2+.15,(H+.64)/2,-.02));
+  [-1.95,-.3,1.35].forEach(x=>sh.add(box(.07,H,.07,fr,x,H/2,0)));
+  sh.add(box(W,.1,.08,fr,0,H-.05,0),box(W,.06,.07,fr,0,H-.34,0),box(4.95,.1,.1,fr,.525,.5,0));
+  sh.add(box(1.05,.12,.08,fr,-2.475,2.2,0),box(.1,2.14,.05,fr,-2.95,1.09,0),box(.06,2.14,.05,fr,-2.02,1.09,0),box(.9,.1,.05,fr,-2.46,2.09,0),box(.9,.06,.05,fr,-2.46,1.0,0),box(.9,.3,.05,B(0x262626),-2.46,.17,.03),box(.7,.04,.04,B(0x8a8a8a),-2.46,1.02,.06));
+  const aw=box(1.25,.04,.62,B(0x2e2e2e),-2.47,2.42,.3);aw.rotation.x=.3;sh.add(aw,box(1.25,.12,.03,B(0x1c1c1c),-2.47,2.28,.6));
+  // sign box: a bevelled dark box with a lit face carrying one dark mark (no text). Layered faces stand >= .03 apart: the film pass
+  // renders into a 16-bit depth target, so anything thinner z-fights at 5-9 units.
+  sh.add(bevelBox(W+.3,.6,.34,.03,B(0x1a1a1a),0,H+.02,-.02));
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(W-.6,.34),B(0xffffff));sign.position.set(0,H+.32,.18);sh.add(sign);
+  sh.add(box(.5,.24,.02,B(0x303030),-W/2+.9,H+.32,.2));
   scene.add(sh);
-  const stool=box(.3,.05,.3,M(0x222222),.4,.72,-.55);scene.add(stool,box(.04,.7,.04,M(0x222222),.4,.36,-.55));
-  const me=makePerson();me.userData.sit();me.position.set(.4,-.23,-.55);me.userData.arms.forEach(a=>a.rotation.x=-1.0);me.userData.elbows.forEach(e=>e.rotation.x=-.9);me.userData.head.rotation.x=.15;scene.add(me);
-  const cup=new THREE.Mesh(new THREE.CylinderGeometry(.04,.032,.12,8),M(0xeeeeee));cup.position.set(.4,1.14,-.18);scene.add(cup);
-  // light spilling onto the wet pavement
-  const spill=new THREE.Mesh(new THREE.PlaneGeometry(W+1,5),B(0xffffff,{transparent:true,opacity:.14,depthWrite:false}));spill.rotation.x=-Math.PI/2;spill.position.set(0,.012,2.4);scene.add(spill);
-  const gl=glow(9,.25);gl.position.set(0,1.6,.6);scene.add(gl);
-  const lamp=box(.08,4.2,.08,M(0x181818),-4.5,2.1,2.2);scene.add(lamp,(()=>{const g=glow(1.6,.6);g.position.set(-4.3,4.2,2.2);return g})());
+  // outside: a bin in front of the right bay, near the kerb; it stays silhouetted against the lit glass for the whole dolly, one tone so the lid never reads as a lit slab
+  const bin=new THREE.Mesh(new THREE.CylinderGeometry(.17,.15,.72,6),B(0x121212));bin.position.set(2.3,PV+.36,.9);scene.add(bin,box(.38,.05,.38,B(0x121212),2.3,PV+.745,.9));
+  // stool: hexagonal seat and base (on the floor slab top), a post and a footrest ring; he perches with his heels on the ring, forearms on the counter
+  const sm=B(0x161616),stool=new THREE.Group();stool.position.set(.4,PV+.02,-.68);
+  stool.add(loft([[.7,.34,.34],[.75,.36,.36]],sm,{sides:6}),loft([[0,.34,.34],[.03,.3,.3]],sm,{sides:6}));
+  const post=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.7,6),sm);post.position.y=.35;stool.add(post);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.265,.015,4,8),sm);ring.rotation.x=Math.PI/2;ring.position.y=.30;stool.add(ring);scene.add(stool); // tube top .455, soles .458
+  const me=makePerson();me.userData.sit();me.position.set(.4,PV-.16,-.68);
+  me.userData.arms.forEach(a=>a.rotation.x=-.97);me.userData.elbows.forEach(e=>e.rotation.x=-.6);me.userData.knees.forEach(k=>k.rotation.x=2.0);me.userData.ankles.forEach(a=>a.rotation.x=-.5);me.userData.head.rotation.x=.15;scene.add(me);
+  const cup=new THREE.Mesh(new THREE.CylinderGeometry(.04,.032,.12,8),M(0xeeeeee));cup.position.set(.4,PV+1.04,-.3);scene.add(cup);
+  // light spilling onto the wet pavement and the road
+  const spill=new THREE.Mesh(new THREE.PlaneGeometry(W+1,4.6),B(0xffffff,{transparent:true,opacity:.14,depthWrite:false}));spill.rotation.x=-Math.PI/2;spill.position.set(0,.012,3.6);scene.add(spill);
+  const spill2=new THREE.Mesh(new THREE.PlaneGeometry(W-.4,1.2),B(0xffffff,{transparent:true,opacity:.1,depthWrite:false}));spill2.rotation.x=-Math.PI/2;spill2.position.set(.3,PV+.004,.62);scene.add(spill2);
+  const gl=glow(9,.22);gl.position.set(0,1.6,.6);scene.add(gl);
+  const lamp=new THREE.Group();lamp.position.set(-4.1,PV,1.0);lamp.add(box(.26,.3,.26,B(0x161616),0,.15,0),box(.1,4.1,.1,B(0x121212),0,2.2,0),box(.34,.12,.22,B(0x1e1e1e),.1,4.3,0));scene.add(lamp); // plinth x -4.23..-3.97: fully on the pavement (x +-4.3)
+  const lg=glow(1.6,.6);lg.position.set(-3.9,PV+4.25,1.0);scene.add(lg);
   const rn=rain(700,18,12);rn.position.z=3;scene.add(rn);
   return{scene,update(t,time){
     rn.position.y=-(time*8%14)+3;cup.rotation.y=time*.2;sign.material.color.setScalar(.92+Math.sin(time*13)*.03*(Math.sin(time*.7)>.8?1:0));
@@ -890,14 +922,42 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=new THREE.Color(0xc9c9c9);scene.fog=new THREE.Fog(0xc9c9c9,14,40);
   lights(scene,{hemi:[0xffffff,0x777777,.9],dir:[0xffffff,.5,[2,8,1]]});scene.add(ground(0xb8b8b8));
   for(let i=-3;i<=3;i++)scene.add(box(.4,.005,2.4,B(0xe6e6e6),i*1,.004,0)); // crossing stripes
-  const N=160,um=new THREE.InstancedMesh(new THREE.ConeGeometry(.5,.22,8),M(0x141414),N),r=rng(66),U=[],m4=new THREE.Matrix4();
-  for(let i=0;i<N;i++){U.push({x:(r()-.5)*16,z:(r()-.5)*22,v:(r()<.5?1:-1)*(.8+r()*.6)})}
-  scene.add(um);
-  const me=new THREE.Mesh(new THREE.ConeGeometry(.5,.22,8),M(0x141414));me.position.set(.1,1.8,.2);scene.add(me);
-    const rn=rain(900,24,9);scene.add(rn);
+  // A real umbrella in 64 triangles: an 8-gore canopy with a ridge along every rib and a scalloped hem, a ferrule, a square shaft
+  // and a J handle. Each part carries its grey as a vertex colour, so one merged geometry draws the whole crowd as one InstancedMesh
+  // (umbrella + a body with two legs, a shoulder step and a head under it, 140 triangles per person, 22.4k for the crowd). 15 % of the crowd is a lighter grey; his is the
+  // biggest and blackest, with a pale ferrule, and sits in his right hand instead of floating.
+  const TAU=Math.PI*2,merge=parts=>{const pos=[],col=[],v=V3();
+    parts.forEach(([g,tone,m])=>{const q=g.index?g.toNonIndexed():g,p=q.attributes.position,c=q.attributes.color;for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);if(m)v.applyMatrix4(m);pos.push(v.x,v.y,v.z);if(tone!=null)col.push(tone,tone,tone);else col.push(c.getX(i),c.getY(i),c.getZ(i))}});
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeVertexNormals();return g};
+  const canopyGeo=(R,h)=>{const P=[],pt=(a,r,y)=>[Math.sin(a)*r,y,Math.cos(a)*r];
+    for(let k=0;k<8;k++){const a0=k/8*TAU,a1=(k+1)/8*TAU,am=(k+.5)/8*TAU,A=[0,h,0],I0=pt(a0,R*.52,h*.6),I1=pt(a1,R*.52,h*.6),E0=pt(a0,R,0),E1=pt(a1,R,0),Em=pt(am,R*.9,.03);
+      P.push(A,I0,I1, I0,E0,Em, I0,Em,I1, I1,Em,E1)}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P.flat(),3));return g};
+  const tubeGeo=(pts,r)=>{const P=[],rings=pts.map((p,i)=>{const T=V3().subVectors(pts[Math.min(i+1,pts.length-1)],pts[Math.max(i-1,0)]).normalize(),N1=V3(1,0,0),N2=V3().crossVectors(T,N1).normalize();
+      return[0,1,2,3].map(j=>{const a=(j+.5)/4*TAU;return p.clone().addScaledVector(N1,Math.cos(a)*r).addScaledVector(N2,Math.sin(a)*r)})});
+    for(let i=0;i<rings.length-1;i++)for(let j=0;j<4;j++){const a=rings[i][j],b=rings[i][(j+1)%4],c=rings[i+1][(j+1)%4],d=rings[i+1][j];P.push(a,b,c,a,c,d)}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P.map(p=>[p.x,p.y,p.z]).flat(),3));return g};
+  const hook=[0,1,2].map(i=>{const a=i/2*Math.PI;return V3(0,-.74-.05*Math.sin(a),.05-.05*Math.cos(a))});
+  const sq={sides:4,rot:Math.PI/4},nc=Object.assign({caps:false},sq),umbrellaGeo=(R,h,tone)=>merge([[canopyGeo(R,h),tone],[loftGeo([[h-.01,.03,.03],[h+.1,.014,.014]],nc),.42],[loftGeo([[-.74,.03,.03],[h,.03,.03]],nc),.26],[tubeGeo(hook,.013),.2]]);
+  // body: two 4-sided legs with a .06 gap, a 6-sided torso with a real shoulder step (.46 wide at 1.48 -> .18 neck at 1.56) and a head; no caps (all hidden)
+  const bodyGeo=merge([[loftGeo([[0,.15,.17,0,0,-.085],[.88,.16,.18,0,0,-.085]],nc),.12],[loftGeo([[0,.15,.17,0,0,.085],[.88,.16,.18,0,0,.085]],nc),.12],
+    [loftGeo([[.84,.3,.21],[1.3,.38,.24],[1.48,.46,.26],[1.56,.18,.14]],{sides:6,caps:false}),.12],[loftGeo([[1.52,.13,.13],[1.62,.19,.2],[1.76,.13,.15]],{sides:6,caps:false}),.13]]);
+  const crowdGeo=merge([[bodyGeo,null],[umbrellaGeo(.5,.3,.11),null,new THREE.Matrix4().makeTranslation(.17,2.0,.1)]]);
+  const N=160,crowd=new THREE.InstancedMesh(crowdGeo,M(0xffffff,{vertexColors:true}),N),r=rng(66),U=[],m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),p=V3(),s=V3(),c3=new THREE.Color();
+  for(let i=0;i<N;i++){U.push({x:(r()-.5)*16,z:(r()-.5)*22,v:(r()<.5?1:-1)*(.8+r()*.6),rot:r()*TAU,tilt:(r()-.5)*.1,s:.9+r()*.16});crowd.setColorAt(i,c3.setScalar(r()<.15?1.8:1))}
+  crowd.castShadow=true;scene.add(crowd);
+  // him: standing still in the flow, the umbrella held up in his right hand; only the canopy twirls
+  const me=makePerson();me.position.set(.1,0,.2);me.rotation.y=.3;scene.add(me);
+  const H=me.userData;H.arms[0].rotation.x=-.3;H.elbows[0].rotation.x=-2.25;H.hands[0].userData.grip(1);me.updateMatrixWorld(true);
+  const fist=H.hands[0].localToWorld(V3(0,-.05,0)),um=M(0xffffff,{vertexColors:true});
+  const uc=new THREE.Mesh(merge([[canopyGeo(.58,.33),.075],[loftGeo([[.32,.03,.03],[.44,.014,.014]],sq),.85]]),um);
+  const us=new THREE.Mesh(merge([[loftGeo([[-.74,.03,.03],[.33,.03,.03]],nc),.26],[tubeGeo(hook,.013),.2]]),um);
+  uc.position.set(fist.x,fist.y+.64,fist.z);us.position.copy(uc.position);us.rotation.y=me.rotation.y;scene.add(uc,us);
+  const rn=rain(900,24,9);scene.add(rn);
   return{scene,update(t,time){
-    U.forEach((u,i)=>{let z=((u.z+time*u.v*.8)%22+33)%22-11;if(Math.abs(u.x-.1)<.95&&Math.abs(z-.2)<.95)z+=1.9*Math.sign(z-.2||1);m4.makeTranslation(u.x,1.75+(i%3)*.04,z);um.setMatrixAt(i,m4)});um.instanceMatrix.needsUpdate=true;
-    me.rotation.y=time*.2;rn.position.y=-(time*9%14)+4;
+    U.forEach((u,i)=>{let z=((u.z+time*u.v*.8)%22+33)%22-11;if(Math.abs(u.x-.1)<1.25&&Math.abs(z-.2)<1.25)z+=2.5*Math.sign(z-.2||1);
+      m4.compose(p.set(u.x,0,z),q.setFromEuler(e.set(u.tilt,u.rot,0)),s.set(u.s,u.s,u.s));crowd.setMatrixAt(i,m4)});crowd.instanceMatrix.needsUpdate=true;
+    uc.rotation.y=time*.2;rn.position.y=-(time*9%14)+4;
     camera.position.set(lerp(.4,2.5,t),lerp(16,6,ease(t)),lerp(.6,7,ease(t)));camera.lookAt(.1,1.5,.2);
   }};
 }},
@@ -1124,18 +1184,29 @@ const SCENES=[
 {key:'call',bg:'#0a0a0a',dark:()=>true,build(){
   const scene=new THREE.Scene();scene.background=gradTex('#050505','#1a1a1a');scene.fog=new THREE.Fog(0x0c0c0c,6,26);
   lights(scene,{hemi:[0x666666,0x080808,.35],dir:[0xffffff,.25,[-2,6,3]]});scene.add(ground(0x0e0e0e));
-  scene.add(box(30,.15,2.2,M(0x1c1c1c),0,.075,-.2)); // kerb / pavement
-  // shelter: roof, posts, a lit advert panel behind the bench
-  const fm=M(0x1a1a1a);scene.add(box(3.4,.08,1.4,fm,0,2.5,-.3),box(.06,2.4,.06,fm,-1.65,1.3,-.95),box(.06,2.4,.06,fm,1.65,1.3,-.95),box(.06,2.4,.06,fm,-1.65,1.3,.35),box(.06,2.4,.06,fm,1.65,1.3,.35));
-  const ad=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.8),B(0xf2f2f2));ad.position.set(1.05,1.25,-.94);scene.add(ad,box(1.2,1.9,.06,fm,1.05,1.25,-.98));
-  scene.add(box(2.1,.9,.03,new THREE.MeshStandardMaterial({color:0x777777,transparent:true,opacity:.18,roughness:.2}),-.55,1.4,-.95));
+  const bevelBox=(w,h,d,b,mat,x=0,y=0,z=0)=>{const m=loft([[0,w-2*b,d-2*b,.1],[b,w,d,.3],[h-b,w,d,.3],[h,w-2*b,d-2*b,.1]],mat,{sides:8});m.position.set(x,y,z);return m};
+  const PV=.15;scene.add(box(30,PV,2.2,M(0x1c1c1c),0,PV/2,-.2),box(30,PV+.01,.15,M(0x323232),0,PV/2+.005,.835)); // pavement with a lighter kerb stone (.01 taller and .01 proud of the pavement front: no coplanar faces)
+  // shelter: four .1 posts on base plates, a bevelled roof slab with a dark fascia and a lighter gutter, glazing on two sides with rails,
+  // the lit ad panel inset in its own frame, a slatted bench on two end frames, a bus-stop flag outside
+  const fm=M(0x202020),dk=M(0x101010),lt=M(0x3a3a3a);
+  [[-1.7,-1],[1.7,-1],[-1.7,.3],[1.7,.3]].forEach(([x,z])=>scene.add(box(.1,2.35,.1,fm,x,PV+1.175,z),box(.22,.03,.22,fm,x,PV+.015,z)));
+  scene.add(bevelBox(3.8,.16,1.7,.04,M(0x262626),0,2.5,-.35),box(3.8,.1,.03,dk,0,2.57,.515),box(3.84,.05,.08,lt,0,2.48,.53),box(.03,.1,1.7,dk,-1.915,2.57,-.35),box(.03,.1,1.7,dk,1.915,2.57,-.35));
+  const gl=new THREE.MeshStandardMaterial({color:0x777777,transparent:true,opacity:.18,roughness:.2});
+  scene.add(box(1.85,2.05,.02,gl,-.675,PV+1.3,-1.0),box(.02,2.05,1.2,gl,-1.7,PV+1.3,-.35)); // the rear pane ends at the ad frame's left post
+  [[1.95,.05,.05,-.675,PV+.27,-1.0],[1.95,.05,.05,-.675,PV+1.75,-1.0],[1.95,.05,.05,-.675,PV+2.32,-1.0],[.05,.05,1.2,-1.7,PV+.27,-.35],[.05,.05,1.2,-1.7,PV+1.75,-.35],[.05,.05,1.2,-1.7,PV+2.32,-.35]].forEach(([w,h,d,x,y,z])=>scene.add(box(w,h,d,fm,x,y,z)));
+  const ad=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.8),B(0xf2f2f2));ad.position.set(.9,1.25,-.94);scene.add(ad); // ad at x .9: a clear .15 gap between its frame and the front-right post from every camera position (the point light stays where it was)
+  scene.add(box(1.3,1.95,.04,fm,.9,1.225,-1.0),box(1.3,.1,.1,fm,.9,2.2,-.95),box(1.3,.2,.1,fm,.9,.25,-.95),box(.1,2.05,.1,fm,.3,1.225,-.95),box(.1,2.05,.1,fm,1.5,1.225,-.95));
   const adL=new THREE.PointLight(0xffffff,.9,4.5);adL.position.set(1.05,1.3,-.5);scene.add(adL);
-  scene.add(box(2,.06,.42,M(0x2a2a2a),-.3,.62,-.65),box(.05,.5,.05,fm,-1.1,.37,-.65),box(.05,.5,.05,fm,.5,.37,-.65));
-  const me=makePerson();me.userData.sit();me.position.set(-.35,-.33,-.62);me.rotation.y=.25;
+  const wet=new THREE.Mesh(new THREE.PlaneGeometry(1.0,1.5),B(0xffffff,{map:gradTex('rgba(255,255,255,.55)','rgba(255,255,255,0)'),transparent:true,opacity:.7,depthWrite:false}));wet.rotation.x=-Math.PI/2;wet.position.set(.9,PV+.006,-.15);scene.add(wet); // the panel's smear on the wet pavement
+  const slm=M(0x3c3c3c),bf=M(0x242424);[-.165,-.055,.055,.165].forEach(dz=>scene.add(box(2.0,.05,.085,slm,-.3,.565,-.65+dz))); // seat .59: he sits .035 higher than before so his soles rest on the pavement, and the slats came down to meet his thighs
+  [-1.22,.62].forEach(x=>scene.add(box(.06,.4,.06,bf,x,PV+.2,-.8),box(.06,.4,.06,bf,x,PV+.2,-.5),box(.06,.05,.36,bf,x,.515,-.65)));
+  const me=makePerson();me.userData.sit();me.position.set(-.35,-.295,-.62);me.rotation.y=.25;
   const U=me.userData;U.arms[1].rotation.set(-.35,0,.15);U.elbows[1].rotation.x=-2.45;U.arms[0].rotation.x=-.7;U.elbows[0].rotation.x=-.6;U.head.rotation.set(.25,0,-.12);scene.add(me);
   const phone=new THREE.Mesh(new THREE.BoxGeometry(.035,.13,.008),B(0xffffff));scene.add(phone);
   const pg=glow(.5,.35);scene.add(pg);
-  const sl=box(.1,5,.1,M(0x161616),-4,2.5,.6);scene.add(sl,(()=>{const g=glow(2,.5);g.position.set(-3.8,5,.6);return g})());
+  const sp=new THREE.Group();sp.position.set(2.45,PV,.6);const pole=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,2.28,6),M(0x2e2e2e));pole.position.y=1.14;
+  sp.add(pole,box(.46,.46,.06,M(0xc4c4c4),0,2.5,0),box(.34,.09,.05,dk,0,2.42,.045),box(.14,.14,.05,dk,0,2.62,.045));scene.add(sp); // bus-stop flag on top of the pole (the pole ends at the plate's bottom edge, so nothing pierces the face), no text; the two dark marks stand .04 proud of the plate so they cannot z-fight in the 16-bit film-pass depth buffer
+  const sl=box(.1,5,.1,M(0x161616),-4,2.5,.6);scene.add(sl,box(.5,.06,.06,M(0x161616),-3.8,4.95,.6),box(.34,.1,.2,M(0x202020),-3.6,4.95,.6),(()=>{const g=glow(2,.5);g.position.set(-3.6,4.9,.6);return g})());
   const rn=rain(1100,20,21);scene.add(rn);
   // passing headlights now and then
   const car=glow(3,.0);car.position.y=.6;scene.add(car);
