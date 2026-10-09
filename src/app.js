@@ -462,54 +462,68 @@ function facadeTex(night,seed,variant=0){
 const FACADE={day:null,night:null,days:null,nights:null,mats:{}};
 function facades(){if(FACADE.day)return;FACADE.days=[0,1,2].map(v=>facadeTex(false,3+v*2,v));FACADE.nights=[0,1,2].map(v=>facadeTex(true,4+v*2,v));
   FACADE.day=FACADE.days[0];FACADE.night=FACADE.nights[0];[...FACADE.days,...FACADE.nights].forEach(t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping})}
-// Shared trim materials per (night, tint): parapet lip and piers a step lighter than the wall, lobby band darker, door between, roof furniture dark.
+// Shared trim materials per (night, tint): parapet lip and piers a step lighter than the wall, three lobby-band tones (seeded per
+// building, about +-8 %) darker, door between, roof furniture dark. The door is FrontSide so its back face never fights the band.
 function cityTones(night,col){const k=`${night}|${col}`;if(FACADE.mats[k])return FACADE.mats[k];
   const C=f=>new THREE.Color(col??0xffffff).multiplyScalar(f);
-  return FACADE.mats[k]=night?{lip:M(0x1e1e1e),band:M(0x0d0d0d),door:M(0x262626),dark:M(0x1a1a1a)}:{lip:M(C(.92)),band:M(C(.6)),door:M(C(.78)),dark:M(C(.5))}}
+  return FACADE.mats[k]=night?{lip:M(0x1e1e1e),bands:[M(0x0d0d0d)],door:M(0x262626,{side:THREE.FrontSide}),dark:M(0x1a1a1a)}
+    :{lip:M(C(.92)),bands:[M(C(.55)),M(C(.6)),M(C(.65))],door:M(C(.78),{side:THREE.FrontSide}),dark:M(C(.5))}}
+// A vertical fin standing fully outside a facade: front, two sides and a top cap (8 triangles, the open back lies on the wall).
+function finGeo(h,wd=.14,dp=.14){const x=wd/2,y=h/2,P=[],q=(a,b,c,d)=>P.push(...a,...b,...c,...a,...c,...d);
+  q([-x,-y,dp],[x,-y,dp],[x,y,dp],[-x,y,dp]);q([-x,-y,0],[-x,-y,dp],[-x,y,dp],[-x,y,0]);q([x,-y,dp],[x,-y,0],[x,y,0],[x,y,dp]);q([-x,y,dp],[x,y,dp],[x,y,0],[-x,y,0]);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.computeVertexNormals();return g}
 // One building: a textured box standing on y=0 (mesh centre at h/2, b.material = the facade, b.geometry = the box, as before),
-// with a parapet lip and a darker lobby band as children. Options: col tint; variant 0-2 (facade tile, else seeded by size);
-// front [nx,nz] = the face that gets the door; setback = height of a narrower block on top; roof 'mast'|'tank'|'box';
-// piers = instanced vertical fins on the window piers; lobby=false drops band + door (used for the setback block). Night: lip only.
-function building(w,h,d,night,{col=null,variant=null,front=[0,1],setback=0,roof=null,piers=false,lobby=true}={}){
-  facades();const T=cityTones(night,col),v=variant??Math.floor((w*7.3+h*3.1+d*5.7)*10)%3,tex=(night?FACADE.nights:FACADE.days)[v];
+// with a parapet lip and, by day, a lobby podium as children. Options: col tint; variant 0-2 (facade tile, else seeded by size);
+// front [nx,nz] = the face that gets the door and the fins; setback = height of a narrower block on top; roof 'mast'|'tank'|'box';
+// piers = instanced vertical fins on the window piers of the front face; lobby=false drops podium + door (far buildings, setback
+// block); lip=false drops the parapet (tops the camera never sees). Night: lip only.
+// The 3D pass renders into a 16-bit depth target, so every trim piece is at least .1 proud of the wall AND draws after the facade
+// (renderOrder 1, doors and roof furniture 2) to win any remaining depth tie; without that the podiums stripe at 10-30 m.
+function building(w,h,d,night,{col=null,variant=null,front=[0,1],setback=0,roof=null,piers=false,lobby=true,lip=true}={}){
+  facades();const T=cityTones(night,col),s=Math.floor((w*7.3+h*3.1+d*5.7)*10),v=variant??s%3,tex=(night?FACADE.nights:FACADE.days)[v],
+    s2=(s*2654435761%1000)/1000,s3=(s*40503%1000)/1000; // two more seeded fractions: podium height and tone
   const TW=night?2.4:2.8,FL=night?.3:1.1; // tile width and floor pitch: day floors are 1.1 (hero scale), night keeps the old dense grid of lights
-  const band=lobby&&!night?Math.min(2.4,h*.3):0,rows=Math.max(1,Math.round((h-band)/FL)),pitch=(h-band)/rows; // night facades keep their lights down to the ground (a dark band would be invisible anyway)
+  const band=lobby&&!night&&s2>.25?Math.min(h*.3,1.6+s3*1.4):0,rows=Math.max(1,Math.round((h-band)/FL)),pitch=(h-band)/rows; // one in four has no podium; night facades keep their lights down to the ground
   const g=new THREE.BoxGeometry(w,h,d),uv=g.attributes.uv,n=g.attributes.normal,colsOf=side=>4*Math.max(1,Math.round(side/TW));
   for(let i=0;i<uv.count;i++){const top=Math.abs(n.getY(i))>.5,side=Math.abs(n.getX(i))>.5?d:w;
     uv.setXY(i,top?0:uv.getX(i)*colsOf(side)/4,top?0:1-(1-uv.getY(i))*h/(4*pitch))} // rows anchored at the roof so the bottom one meets the band
   const mat=new THREE.MeshStandardMaterial({map:tex,color:col??0xffffff,roughness:1,metalness:0,flatShading:true,
     emissive:night?0xffffff:0x000000,emissiveMap:night?tex:null,emissiveIntensity:night?.85:0});
   const m=new THREE.Mesh(g,mat);m.position.y=h/2;
-  const lipH=Math.min(.35,h*.08),o=Math.min(.12,w*.03,d*.03);m.add(box(w+2*o,lipH,d+2*o,T.lip,0,h/2-lipH*.1,0)); // parapet lip, 40% proud of the roof
-  if(band){m.add(box(w+.06,band,d+.06,T.band,0,-h/2+band/2,0),box(w+.16,.1,d+.16,T.lip,0,-h/2+band-.05,0)); // podium + its cap strip
-    if(h>=5&&Math.min(w,d)>=2.2){const dr=box(1,2,.08,T.door,front[0]*(w/2+.05),-h/2+1,front[1]*(d/2+.05));if(front[0])dr.rotation.y=Math.PI/2;m.add(dr)}}
-  if(piers){const faces=[[w,0,1],[w,0,-1],[d,1,0],[d,-1,0]],list=[]; // fins on every face but the back one
-    faces.forEach(([side,nx,nz])=>{const c=colsOf(side),p=side/c;if(c>16||(nx===-front[0]&&nz===-front[1]))return;for(let k=1;k<c;k++){const u=-side/2+k*p;list.push(nx?[nx*w/2,u,1]:[u,nz*d/2,0])}});
-    const im=new THREE.InstancedMesh(new THREE.BoxGeometry(.14,h-band,.24),T.lip,list.length),m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler();
-    list.forEach(([x,z,rot],i)=>{e.set(0,rot*Math.PI/2,0);q.setFromEuler(e);m4.compose(V3(x,band/2,z),q,V3(1,1,1));im.setMatrixAt(i,m4)});m.add(im)}
+  const add=(o,ro=1)=>{o.renderOrder=ro;m.add(o);return o},fx=front[0],fz=front[1],half=fx?w/2:d/2,fw=fx?d:w; // the front face: its distance from the centre and its width
+  if(lip){const lipH=Math.min(.35,h*.08),o=Math.min(.12,w*.03,d*.03);add(box(w+2*o,lipH,d+2*o,T.lip,0,h/2-lipH*.1,0))} // parapet lip, 40% proud of the roof
+  if(band){add(box(w+.2,band,d+.2,T.bands[Math.floor(s2*4)%T.bands.length],0,-h/2+band/2,0));add(box(w+.3,.1,d+.3,T.lip,0,-h/2+band-.05,0)); // podium (10 cm proud) + its cap strip
+    const dh=Math.min(2,band-.25),dw=fw>5?1.8:1; // door: fully in front of the podium face, never taller than the podium; wide fronts get a double door under a canopy
+    if(h>=5&&Math.min(w,d)>=2.2&&dh>=1.4){const dr=add(box(dw,dh,.12,T.door,fx*(half+.17),-h/2+dh/2,fz*(half+.17)),2);if(fx)dr.rotation.y=Math.PI/2;
+      if(fw>5){const cp=add(box(dw+.6,.08,.5,T.lip,fx*(half+.35),-h/2+dh+.12,fz*(half+.35)),2);if(fx)cp.rotation.y=Math.PI/2}}}
+  if(piers){const c=colsOf(fw),p=fw/c;if(c>1&&c<=16){const im=new THREE.InstancedMesh(finGeo(h-band),T.lip,c-1),m4=new THREE.Matrix4(),q=new THREE.Quaternion().setFromEuler(new THREE.Euler(0,fx?fx*Math.PI/2:(fz>0?0:Math.PI),0));
+    for(let k=1;k<c;k++){const u=-fw/2+k*p;m4.compose(fx?V3(fx*w/2,band/2,u):V3(u,band/2,fz*d/2),q,V3(1,1,1));im.setMatrixAt(k-1,m4)}add(im)}}
   let top=m,topY=h/2,tw=w,td=d; // roof furniture goes on the topmost block
   if(setback>0){const sb=building(w*.62,setback,d*.62,night,{col,variant:v,lobby:false});sb.position.set(w*.08,h/2+setback/2,-d*.06);m.add(sb);top=sb;topY=setback/2;tw=w*.62;td=d*.62}
-  if(roof==='mast'){const mh=Math.max(1.5,Math.min(5,h*.12));top.add(box(.3,.3,.3,T.dark,tw*.3,topY+.15,-td*.25));
-    top.add(new THREE.Mesh(new THREE.CylinderGeometry(.04,.05,mh,6,1),T.dark).translateX(tw*.3).translateY(topY+mh/2).translateZ(-td*.25))}
-  else if(roof==='tank'&&Math.min(tw,td)>2.4){top.add(box(1.1,.25,1.1,T.band,-tw*.2,topY+.125,td*.15));
-    top.add(new THREE.Mesh(new THREE.CylinderGeometry(.42,.46,.7,6,1),T.lip).translateX(-tw*.2).translateY(topY+.6).translateZ(td*.15))}
-  else if(roof==='box'&&Math.min(tw,td)>2.4)top.add(box(1.3,.8,1.5,T.band,tw*.2,topY+.4,-td*.2));
+  const put=o=>{o.renderOrder=2;top.add(o)};
+  if(roof==='mast'){const mh=Math.max(1.5,Math.min(5,h*.12));put(box(.3,.3,.3,T.dark,tw*.3,topY+.15,-td*.25));
+    put(new THREE.Mesh(new THREE.CylinderGeometry(.04,.05,mh,4,1,true),T.dark).translateX(tw*.3).translateY(topY+mh/2).translateZ(-td*.25))}
+  else if(roof==='tank'&&Math.min(tw,td)>2.4){put(box(1.1,.25,1.1,T.bands[0],-tw*.2,topY+.125,td*.15));
+    put(new THREE.Mesh(new THREE.CylinderGeometry(.42,.46,.7,6,1,true),T.lip).translateX(-tw*.2).translateY(topY+.6).translateZ(td*.15))}
+  else if(roof==='box'&&Math.min(tw,td)>2.4)put(box(1.3,.8,1.5,T.bands[0],tw*.2,topY+.4,-td*.2));
   return m;
 }
 // Avenue of buildings on both sides, with a pavement and kerb, lamp posts and bollards for scale. Everything is added to the
 // scene before worldGroup() is called, so it slides with the ground in scene 1. r2 keeps the original r() sequence (same buildings).
-function street(scene,{night=false,z0=12,z1=-90,gap=4.2,seed=1,minH=8,maxH=34}={}){
+// detail: podium, door and fins only on buildings with z > detail (the ones the camera gets close to); roof furniture inside the fog.
+function street(scene,{night=false,z0=12,z1=-90,gap=4.2,seed=1,minH=8,maxH=34,detail=-50}={}){
   const r=rng(seed),r2=rng(seed+100),L=z0-z1,zc=(z0+z1)/2;
-  for(const sd of [-1,1])for(let z=z0;z>z1;){const w=3+r()*5,d=4+r()*6,h=minH+r()*(maxH-minH),tall=h>minH+(maxH-minH)*.5;
-    const b=building(w,h,d,night,{front:[-sd,0],setback:tall&&r2()<.55?h*(.2+r2()*.25):0,roof:r2()<.4?(w>3.5&&r2()<.5?'tank':'mast'):null,piers:w>4&&r2()<.45});
+  for(const sd of [-1,1])for(let z=z0;z>z1;){const w=3+r()*5,d=4+r()*6,h=minH+r()*(maxH-minH),tall=h>minH+(maxH-minH)*.5,near=z>detail;
+    const setback=tall&&r2()<.55?h*(.2+r2()*.25):0,roof=r2()<.4?(w>3.5&&r2()<.5?'tank':'mast'):null,piers=w>4&&r2()<.45; // same r2 draws as before
+    const b=building(w,h,d,night,{front:[-sd,0],setback,roof:z>-65?roof:null,piers:near&&piers,lobby:near});
     b.position.x=sd*(gap+w/2+r()*1.2);b.position.z=z-d/2;scene.add(b);z-=d+.4+r()*1.5}
-  const pv=M(night?0x222222:0xe2e2e2),kb=M(night?0x303030:0xc6c6c6),pole=M(night?0x2a2a2a:0x4e4e4e),bol=M(night?0x333333:0x8e8e8e);
-  for(const sd of [-1,1]){scene.add(box(2.8,.14,L,pv,sd*(gap+.1),.07,zc),box(.1,.17,L,kb,sd*(gap-1.3),.085,zc))} // pavement step + kerb line
-  const nl=Math.floor(L/11),lp=new THREE.InstancedMesh(new THREE.CylinderGeometry(.045,.055,4.2,6,1),pole,nl*2),lh=new THREE.InstancedMesh(new THREE.BoxGeometry(.6,.14,.26),pole,nl*2),
-    nb=Math.floor(L/5.5),bo=new THREE.InstancedMesh(new THREE.CylinderGeometry(.06,.07,.7,6,1),bol,nb*2),m4=new THREE.Matrix4();
+  const pv=M(night?0x222222:0xdadada),kb=M(night?0x303030:0xbdbdbd),pole=M(night?0x2a2a2a:0x4e4e4e),bol=M(night?0x333333:0x8e8e8e);
+  for(const sd of [-1,1]){scene.add(box(2.8,.14,L,pv,sd*(gap+.1),.07,zc),box(.1,.17,L,kb,sd*(gap-1.3),.085,zc))} // pavement step (>= 10 % darker than the road) + kerb line
+  const nl=Math.floor(L/11),lp=new THREE.InstancedMesh(new THREE.CylinderGeometry(.045,.055,4.2,6,1,true),pole,nl*2),lh=new THREE.InstancedMesh(new THREE.BoxGeometry(.6,.14,.26),pole,nl*2),
+    nb=Math.floor(L/8),bo=new THREE.InstancedMesh(new THREE.BoxGeometry(.12,.7,.12),bol,nb*2),m4=new THREE.Matrix4(); // open tubes (ends hidden) and square bollards: 12 triangles each
   for(let i=0;i<nl;i++)for(const sd of [-1,1]){const z=z0-5-i*11,j=i*2+(sd>0);
     m4.makeTranslation(sd*(gap-.5),.14+2.1,z);lp.setMatrixAt(j,m4);m4.makeTranslation(sd*(gap-.7),.14+4.2,z);lh.setMatrixAt(j,m4)} // post + head leaning over the road
-  for(let i=0;i<nb;i++)for(const sd of [-1,1]){m4.makeTranslation(sd*(gap-1.1),.14+.35,z0-2.5-i*5.5);bo.setMatrixAt(i*2+(sd>0),m4)}
+  for(let i=0;i<nb;i++)for(const sd of [-1,1]){m4.makeTranslation(sd*(gap-1.1),.14+.35,z0-2.5-i*8);bo.setMatrixAt(i*2+(sd>0),m4)}
   scene.add(lp,lh,bo);
 }
 function suitcase(person){
@@ -690,17 +704,21 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=gradTex('#f3f3f3','#d8d8d8');scene.fog=new THREE.Fog(0xe6e6e6,10,110);
   lights(scene,{dir:[0xffffff,.9,[-3,4,2]]});scene.add(ground(0xeeeeee));
   const r=rng(33),r2=rng(34);for(let i=0;i<40;i++){const w=3+r()*6,h=10+r()*45,d=3+r()*6,x=(r()-.5)*90,z=-30-r()*60;
-    const b=building(w,h,d,false,{setback:h>32&&r2()<.6?h*.25:0,roof:r2()<.45?(r2()<.5?'mast':'tank'):null});b.position.x=x;b.position.z=z;scene.add(b)}
-  for(let i=0;i<6;i++){const b=building(2+r2()*1.2,44+r2()*16,2+r2()*1.2,false,{roof:'mast'});b.position.set((r2()-.5)*80,0,-50-r2()*35);scene.add(b)} // slender towers
-  // a darker low-rise band at the foot of the towers so they do not float in the haze
-  scene.add(box(200,.02,30,M(0xd8d8d8),0,.01,-38));
-  {const lo=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),M(0xbcbcbc),30),m4=new THREE.Matrix4();
-    for(let i=0;i<30;i++){const w=3+r2()*5,h=1+r2()*2.8,d=3+r2()*4;m4.makeScale(w,h,d);m4.setPosition(-48+i*3.3+r2()*2,h/2,-24-r2()*10);lo.setMatrixAt(i,m4)}scene.add(lo)}
-  // railing of the overpass: concrete base, instanced posts, a top rail at 1.03; his left hand rests on the rail
-  const RZ=-.48;scene.add(box(30,.42,.3,M(0xc4c4c4),0,.21,RZ),box(30,.05,.08,M(0xb8b8b8),0,1.03,RZ));
-  {const posts=new THREE.InstancedMesh(new THREE.BoxGeometry(.05,.6,.05),M(0xa8a8a8),25),m4=new THREE.Matrix4();for(let i=0;i<25;i++){m4.makeTranslation(-14.4+i*1.2,.72,RZ);posts.setMatrixAt(i,m4)}scene.add(posts)}
+    const b=building(w,h,d,false,{lobby:z>-52,setback:h>32&&r2()<.6?h*.25:0,roof:r2()<.45?(r2()<.5?'mast':'tank'):null});b.position.x=x;b.position.z=z;scene.add(b)} // podiums only on the nearer half: beyond 50 m they are a few pixels
+  for(let i=0;i<6;i++){const b=building(2+r2()*1.2,44+r2()*16,2+r2()*1.2,false,{roof:'mast',lobby:false});b.position.x=(r2()-.5)*80;b.position.z=-50-r2()*35;scene.add(b)} // slender towers (x/z only: building() already stands them on y=0)
+  // a darker strip of ground and a row of low blocks at the foot of the towers so they do not float in the haze; the blocks are
+  // real building() boxes (window rows, parapet, three facade variants) rather than blank crates
+  {const gb=new THREE.Mesh(new THREE.PlaneGeometry(200,30),M(0xd8d8d8,{side:THREE.FrontSide}));gb.rotation.x=-Math.PI/2;gb.position.set(0,.05,-38);gb.renderOrder=1;scene.add(gb)}
+  for(let i=0;i<16;i++){const w=4+r2()*5,h=2.2+r2()*2.3,d=3+r2()*4;const b=building(w,h,d,false,{lobby:false,variant:i%3});b.position.x=-42+i*5.6+r2()*2;b.position.z=-24-r2()*9;scene.add(b)} // x/z only (y is the building's own h/2)
+  // railing of the overpass: concrete base, instanced posts, a top rail at 1.12 (hip-high on the 1.75 hero, and above the caption
+  // for the whole .12-.75 window); his left hand rests on the rail
+  const RZ=-.48,RY=1.12;scene.add(box(30,.42,.3,M(0xc4c4c4),0,.21,RZ),box(30,.07,.1,M(0xb8b8b8),0,RY,RZ));
+  {const posts=new THREE.InstancedMesh(new THREE.BoxGeometry(.05,.7,.05),M(0xa8a8a8),25),m4=new THREE.Matrix4();for(let i=0;i<25;i++){m4.makeTranslation(-14.4+i*1.2,.42+.35,RZ);posts.setMatrixAt(i,m4)}scene.add(posts)}
   const me=makePerson();me.rotation.y=Math.PI;me.position.set(-.1,0,0);scene.add(me);
-  {const {arms,elbows,hands}=me.userData;arms[1].rotation.set(-.87,0,.3);elbows[1].rotation.x=-.35;if(hands){hands[1].rotation.set(-.35,0,0);hands[1].userData.grip(.55)}}
+  // left hand on the rail (measured, vertex-level: palm touches the rail top, nothing below it over the rail, fingertips hang
+  // 4-5 cm past the far face): elbow bent, wrist cocked up a little, fingers almost straight, thumb laid flat beside the palm
+  {const {arms,elbows,hands}=me.userData;arms[1].rotation.set(-.845,0,.32);elbows[1].rotation.x=-.78;
+    if(hands){const h=hands[1];h.rotation.set(.454,0,0);h.userData.grip(.06);const th=h.children[5];th.rotation.x=0;th.children[1].rotation.x=.05}} // children[5] = thumb group (its child[1] = distal joint)
   return{scene,update(t,time){
     me.rotation.y=Math.PI+Math.sin(time*.5)*.03;
     camera.position.set(lerp(-.8,.7,t),lerp(1.55,1.75,t),lerp(1.9,1.5,t));camera.lookAt(.3,1.7,-20);
@@ -779,7 +797,8 @@ const SCENES=[
   lights(scene,{hemi:[0xffffff,0x999999,.9],dir:[0xffffff,.4,[3,6,2]]});
   const g=ground(0xf5f5f5);g.material=B(0xf5f5f5);scene.add(g);
   const r=rng(21),r2=rng(22);for(let i=0;i<80;i++){const x=(r()-.5)*40,z=14-r()*70;if(Math.abs(x)<4.5)continue;const w=1.5+r()*3,h=15+r()*40,d=1.5+r()*3,near=Math.abs(x)<9;
-    const b=building(w,h,d,false,{col:0x6a6a6a,front:[x<0?1:-1,0],piers:near&&w>2.4&&r2()<.65,setback:h>36&&r2()<.5?h*.22:0,roof:r2()<.3?'mast':null});b.position.x=x;b.position.z=z;scene.add(b)}
+    const piers=near&&w>2.4&&r2()<.65;r2();r2(); // same r2 draws as before (setbacks and masts sat above the top of the frame and are gone)
+    const b=building(w,h,d,false,{col:0x6a6a6a,front:[x<0?1:-1,0],piers,lobby:near,lip:h<32});b.position.x=x;b.position.z=z;scene.add(b)} // podium + fins only along the avenue; parapets only where the camera can see a top
   return{scene,update(t,time){
     const z=12-t*30;camera.position.set(Math.sin(t*4)*.5,1.7+t*2,z);camera.lookAt(Math.sin(t*4+.6)*.6,lerp(3,9,t),z-12);
   }};
@@ -1037,11 +1056,14 @@ const SCENES=[
 {key:'bloom',bg:'#9a9a9a',dark:()=>false,build(){
   const scene=new THREE.Scene();scene.background=gradTex('#4a4a4c','#cfcbc4');scene.fog=new THREE.Fog(0xb8b5b0,40,160);
   lights(scene,{hemi:[0xffffff,0x777777,.9],dir:[0xffffff,.8,[3,5,8]]});scene.add(ground(0x8c8b88,600));
-  const r=rng(81),r2=rng(82);for(let i=0;i<46;i++){const x=(r()-.5)*120,h=Math.abs(x)<18?4+r()*8:8+r()*26,w=3+r()*6,d=3+r()*6,z=-40-r()*40;
-    const b=building(w,h,d,false,{col:0x6a6a6a,setback:h>18&&r2()<.55?h*.25:0,roof:h>12&&r2()<.45?(r2()<.6?'mast':'tank'):null});b.position.set(x,0,z);scene.add(b)}
-  // a low-rise band at the foot of the city so the ground reads as streets, not a sea
-  {const lo=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),M(0x5e5d5a),36),m4=new THREE.Matrix4();
-    for(let i=0;i<36;i++){const w=3+r2()*5,h=1+r2()*2.5,d=3+r2()*4;m4.makeScale(w,h,d);m4.setPosition(-72+i*4.1+r2()*2,h/2,-33-r2()*6);lo.setMatrixAt(i,m4)}scene.add(lo)}
+  // the skyline used to be centred on y=0 (half of every tower buried); it now stands on the ground at half the old nominal height,
+  // so the silhouette and the sun's rise behind it are unchanged. No podiums: at 50-80 m behind the low-rise band they are invisible.
+  const r=rng(81),r2=rng(82);for(let i=0;i<46;i++){const x=(r()-.5)*120,h=(Math.abs(x)<18?4+r()*8:8+r()*26)*.5,w=3+r()*6,d=3+r()*6,z=-40-r()*40;
+    const b=building(w,h,d,false,{col:0x6a6a6a,lobby:false,setback:h>9&&r2()<.55?h*.45:0,roof:h>6&&r2()<.45?(r2()<.6?'mast':'tank'):null});b.position.x=x;b.position.z=z;scene.add(b)}
+  // a low-rise band at the foot of the city so the ground reads as streets, not a sea: low blocks (roofs only) in three tones with a lighter parapet lip
+  {const n=30,lo=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),M(0x5e5d5a),n),lp=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),M(0x7c7b78),n),m4=new THREE.Matrix4(),c=new THREE.Color();
+    for(let i=0;i<n;i++){const w=3+r2()*5,h=1+r2()*1.5,d=3+r2()*4,x=-72+i*4.9+r2()*2,z=-33-r2()*6;m4.makeScale(w,h,d);m4.setPosition(x,h/2,z);lo.setMatrixAt(i,m4);lo.setColorAt(i,c.setScalar(r2()<.2?1.3:.88+r2()*.24));
+      m4.makeScale(w+.3,.22,d+.3);m4.setPosition(x,h+.02,z);lp.setMatrixAt(i,m4)}lp.renderOrder=1;scene.add(lo,lp)}
   // the sun coming up behind the city
   const sun=new THREE.Mesh(new THREE.CircleGeometry(7,64),B(0xfffdf6,{fog:false}));sun.position.set(0,0,-110);scene.add(sun);
   const halo=glow(70,.7);halo.material.fog=false;halo.position.set(0,0,-108);scene.add(halo);
