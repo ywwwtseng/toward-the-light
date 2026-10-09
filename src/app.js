@@ -574,25 +574,27 @@ const SCENES=[
 /* 2 — a small daisy in a crack of the pavement; his steps pass by */
 {key:'crack',bg:'#e9e9e9',dark:()=>false,build(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0xe9e9e9);scene.fog=new THREE.Fog(0xe9e9e9,3,18);
-  lights(scene,{dir:[0xffffff,.8,[2,5,3]]});scene.add(ground(0xc4c4c4)); // the base only shows in the slab joints
+  lights(scene,{dir:[0xffffff,.8,[2,5,3]]});const base=ground(0xacacac);base.position.y=-.02;scene.add(base); // the walking surface is y=0; this darker base .02 below only shows in the slab joints
   const r=rng(12),m4=new THREE.Matrix4(),c=new THREE.Color();
-  // pavement: instanced slabs on a .72 pitch with .04 joints, five rows between the kerb and the camera, tone jittered per slab
-  const P=.72,cols=40,rows=5,slabs=new THREE.InstancedMesh(new THREE.BoxGeometry(P-.04,.02,P-.04),M(0xe2e2e2),cols*rows);
-  for(let i=0;i<cols;i++)for(let j=0;j<rows;j++){const k=i*rows+j;m4.makeTranslation((i-cols/2+.5)*P,.01,-1.35+j*P);slabs.setMatrixAt(k,m4);slabs.setColorAt(k,c.setScalar(.94+r()*.08))}
+  // pavement: instanced .01 slabs with their tops at y=0 (so his soles rest on them and the lit side faces stay hairlines), .72 pitch, .04 joints, five rows between the kerb and the camera, tone jittered per slab
+  const P=.72,cols=40,rows=5,slabs=new THREE.InstancedMesh(new THREE.BoxGeometry(P-.04,.01,P-.04),M(0xe2e2e2),cols*rows);
+  for(let i=0;i<cols;i++)for(let j=0;j<rows;j++){const k=i*rows+j;m4.makeTranslation((i-cols/2+.5)*P,-.005,-1.35+j*P);slabs.setMatrixAt(k,m4);slabs.setColorAt(k,c.setScalar(.94+r()*.08))}
   slabs.receiveShadow=true;scene.add(slabs);
   // a kerb behind his path with a lighter top, and the darker road beyond it
-  scene.add(box(30,.12,.28,M(0xc8c8c8),0,.06,-1.85),box(30,.012,.22,M(0xdadada),0,.123,-1.86),box(30,.01,9,M(0xbcbcbc),0,.004,-6.5));
-  // the crack: a wider, darker chain that wanders along z≈.3, is forced through the daisy's spot, and throws side branches
-  const cm=B(0x5c5c5c),seg=(x,z,nx,nz,w)=>{const s=box(Math.hypot(nx-x,nz-z)+w*.6,.006,w,cm,(x+nx)/2,.025,(z+nz)/2);s.rotation.y=-Math.atan2(nz-z,nx-x);scene.add(s)};
-  const branch=(x,z,a,n,w)=>{for(let i=0;i<n;i++){const l=.12+r()*.22,nx=x+Math.cos(a)*l,nz=z+Math.sin(a)*l;seg(x,z,nx,nz,w);x=nx;z=nz;a+=(r()-.5)*.8;w*=.78}};
+  scene.add(box(30,.12,.28,M(0xc8c8c8),0,.04,-1.85),box(30,.012,.22,M(0xdadada),0,.103,-1.86),box(30,.01,9,M(0xbcbcbc),0,-.015,-6.5));
+  // the crack: a wider, darker chain that wanders about z≈.24 (mean-reverting, clamped to [-.1,.42]: between the kerb and the caption band, never filling the bottom of the frame), is forced through the daisy's spot, and throws side branches
+  const cm=B(0x5c5c5c),seg=(x,z,nx,nz,w)=>{const s=box(Math.hypot(nx-x,nz-z)+w*.6,.006,w,cm,(x+nx)/2,.005,(z+nz)/2);s.rotation.y=-Math.atan2(nz-z,nx-x);scene.add(s)};
+  const branch=(x,z,a,n,w)=>{for(let i=0;i<n;i++){const l=.1+r()*.18,nx=x+Math.cos(a)*l,nz=clamp(z+Math.sin(a)*l,-.2,.48);seg(x,z,nx,nz,w);x=nx;z=nz;a+=(r()-.5)*.8;w*=.78}}; // branches too stay out of the camera's foreground
   let x=-7.5,z=.3,n=0;
-  while(x<7.5){let nx=x+.25+r()*.5,nz=z+(r()-.5)*.35;if(x<0&&nx>=0){nx=0;nz=.27}seg(x,z,nx,nz,.055);
-    if(n%5==2)branch(nx,nz,Math.atan2(nz-z,nx-x)+(n%10<5?1:-1)*(.7+r()*.5),3,.034);x=nx;z=nz;n++}
-  // a few soft snow remnants: thin six-sided lofts, kept off his path and off the daisy
-  const sm=M(0xf0f0f0),snow=(px,pz)=>{const w=.3+r()*.45,d=.2+r()*.35,s=loft([[0,w,d,.4],[.014,w*.86,d*.86,.4]],sm,{sides:6});s.position.set(px,.02,pz);s.rotation.y=r()*3;scene.add(s)};
-  for(let i=0;i<11;i++){let px=(r()-.5)*16,pz=-1.45+r()*2.9;if(Math.abs(pz+1.1)<.4)pz+=.85;if(Math.abs(px)<.7&&Math.abs(pz-.25)<.5)px+=1.4;snow(px,pz)}
+  while(x<7.5){let nx=x+.25+r()*.5,nz=clamp(z+(r()-.5)*.35-(z-.24)*.25,-.1,.42);if(x<0&&nx>=0){nx=0;nz=.27}seg(x,z,nx,nz,.055);
+    if(n%5==2)branch(nx,nz,Math.atan2(nz-z,nx-x)+(nz>.25?-1:1)*(.7+r()*.5),3,.034);x=nx;z=nz;n++}
+  // a few snow remnants: low six-sided mounds, crest pushed off-centre so no two facets match, whose slopes take the light differently, each on a soft contact shadow so it reads from the grazing camera; kept off his path, off the daisy and out of the camera's foreground (z ≤ .45)
+  const sm=M(0xf6f6f6),SH=canvasTex(64,64,c=>{const g=c.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(0,0,0,.5)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,64,64)}),shM=new THREE.MeshBasicMaterial({map:SH,transparent:true,opacity:.75,depthWrite:false});
+  const snow=(px,pz)=>{const w=.34+r()*.5,d=.22+r()*.36,g=new THREE.Group(),s=loft([[0,w,d,.4],[.022,w*.86,d*.86,.4,d*.05,w*.04],[.038,w*.46,d*.46,.4,d*.14,-w*.09]],sm,{sides:6}),sh=new THREE.Mesh(new THREE.PlaneGeometry(w*1.5,d*1.5),shM);
+    sh.rotation.x=-Math.PI/2;sh.position.y=.003;sh.renderOrder=1;g.add(s,sh);g.position.set(px,0,pz);g.rotation.y=r()*3;scene.add(g)};
+  for(let i=0;i<11;i++){let px=(r()-.5)*16,pz=-1.5+r()*1.95;if(Math.abs(pz+1.1)<.4)pz+=.85;if(Math.abs(px)<.7&&Math.abs(pz-.25)<.5)px+=1.4;snow(px,pz)}
   for(let i=0;i<4;i++)snow((r()-.5)*16,-2.3-r()*1.8);
-  const d=makeDaisy({r:.09,stem:.16});d.position.set(0,.18,.25);d.userData.head.rotation.x=.35;scene.add(d);
+  const d=makeDaisy({r:.09,stem:.16});d.position.set(0,.16,.25);d.userData.head.rotation.x=.35;scene.add(d);
   const world=worldGroup(scene);
   const me=makePerson();me.rotation.y=Math.PI/2;me.position.set(0,0,-1.1);scene.add(me);
   return{scene,update(t,time){
@@ -926,9 +928,9 @@ const SCENES=[
   const [hbL,syL]=at(.45),ly=syL+.035;
   [-1,1].forEach(sd=>{const z=sd*(hbL-.012);boat.add(box(.11,.02,.05,darkM,.45,ly+.01,z),box(.02,.1,.03,darkM,.405,ly+.06,z),box(.02,.1,.03,darkM,.495,ly+.06,z))});
   const me=makePerson({body:0x2a2a2a,jacket:0x303030});me.userData.sit();me.position.set(.1,-.465,0);me.rotation.y=Math.PI/2; // soles on the floorboards, thighs on the middle thwart
-  // two oars; each is re-aimed every frame from the hand that grips it through its oarlock, so hand and oar never separate
-  const oarM=M(0x4a4a4a),bladeGeo=loftGeo([[0,.045,.09,0],[.2,.045,.27,0],[.45,.03,.23,0]],{sides:4,rot:Math.PI/4}),shaftGeo=new THREE.CylinderGeometry(.022,.022,2.0,6,1,true);shaftGeo.rotateX(Math.PI/2);
-  const oars=[-1,1].map(sd=>{const o=new THREE.Group(),sh=new THREE.Mesh(shaftGeo,oarM),bl=new THREE.Mesh(bladeGeo,oarM);sh.position.z=.9;bl.rotation.x=Math.PI/2;bl.position.z=1.55;
+  // two oars (2.5 long, so the blade tip stays under the water through the whole pull); each is re-aimed every frame from the hand that grips it through its oarlock, so hand and oar never separate
+  const oarM=M(0x4a4a4a),bladeGeo=loftGeo([[0,.045,.09,0],[.2,.045,.27,0],[.45,.03,.23,0]],{sides:4,rot:Math.PI/4}),shaftGeo=new THREE.CylinderGeometry(.022,.022,2.5,6,1,true);shaftGeo.rotateX(Math.PI/2);
+  const oars=[-1,1].map(sd=>{const o=new THREE.Group(),sh=new THREE.Mesh(shaftGeo,oarM),bl=new THREE.Mesh(bladeGeo,oarM);sh.position.z=1.15;bl.rotation.x=Math.PI/2;bl.position.z=2.05;
     o.add(sh,bl,box(.05,.05,.1,M(0x222222),0,0,.03));o.userData.lock=V3(.45,ly+.064,sd*(hbL-.012));boat.add(o);return o});
   boat.add(me);scene.add(boat);
   // on the water: a dark smear under the hull (the film's inverted reflection) and a few lighter wake dashes; these stay level while the hull bobs
@@ -955,26 +957,26 @@ const SCENES=[
   const scene=new THREE.Scene();scene.background=gradTex('#f6f1e8','#d9d6d0');scene.fog=new THREE.Fog(0xe4e0d8,8,70);
   lights(scene,{hemi:[0xffffff,0x9a9a9a,.9],dir:[0xfff4e0,.8,[-4,3,-6]]});
   const r=rng(71),m4=new THREE.Matrix4(),c=new THREE.Color();
-  // roof: a darker slab under instanced roofing panels (gravel tone, .04 seams) and a .3 parapet with a lighter coping on all four sides
-  scene.add(box(10,.3,8,M(0xb4b4b4),0,-.15,0));
-  const panels=new THREE.InstancedMesh(new THREE.BoxGeometry(2.31,.03,2.43),M(0xc6c6c6),12);
-  for(let i=0;i<4;i++)for(let j=0;j<3;j++){const k=i*3+j;m4.makeTranslation(-3.525+i*2.35,.015,-2.467+j*2.467);panels.setMatrixAt(k,m4);panels.setColorAt(k,c.setScalar(.95+r()*.07))}
+  // roof: the walking surface is y=0 — .01 roofing panels with their tops at 0 (five columns, so no seam runs under his feet), over a darker slab .02 lower that shows as tar joints in the .04 seams; a .3 parapet with a lighter coping on all four sides
+  scene.add(box(10,.3,8,M(0x9c9c9c),0,-.17,0));
+  const panels=new THREE.InstancedMesh(new THREE.BoxGeometry(1.84,.01,2.427),M(0xc6c6c6),15);
+  for(let i=0;i<5;i++)for(let j=0;j<3;j++){const k=i*3+j;m4.makeTranslation((i-2)*1.88,-.005,(j-1)*2.467);panels.setMatrixAt(k,m4);panels.setColorAt(k,c.setScalar(.95+r()*.07))}
   panels.receiveShadow=true;scene.add(panels);
   const wall=M(0xbdbdbd),cope=M(0xdcdcdc);
-  [[0,-3.85,10,.3,10.1,.4],[0,3.85,10,.3,10.1,.4],[-4.85,0,.3,7.4,.4,7.3],[4.85,0,.3,7.4,.4,7.3]].forEach(([x,z,w,d,cw,cd])=>scene.add(box(w,.55,d,wall,x,.275,z),box(cw,.06,cd,cope,x,.58,z)));
-  // door bulkhead with the antenna mast (back right), a water tank on legs (back left), an AC unit by the back parapet
+  [[0,-3.85,10,.3,10.1,.4],[0,3.85,10,.3,10.1,.4],[-4.85,0,.3,7.4,.4,7.3],[4.85,0,.3,7.4,.4,7.3]].forEach(([x,z,w,d,cw,cd])=>scene.add(box(w,.57,d,wall,x,.265,z),box(cw,.06,cd,cope,x,.58,z)));
+  // door bulkhead with the antenna mast (back right), a water tank on legs and an AC unit in the back-left corner — all left of or behind him, so his reaching hand always reads against the bare back parapet
   const bh=new THREE.Group();bh.position.set(3.6,0,-2.55);
   bh.add(box(1.4,2.05,1.3,M(0xb6b6b6),0,1.025,0),box(1.56,.1,1.46,M(0xcdcdcd),0,2.1,0),box(.78,1.9,.05,M(0x4e4e4e),0,.95,.66),box(.05,.05,.05,M(0x8a8a8a),.28,1.0,.7),box(.05,2.0,.05,M(0x6a6a6a),-.5,3.1,-.4),box(.5,.03,.03,M(0x6a6a6a),-.5,4.05,-.4));
   scene.add(bh);
-  const tk=new THREE.Group();tk.position.set(-3.5,0,-2.4);
+  const tk=new THREE.Group();tk.position.set(-3.5,0,-2.2);
   [[-.3,-.3],[.3,-.3],[-.3,.3],[.3,.3]].forEach(([x,z])=>tk.add(box(.07,.64,.07,M(0x707070),x,.32,z)));
   const tank=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.8,6),M(0xc2c2c2));tank.position.y=1.08;const cap=new THREE.Mesh(new THREE.ConeGeometry(.45,.22,6),M(0xd2d2d2));cap.position.y=1.59;
   tk.add(box(.9,.06,.9,M(0x8a8a8a),0,.67,0),tank,cap,box(.04,1.0,.04,M(0x8a8a8a),.48,.5,.05),box(.1,.04,.04,M(0x8a8a8a),.44,1.0,.05));scene.add(tk);
   const bevelBox=(w,h,d,b,mat,x=0,y=0,z=0)=>{const m=loft([[0,w-2*b,d-2*b,.1],[b,w,d,.3],[h-b,w,d,.3],[h,w-2*b,d-2*b,.1]],mat,{sides:8});m.position.set(x,y,z);return m};
-  const ac=new THREE.Group();ac.position.set(2.2,0,-3.15);
+  const ac=new THREE.Group();ac.position.set(-4.15,0,-3.15);
   const fan=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.03,8),M(0x9a9a9a));fan.position.y=.795;const fanIn=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.012,8),M(0x3a3a3a));fanIn.position.y=.815;
   ac.add(box(.9,.08,.5,M(0x7a7a7a),0,.04,0),bevelBox(1.0,.7,.55,.02,M(0xc0c0c0),0,.08,0),box(.7,.4,.012,M(0x9a9a9a),0,.45,.28),fan,fanIn);scene.add(ac);
-  // the pot as a faceted planter: saucer, six-sided body, recessed dark soil, a lighter rim ring; the daisy itself is unchanged
+  // the pot as a faceted planter standing on the panels: saucer, six-sided body, recessed dark soil, a lighter rim ring; the daisy itself is unchanged
   const pot=new THREE.Group();pot.position.set(.55,0,-.2);
   const saucer=new THREE.Mesh(new THREE.CylinderGeometry(.21,.19,.025,6),M(0x767676));saucer.position.y=.0125;
   const soil=new THREE.Mesh(new THREE.CylinderGeometry(.165,.165,.012,6),M(0x3c3c3c));soil.position.y=.232;
@@ -1074,11 +1076,12 @@ const SCENES=[
   const tp=tg.attributes.position,jr=rng(5);
   for(let i=0;i<tp.count;i++){let x=tp.getX(i),z=tp.getZ(i);if(Math.abs(x)<21.9&&Math.abs(x)>2.1)x+=(jr()-.5)*1.2;if(z>-49.9&&z<9.9)z+=(jr()-.5)*1.2;tp.setXYZ(i,x,H(x,z),z)}
   const terr=new THREE.Mesh(tg.toNonIndexed(),M(0x0e0e0e));terr.geometry.computeVertexNormals();world.add(terr);
-  // stones in four low-poly shapes (a five-sided lump, a flat wedge, a chunk, a thin chip), instanced, each sitting on the ground it is on
+  const rc=new THREE.Raycaster(),DOWN=V3(0,-1,0),hy=(x,z)=>{rc.set(V3(x,5,z),DOWN);const h=rc.intersectObject(terr,false)[0];return h?h.point.y:H(x,z)}; // height of the triangulated ground (not the analytic noise), so stones sit on the facets
+  // stones in four low-poly shapes (a five-sided lump, a flat wedge, a chunk, a thin chip), instanced, each sitting on the facet it is on
   const sm=M(0x262626),G=[loftGeo([[0,.12,.09,.3],[.035,.16,.12,.3],[.06,.1,.07,.3]],{sides:5}),new THREE.TetrahedronGeometry(.08,0).scale(1.4,.45,1).translate(0,.025,0),new THREE.DodecahedronGeometry(.055,0).scale(1,.6,1.3).translate(0,.02,0),loftGeo([[0,.22,.12,.2],[.03,.24,.14,.2],[.04,.18,.1,.2]],{sides:4,rot:Math.PI/4})];
   [90,70,60,50].forEach((n,gi)=>{const st=new THREE.InstancedMesh(G[gi],sm,n);
     for(let i=0;i<n;i++){let x=(r()-.5)*14;if(Math.abs(x)<.25)x+=(x<0?-1:1)*.3;const z=8-r()*44,s=.5+r()*1.3;e.set((r()-.5)*.3,r()*6.3,(r()-.5)*.3);q.setFromEuler(e);
-      m4.compose(V3(x,H(x,z)-.006,z),q,V3(s,s*.8,s));st.setMatrixAt(i,m4);st.setColorAt(i,c.setScalar(.8+r()*.45))}
+      m4.compose(V3(x,hy(x,z)-.006,z),q,V3(s,s*.8,s));st.setMatrixAt(i,m4);st.setColorAt(i,c.setScalar(.8+r()*.45))}
     world.add(st)});
   const me=makePerson();me.rotation.y=Math.PI;me.position.set(0,0,2);scene.add(me);
   key.position.z=-10;key.target.position.set(0,0,2);
