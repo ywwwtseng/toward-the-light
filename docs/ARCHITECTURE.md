@@ -91,7 +91,7 @@ The film pass renders the 3D scene into a `WebGLMultisampleRenderTarget` whose d
 ## Loader, audio, About
 
 - **`runLoader`:** draws orbiting rings on `#loadCanvas`, alternates "Loading N%" with "For the best experience, wear headphones", then wipes to white.
-- **Audio:** WebAudio only, no files. Four detuned oscillators (55, 82.4, 110.2 and 164.8 Hz) with slow LFOs go through a low-pass filter. `audioMood(dark)` moves the cutoff between 380 Hz in dark scenes and 1400 Hz in light ones. `#sound` toggles mute.
+- **Audio:** a generated solo piano, WebAudio only, no files (「音樂現在很像背景噪音，我想要鋼琴音樂」). Each note (`pianoNote`) is a `PeriodicWave` oscillator with piano-like partials plus a slightly detuned second string, a bright hammer attack that mellows through a per-note low-pass, and a pitch-dependent decay (low notes ring longer). Notes go through a generated stereo room reverb (`makeReverb`), a master low-pass and a soft compressor. A look-ahead scheduler (`schedule`, every 200 ms, 1.6 s ahead) plays 66 bpm eighth-note left-hand arpeggios over an eight-bar loop in A minor / C major, plus a sparse right-hand melody from a seeded `rng`. `audioMood(dark)` switches the loop: dark scenes play `PROG_DARK` an octave lower, half as many arpeggio notes and a rarer melody behind a 1.8 kHz cutoff; light scenes play `PROG_LIGHT` with the bass doubled in octaves, a fuller melody and a 5.2 kHz cutoff. Chords change only at bar lines. `#sound` toggles mute.
 - **About illustrations (`aboutShots`):** one offscreen render of the hero, plus a hand-drawn canvas phone/eclipse icon.
 
 ## Legacy code still in `app.js`

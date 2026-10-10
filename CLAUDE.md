@@ -52,4 +52,4 @@ Search for these banner comments:
 | `daisies` | `petalGeo`, `centerGeo`, `leafGeo`, `makeDaisy` and `daisyGeo` |
 | `SCENES` | the 24 scene builders, numbered comments `/* N — ... */` |
 | `main render loop` | `progress()`, `buildAll()` and `frame()`: scroll easing, scene dips, captions, ending |
-| `loader`, `ambient sound`, `flow`, `About illustrations` | everything around the 3D |
+| `loader`, `piano soundtrack`, `flow`, `About illustrations` | everything around the 3D |

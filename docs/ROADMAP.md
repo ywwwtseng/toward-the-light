@@ -37,7 +37,7 @@ Ordered roughly by value-for-effort. Anything visual should be checked with scre
 - **Accessibility:**
   - `prefers-reduced-motion` already disables easing. Consider also disabling the handheld drift and grain.
   - Add a skip or "read the story" text version.
-- **Audio:** the WebAudio pad is minimal. A per-scene mood (rain noise in `flood`/`call`/`store`, a room tone in `office`) would add a lot. It must still be generated, not loaded from files.
+- **Audio:** the generated piano follows only dark and light. A per-scene mood (rain noise in `flood`/`call`/`store`, a room tone in `office`) would add a lot. It must still be generated, not loaded from files.
 
 ## 4. Release checklist
 

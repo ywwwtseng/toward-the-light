@@ -59,7 +59,7 @@ PER=6 FPS=30 W=1920 H=1080 node tools/record.js   # slower, larger
 
 `record.js` replaces `requestAnimationFrame` with a manual stepper. Each frame it sets the scroll position, advances the page with a fake clock and takes a screenshot, so the result is smooth no matter how slow WebGL is. A full run takes about 15 minutes in a cloud container.
 
-`encode.sh` adds a generated ambient drone using the same tones as the site's WebAudio pad.
+`encode.sh` adds a generated ambient drone (the site's old WebAudio pad). The site now plays a generated piano instead; to match it, record the page's audio rather than the drone.
 
 Known quirk: CSS transitions (caption fade, `#fade`) still run on real time. Because each captured frame takes about 0.3 s of real time, caption fades look slightly faster in the video than on the site.
 

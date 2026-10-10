@@ -1663,23 +1663,82 @@ function runLoader(done){
   requestAnimationFrame(step);
 }
 
-/* ---------- ambient sound (generated, no files) ---------- */
-let AC=null,master=null,filt=null,muted=false;
+/* ---------- piano soundtrack (generated, no files) ----------
+   A slow, quiet solo piano in C major / A minor. Each note is one PeriodicWave
+   oscillator (piano-like partials) plus a slightly detuned second string, with a
+   hammer-bright attack that mellows through a per-note low-pass, and a generated
+   room reverb. A look-ahead scheduler plays left-hand arpeggios and a sparse
+   right-hand melody; audioMood(dark) makes it lower, sparser and darker. */
+let AC=null,master=null,filt=null,bus=null,pianoWave=null,muted=false,moodDark=true;
+const VOL=1;
+function makePianoWave(){
+  const n=16,re=new Float32Array(n),im=new Float32Array(n);
+  for(let k=1;k<n;k++)im[k]=Math.pow(k,-1.6)*(k===2?1.1:1)*(k%7===0?.25:1);
+  return AC.createPeriodicWave(re,im);
+}
+function makeReverb(sec){
+  const len=AC.sampleRate*sec|0,buf=AC.createBuffer(2,len,AC.sampleRate);
+  for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++){const t=i/len;d[i]=(Math.random()*2-1)*Math.pow(1-t,3.2)*(i<AC.sampleRate*.012?i/(AC.sampleRate*.012):1)}}
+  const cv=AC.createConvolver();cv.buffer=buf;return cv;
+}
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+function pianoNote(midi,t,vel,dur){
+  const f=mtof(midi),low=clamp((84-midi)/48,0,1);
+  const tau=.7+low*2.6,end=t+Math.min(dur,tau*3.2)+.35;
+  const g=AC.createGain(),lp=AC.createBiquadFilter();lp.type='lowpass';lp.Q.value=.3;
+  const bright=Math.min(f*(5+vel*7),9000);
+  lp.frequency.setValueAtTime(bright,t);lp.frequency.setTargetAtTime(Math.max(f*2.2,260),t+.02,.35+low*.6);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vel*.22,t+.006);
+  g.gain.setTargetAtTime(vel*.08,t+.006,.12);g.gain.setTargetAtTime(0,t+.15,tau);
+  if(dur<tau*3.2)g.gain.setTargetAtTime(0,t+dur,.18);
+  [0,1].forEach(s=>{const o=AC.createOscillator(),og=AC.createGain();o.setPeriodicWave(pianoWave);
+    o.frequency.value=f;o.detune.value=s?1.6+low*1.2:-.8;og.gain.value=s?.45:.7;
+    o.connect(og);og.connect(lp);o.start(t);o.stop(end)});
+  lp.connect(g);g.connect(bus);
+}
+/* chords as MIDI: [bass, arpeggio tones...] */
+const CH={Am:[45,57,60,64,69],F:[41,53,57,60,65],C:[48,55,60,64,67],G:[43,55,59,62,67],Em:[40,52,55,59,64],Dm:[38,50,53,57,62]};
+const PROG_DARK=['Am','F','C','Em','Am','F','Dm','Em'],PROG_LIGHT=['F','C','G','Am','F','C','Dm','G'];
+const SCALE=[60,62,64,67,69,72,74,76,79,81];
+const BEAT=60/66,arpRnd=rng(17);
+let nextT=0,step=0,melIdx=4,schedTimer=null,ch=CH.Am;
+function schedule(){
+  if(!AC)return;
+  const ahead=AC.currentTime+1.6,e=BEAT/2;
+  if(nextT<AC.currentTime)nextT=AC.currentTime+.05;
+  while(nextT<ahead){
+    const bar=Math.floor(step/8),i=step%8,prog=moodDark?PROG_DARK:PROG_LIGHT;
+    if(i===0)ch=CH[prog[bar%prog.length]];
+    const hum=(arpRnd()-.5)*.018,oct=moodDark?-12:0;
+    if(i===0){pianoNote(ch[0]+(moodDark?0:12),nextT,.55,BEAT*8);if(!moodDark)pianoNote(ch[0],nextT+.01,.3,BEAT*8)}
+    const pat=[1,2,3,4,3,2,3,2][i];
+    if(!(moodDark&&i%2))pianoNote(ch[pat]+oct,nextT+hum,.22+arpRnd()*.1,BEAT*3);
+    if(i%2===0&&arpRnd()<(moodDark?.14:.42)){
+      const tones=SCALE.filter(m=>ch.slice(1).some(c=>(c-m)%12===0)||arpRnd()<.25);
+      melIdx=clamp(melIdx+Math.round((arpRnd()-.5)*3),0,SCALE.length-1);
+      let m=SCALE[melIdx];if(!tones.includes(m))m=tones.reduce((a,b)=>Math.abs(b-m)<Math.abs(a-m)?b:a,tones[0]||m);
+      pianoNote(m+12+(moodDark?-12:0),nextT+hum+.01,.38+arpRnd()*.14,BEAT*(i===0?4:2));
+    }
+    nextT+=e;step++;
+  }
+}
 function startAudio(){
   try{
     AC=new (window.AudioContext||window.webkitAudioContext)();
-    master=AC.createGain();master.gain.value=0;filt=AC.createBiquadFilter();filt.type='lowpass';filt.frequency.value=600;
-    filt.connect(master);master.connect(AC.destination);
-    [55,82.4,110.2,164.8].forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=i%2?'triangle':'sine';o.frequency.value=f;o.detune.value=(i-1.5)*6;g.gain.value=.12/(i+1);
-      const l=AC.createOscillator(),lg=AC.createGain();l.frequency.value=.05+i*.03;lg.gain.value=.05;l.connect(lg);lg.connect(g.gain);l.start();
-      o.connect(g);g.connect(filt);o.start()});
-    master.gain.linearRampToValueAtTime(.35,AC.currentTime+3);
+    pianoWave=makePianoWave();
+    master=AC.createGain();master.gain.value=0;filt=AC.createBiquadFilter();filt.type='lowpass';filt.frequency.value=3200;
+    const comp=AC.createDynamicsCompressor();comp.threshold.value=-18;comp.ratio.value=3;
+    bus=AC.createGain();const dry=AC.createGain(),wet=AC.createGain(),rev=makeReverb(3.4);dry.gain.value=.8;wet.gain.value=.42;
+    bus.connect(dry);bus.connect(rev);rev.connect(wet);dry.connect(filt);wet.connect(filt);
+    filt.connect(comp);comp.connect(master);master.connect(AC.destination);
+    master.gain.linearRampToValueAtTime(VOL,AC.currentTime+3);
+    nextT=AC.currentTime+.4;schedule();schedTimer=setInterval(schedule,200);
     $('#sound').hidden=false;
   }catch(e){}
 }
 let lastDark=null;
-function audioMood(dark){if(!AC||dark===lastDark)return;lastDark=dark;filt.frequency.setTargetAtTime(dark?380:1400,AC.currentTime,1.2)}
-$('#sound').addEventListener('click',()=>{if(!AC)return;muted=!muted;$('#sound').classList.toggle('off',muted);master.gain.setTargetAtTime(muted?0:.35,AC.currentTime,.3)});
+function audioMood(dark){if(!AC||dark===lastDark)return;lastDark=dark;moodDark=dark;filt.frequency.setTargetAtTime(dark?1800:5200,AC.currentTime,1.2)}
+$('#sound').addEventListener('click',()=>{if(!AC)return;muted=!muted;$('#sound').classList.toggle('off',muted);master.gain.setTargetAtTime(muted?0:VOL,AC.currentTime,.3)});
 
 /* ---------- flow ---------- */
 document.body.classList.add('locked');
