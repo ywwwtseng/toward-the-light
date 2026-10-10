@@ -2,7 +2,7 @@
 
 A scroll-driven 3D short story in the browser. One person, one suitcase, and a city slowly getting to know him: 24 scenes, from the first snowy day in town, past late-night desks, rain, fog and a flooded street he rows across, to a sunrise and a walk toward one light.
 
-一個人、一只行李箱、一座正在認識他的城市。24 個場景，用滾動推進時間，陪他一步一步走向光。（網站上的文字全部是英文。）
+一個人、一只行李箱、一座正在認識他的城市。24 個場景，用滾動推進時間，陪他一步一步走向光。
 
 - **Tech:** plain HTML + CSS + JavaScript, [three.js r128](https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js) from cdnjs. No framework, no bundler, no assets: every model, texture and sound is generated in code.
 - **Output:** one self-contained HTML file (`dist/index.html`, ~185 KB).
