@@ -1632,6 +1632,7 @@ function frame(ms){
     cap.style.color=dark?'rgba(255,255,255,.86)':'rgba(0,0,0,.72)';cap.style.textShadow=dark?'0 0 14px rgba(0,0,0,.7),0 0 3px rgba(0,0,0,.6)':'0 0 14px rgba(255,255,255,.95),0 0 3px rgba(255,255,255,.9)';
     const endOn=i===n-1&&t>.72;$('#ending').classList.toggle('gone',!endOn);$('#ending').classList.toggle('on',endOn);
     $('#sound').style.color=dark?'#aaa':'#555';
+    const bar=$('#bar');bar.style.transform='scaleX('+clamp(cur/n)+')';bar.style.color=dark?'rgba(255,255,255,.7)':'rgba(0,0,0,.55)';
     audioMood(dark);
   }
   requestAnimationFrame(frame);
@@ -1733,7 +1734,7 @@ function startAudio(){
     filt.connect(comp);comp.connect(master);master.connect(AC.destination);
     master.gain.linearRampToValueAtTime(VOL,AC.currentTime+3);
     nextT=AC.currentTime+.4;schedule();schedTimer=setInterval(schedule,200);
-    $('#sound').hidden=false;
+    $('#sound').hidden=false;$('#bar').hidden=false;
   }catch(e){}
 }
 let lastDark=null;
