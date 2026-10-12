@@ -28,7 +28,7 @@ The bar is **"product-level and artistic, not a demo."** The owner judges by eye
 - **Hopeful and poetic, never negative** (「文字 藝術一點 不要負面」). No words of loss, collapse or loneliness. Hard scenes become turning points: the fog is a view not yet seen, the shards are shaped into something new, the gap in the ring is room for the next light.
 - **No flower wording** anywhere, even though small daisies appear in three scenes.
 - Captions are one short line, first person or a gentle second person, quiet, never exclamatory.
-- The credit line stays: "Inspired by PEACEMINUSONE." No logo.
+- The About credit line is "Inspired by Through the Dark." No logo. (The PEACEMINUSONE credit was removed on 2026-10-12.)
 
 ## Feedback history (chronological, 2026-10-08)
 
@@ -65,6 +65,7 @@ The bar is **"product-level and artistic, not a demo."** The owner judges by eye
 | 每一幕 不用顯示 03 -24 數字 | captions | scene counter removed |
 | 走路 身體跟腳怪怪的 | walk | ankles (flat feet), smaller stride, coat panels at 50 %, tiny torso twist |
 | 文字最後都用英文 | all copy | **English only** |
+| PEACEMINUSONE 這個要去掉 → Inspired by Through the Dark (2026-10-12) | About | About copy rewritten (no "circle" without context, no "alone" or "missing"); credit line now "Inspired by Through the Dark." |
 | 幫我把每個 model 優化，維持低面數，可參考原本影片 | all models | v41: every prop rebuilt as a designed low-poly sculpture after the film, reviewed by art + technical reviewers (docs/model-polish). Low-poly limits stay: ≤ 8 sides, flat shading, no files. |
 
 ## Practical rules distilled

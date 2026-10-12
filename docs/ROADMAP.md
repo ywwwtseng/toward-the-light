@@ -41,7 +41,7 @@ Ordered roughly by value-for-effort. Anything visual should be checked with scre
 
 ## 4. Release checklist
 
-- Confirm rights for the PEACEMINUSONE inspiration credit before any public or commercial use. No official logos are used; the daisy is an original model.
+- Confirm rights for the "Through the Dark" inspiration credit before any public or commercial use. No official logos are used; the daisy is an original model.
 - Re-render the video (`tools/record.js`): the existing one predates the English text, the walk and the desk changes.
 - Replace the "Privacy & Terms" placeholder link in the intro and About footer with a real page, or remove it.
 - Add OG/Twitter meta tags and a share image (render one with `tools/shots.js`).
