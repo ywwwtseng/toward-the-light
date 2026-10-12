@@ -93,7 +93,12 @@ function lights(scene,{hemi=[0xffffff,0x777777,.9],dir=[0xffffff,.7,[3,6,4]]}={}
 }
 function canvasTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);return t}
 const gradTex=(top,bot)=>canvasTex(4,256,(c,w,h)=>{const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,top);g.addColorStop(1,bot);c.fillStyle=g;c.fillRect(0,0,w,h)});
-const GLOW=canvasTex(128,128,(c)=>{const g=c.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.45)');g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.fillRect(0,0,128,128)});
+/* radial alpha texture written pixel by pixel: Safari dithers canvas gradients per channel, and in the faint outer alpha that noise
+   is unpremultiplied into big coloured specks once the sprite is scaled up (the sun halos on iPhone) */
+function radTex(n,rgb,alpha){const d=new Uint8Array(n*n*4),h=n/2;
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){const i=(y*n+x)*4,r=Math.min(1,Math.hypot(x+.5-h,y+.5-h)/h);d[i]=rgb[0];d[i+1]=rgb[1];d[i+2]=rgb[2];d[i+3]=Math.round(clamp(alpha(r))*255)}
+  const t=new THREE.DataTexture(d,n,n,THREE.RGBAFormat);t.magFilter=t.minFilter=THREE.LinearFilter;t.needsUpdate=true;return t}
+const GLOW=radTex(128,[255,255,255],r=>r<.25?lerp(1,.45,r/.25):lerp(.45,0,(r-.25)/.75));
 function glow(scale,opacity=1){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,transparent:true,opacity,blending:THREE.AdditiveBlending,depthWrite:false}));s.scale.set(scale,scale,1);return s}
 function stars(n,radius,{seed=1,minY=-1e9,size=1.6,opacity=.9}={}){
   const r=rng(seed),pos=[];
@@ -1640,10 +1645,11 @@ function frame(ms){
 
 /* ---------- loader (builds the 3D worlds while it spins) ---------- */
 function runLoader(done){
-  const lc=$('#loadCanvas'),c=lc.getContext('2d');let pct=0,t0=performance.now(),msg=0,lastMsg=0,endAt=0;
+  const lc=$('#loadCanvas'),lt=$('#loadText'),c=lc.getContext('2d');let pct=0,t0=performance.now(),msg=0,lastMsg=0,endAt=0;
   function step(now){
     const s=(now-t0)/1000;c.setTransform(DPR,0,0,DPR,0,0);c.clearRect(0,0,W,H);
-    const cx=W/2,cy=H/2,base=Math.min(W,H)*.2;
+    const cx=W/2,cy=H/2,base=Math.max(Math.min(W,H)*.2,Math.min(W*.27,110)); // on a phone the rings grow to fill the width
+    lt.style.maxWidth=base*1.7+'px'; // the message wraps inside the inner circle
     if(s>.3&&!built)buildAll();
     if(pct<100)pct=Math.min(built?100:90,pct+Math.random()*1.4);
     c.strokeStyle='rgba(255,255,255,.22)';c.lineWidth=1;
@@ -1744,6 +1750,8 @@ $('#sound').addEventListener('click',()=>{if(!AC)return;muted=!muted;$('#sound')
 /* ---------- flow ---------- */
 document.body.classList.add('locked');
 resize();addEventListener('resize',resize);
+{const [sa,sb]=document.querySelectorAll('.orbit .spin'),t0=performance.now(); // intro orbit: 9 s and 6 s per turn, the inner one reversed
+ const turn=now=>{if($('#intro').classList.contains('gone'))return;const s=(now-t0)/1000;sa.style.transform=`rotate(${s*40}deg)`;sb.style.transform=`rotate(${-s*60}deg)`;requestAnimationFrame(turn)};requestAnimationFrame(turn)}
 $('#begin').addEventListener('click',()=>{
   startAudio();
   $('#intro').classList.add('gone');$('#loader').classList.remove('gone');

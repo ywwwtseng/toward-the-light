@@ -24,7 +24,7 @@ body.locked{overflow:hidden}
 #fade{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0}
 #bigTitle{position:fixed;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;pointer-events:none;font:300 clamp(18px,4.2vmin,40px) var(--font-display)}
 #bigTitle span{display:inline-block;width:clamp(26px,9vw,110px);text-align:center;transition:none}
-#bigTitle small{position:absolute;font-size:10px;letter-spacing:.6em;color:#bbb}
+#bigTitle small{position:absolute;left:16px;right:16px;font-size:10px;line-height:2;letter-spacing:.6em;text-indent:.6em;text-align:center;text-wrap:balance;color:#bbb}
 .layer{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:5;transition:opacity .9s ease,visibility .9s}
 .layer.gone{opacity:0;visibility:hidden;pointer-events:none}
 .wide{letter-spacing:.55em;text-transform:uppercase;font-family:var(--font-display);font-weight:400}
@@ -36,8 +36,9 @@ body.locked{overflow:hidden}
 .orbit{position:relative;width:150px;height:150px;flex:none}
 .orbit .ring{position:absolute;border-radius:50%;border:1px solid var(--line)}
 .orbit .r1{inset:0}.orbit .r2{inset:18px}
-.orbit .spin{position:absolute;inset:0;animation:spin 9s linear infinite}
-.orbit .spin.b{inset:18px;animation-duration:6s;animation-direction:reverse}
+/* the two dots are turned from JS (flow in app.js), so they also move where CSS animations are paused or reduced motion is on */
+.orbit .spin{position:absolute;inset:0;will-change:transform}
+.orbit .spin.b{inset:18px}
 .orbit .dot{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--paper);left:50%;top:-5.5px;margin-left:-5.5px}
 .orbit .dot.hollow{background:var(--ink);border:1.5px solid #777;width:9px;height:9px;margin-left:-6px;top:-6px}
 #begin{position:absolute;inset:38px;border-radius:50%;border:0;background:var(--paper);color:#9a9a9a;font:400 11px var(--font-display);letter-spacing:.35em;text-indent:.35em;cursor:pointer;transition:transform .4s ease,color .3s}
@@ -46,12 +47,11 @@ body.locked{overflow:hidden}
 .intro-foot{display:flex;flex-direction:column;align-items:center;gap:10px;color:#9c9c9c}
 .intro-foot .brand{font-size:15px;font-weight:400;letter-spacing:.02em}
 .intro-foot a{font-size:10px;color:#777;text-decoration:none}
-@keyframes spin{to{transform:rotate(360deg)}}
 
 /* Loader */
 #loader{background:var(--ink)}
 #loader canvas{position:absolute;inset:0;width:100%;height:100%}
-#loadText{position:relative;font-size:10px;line-height:1.8;text-align:center;color:#aaa;letter-spacing:.22em;text-transform:uppercase;transition:opacity .4s}
+#loadText{position:relative;max-width:calc(100vw - 32px);font-size:10px;line-height:1.8;text-align:center;color:#aaa;letter-spacing:.22em;text-transform:uppercase;transition:opacity .4s}
 
 /* Scroll hint */
 #hint{background:var(--paper);flex-direction:column;gap:14px;color:#111;pointer-events:none}
@@ -77,6 +77,9 @@ body.locked{overflow:hidden}
 .end-cta{display:flex;flex-direction:column;align-items:center;gap:14px}
 .btn{font:400 10px var(--font-display);letter-spacing:.2em;text-transform:uppercase;color:#111;background:transparent;border:1px solid #999;padding:12px 18px;border-radius:2px;cursor:pointer;text-decoration:none}
 .btn:hover{background:#111;color:var(--paper)}
+.btn.pill{display:inline-flex;align-items:center;gap:12px;padding:13px 26px 13px 20px;border-radius:999px;border-color:rgba(0,0,0,.35);letter-spacing:.32em;transition:background .3s,color .3s,border-color .3s}
+.btn.pill:before{content:"";width:7px;height:7px;border-radius:50%;border:1px solid currentColor;flex:none}
+.btn.pill:hover:before{background:currentColor}
 .btn:focus-visible,.icon-btn:focus-visible{outline:1px solid currentColor;outline-offset:3px}
 .end-note{font-size:10px;color:#555;text-align:center;max-width:220px;line-height:1.6;margin:0}
 .icon-btn{background:none;border:0;color:inherit;cursor:pointer;font-size:18px;padding:6px 10px}
@@ -102,10 +105,15 @@ body.locked{overflow:hidden}
 
 @media (max-width:640px){
   .intro-row{flex-direction:column;gap:28px}
-  .end-title{flex-direction:column;align-items:center;gap:46vh;top:50%}
+  #bigTitle small{letter-spacing:.32em;text-indent:.32em}
+  /* ending: the title wraps the figure top and bottom; the call to action sits below in normal flow so nothing overlaps */
+  #ending{justify-content:space-between;padding:calc(16vh + env(safe-area-inset-top,0px)) 16px calc(4vh + env(safe-area-inset-bottom,0px))}
+  .end-title{position:static;transform:none;flex:1;flex-direction:column;align-items:center;justify-content:space-between;padding-bottom:26px}
+  .end-cta{gap:12px}
+  .end-note{max-width:260px}
 }
 @media (prefers-reduced-motion:reduce){
-  .orbit .spin,.mouse:before,.mouse:after,#sound i{animation:none}
+  .mouse:before,.mouse:after,#sound i{animation:none}
 }
 </style>
 
@@ -151,7 +159,7 @@ body.locked{overflow:hidden}
 <section id="ending" class="layer gone">
   <div class="end-title wide"><span>Toward</span><span aria-label="The Light">THE LIGHT</span></div>
   <div class="end-cta">
-    <a class="btn" href="#" id="listen" onclick="event.preventDefault();scrollTo({top:0})">Walk again</a>
+    <a class="btn pill" href="#" id="listen" onclick="event.preventDefault();scrollTo({top:0})">Walk again</a>
     <p class="end-note">The road is long, and the light is always ahead. Thank you for walking with him.</p>
     <button class="icon-btn" id="openAbout" type="button" aria-label="About this work">↓</button>
   </div>
@@ -284,7 +292,12 @@ function lights(scene,{hemi=[0xffffff,0x777777,.9],dir=[0xffffff,.7,[3,6,4]]}={}
 }
 function canvasTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);return t}
 const gradTex=(top,bot)=>canvasTex(4,256,(c,w,h)=>{const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,top);g.addColorStop(1,bot);c.fillStyle=g;c.fillRect(0,0,w,h)});
-const GLOW=canvasTex(128,128,(c)=>{const g=c.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.45)');g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.fillRect(0,0,128,128)});
+/* radial alpha texture written pixel by pixel: Safari dithers canvas gradients per channel, and in the faint outer alpha that noise
+   is unpremultiplied into big coloured specks once the sprite is scaled up (the sun halos on iPhone) */
+function radTex(n,rgb,alpha){const d=new Uint8Array(n*n*4),h=n/2;
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){const i=(y*n+x)*4,r=Math.min(1,Math.hypot(x+.5-h,y+.5-h)/h);d[i]=rgb[0];d[i+1]=rgb[1];d[i+2]=rgb[2];d[i+3]=Math.round(clamp(alpha(r))*255)}
+  const t=new THREE.DataTexture(d,n,n,THREE.RGBAFormat);t.magFilter=t.minFilter=THREE.LinearFilter;t.needsUpdate=true;return t}
+const GLOW=radTex(128,[255,255,255],r=>r<.25?lerp(1,.45,r/.25):lerp(.45,0,(r-.25)/.75));
 function glow(scale,opacity=1){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,transparent:true,opacity,blending:THREE.AdditiveBlending,depthWrite:false}));s.scale.set(scale,scale,1);return s}
 function stars(n,radius,{seed=1,minY=-1e9,size=1.6,opacity=.9}={}){
   const r=rng(seed),pos=[];
@@ -1831,10 +1844,11 @@ function frame(ms){
 
 /* ---------- loader (builds the 3D worlds while it spins) ---------- */
 function runLoader(done){
-  const lc=$('#loadCanvas'),c=lc.getContext('2d');let pct=0,t0=performance.now(),msg=0,lastMsg=0,endAt=0;
+  const lc=$('#loadCanvas'),lt=$('#loadText'),c=lc.getContext('2d');let pct=0,t0=performance.now(),msg=0,lastMsg=0,endAt=0;
   function step(now){
     const s=(now-t0)/1000;c.setTransform(DPR,0,0,DPR,0,0);c.clearRect(0,0,W,H);
-    const cx=W/2,cy=H/2,base=Math.min(W,H)*.2;
+    const cx=W/2,cy=H/2,base=Math.max(Math.min(W,H)*.2,Math.min(W*.27,110)); // on a phone the rings grow to fill the width
+    lt.style.maxWidth=base*1.7+'px'; // the message wraps inside the inner circle
     if(s>.3&&!built)buildAll();
     if(pct<100)pct=Math.min(built?100:90,pct+Math.random()*1.4);
     c.strokeStyle='rgba(255,255,255,.22)';c.lineWidth=1;
@@ -1935,6 +1949,8 @@ $('#sound').addEventListener('click',()=>{if(!AC)return;muted=!muted;$('#sound')
 /* ---------- flow ---------- */
 document.body.classList.add('locked');
 resize();addEventListener('resize',resize);
+{const [sa,sb]=document.querySelectorAll('.orbit .spin'),t0=performance.now(); // intro orbit: 9 s and 6 s per turn, the inner one reversed
+ const turn=now=>{if($('#intro').classList.contains('gone'))return;const s=(now-t0)/1000;sa.style.transform=`rotate(${s*40}deg)`;sb.style.transform=`rotate(${-s*60}deg)`;requestAnimationFrame(turn)};requestAnimationFrame(turn)}
 $('#begin').addEventListener('click',()=>{
   startAudio();
   $('#intro').classList.add('gone');$('#loader').classList.remove('gone');
