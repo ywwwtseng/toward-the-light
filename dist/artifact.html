@@ -30,7 +30,10 @@ body.locked{overflow:hidden}
 
 /* Intro */
 #intro{background:var(--ink);flex-direction:column;gap:7vh;padding-inline:16px}
-.intro-row{display:flex;align-items:center;gap:clamp(18px,4vw,64px);flex-wrap:wrap;justify-content:center}
+/* three equal-sided columns so the orbit sits on the page centre and both words keep the same distance from it */
+.intro-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:clamp(18px,4vw,64px);width:100%}
+.intro-row>.intro-word:first-child{justify-self:end}
+.intro-row>.intro-word:last-child{justify-self:start}
 .intro-word{font-size:clamp(15px,1.9vw,22px);margin-right:-.55em}
 .orbit{position:relative;width:150px;height:150px;flex:none}
 .orbit .ring{position:absolute;border-radius:50%;border:1px solid var(--line)}
@@ -71,7 +74,8 @@ body.locked{overflow:hidden}
 /* Ending */
 #ending{z-index:4;flex-direction:column;justify-content:flex-end;padding:0 16px 5vh;color:#111;background:transparent;pointer-events:none}
 #ending.on{pointer-events:auto}
-.end-title{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);display:flex;justify-content:center;gap:min(22vw,190px);font-size:clamp(13px,2vw,22px)}
+.end-title{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);display:grid;grid-template-columns:1fr 1fr;column-gap:min(22vw,190px);font-size:clamp(13px,2vw,22px)}
+.end-title span:first-child{justify-self:end}.end-title span:last-child{justify-self:start}
 .end-title span{margin-right:-.55em}
 .end-cta{display:flex;flex-direction:column;align-items:center;gap:14px}
 .btn{font:400 10px var(--font-display);letter-spacing:.2em;text-transform:uppercase;color:#111;background:transparent;border:1px solid #999;padding:12px 18px;border-radius:2px;cursor:pointer;text-decoration:none}
@@ -103,11 +107,11 @@ body.locked{overflow:hidden}
 .about-foot a{color:#666;font-size:10px}
 
 @media (max-width:640px){
-  .intro-row{flex-direction:column;gap:28px}
+  .intro-row{display:flex;flex-direction:column;gap:28px}
   #bigTitle small{letter-spacing:.32em;text-indent:.32em}
   /* ending: the title wraps the figure top and bottom; the call to action sits below in normal flow so nothing overlaps */
   #ending{justify-content:space-between;padding:calc(16vh + env(safe-area-inset-top,0px)) 16px calc(4vh + env(safe-area-inset-bottom,0px))}
-  .end-title{position:static;transform:none;flex:1;flex-direction:column;align-items:center;justify-content:space-between;padding-bottom:26px}
+  .end-title{position:static;transform:none;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding-bottom:26px}
   .end-cta{gap:12px}
   .end-note{max-width:260px}
 }
