@@ -18,7 +18,7 @@ body.locked{overflow:hidden}
 #fade{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0}
 #bigTitle{position:fixed;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;pointer-events:none;font:300 clamp(18px,4.2vmin,40px) var(--font-display)}
 #bigTitle span{display:inline-block;width:clamp(26px,9vw,110px);text-align:center;transition:none}
-#bigTitle small{position:absolute;font-size:10px;letter-spacing:.6em;color:#bbb}
+#bigTitle small{position:absolute;left:16px;right:16px;font-size:10px;line-height:2;letter-spacing:.6em;text-indent:.6em;text-align:center;text-wrap:balance;color:#bbb}
 .layer{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:5;transition:opacity .9s ease,visibility .9s}
 .layer.gone{opacity:0;visibility:hidden;pointer-events:none}
 .wide{letter-spacing:.55em;text-transform:uppercase;font-family:var(--font-display);font-weight:400}
@@ -30,8 +30,9 @@ body.locked{overflow:hidden}
 .orbit{position:relative;width:150px;height:150px;flex:none}
 .orbit .ring{position:absolute;border-radius:50%;border:1px solid var(--line)}
 .orbit .r1{inset:0}.orbit .r2{inset:18px}
-.orbit .spin{position:absolute;inset:0;animation:spin 9s linear infinite}
-.orbit .spin.b{inset:18px;animation-duration:6s;animation-direction:reverse}
+/* the two dots are turned from JS (flow in app.js), so they also move where CSS animations are paused or reduced motion is on */
+.orbit .spin{position:absolute;inset:0;will-change:transform}
+.orbit .spin.b{inset:18px}
 .orbit .dot{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--paper);left:50%;top:-5.5px;margin-left:-5.5px}
 .orbit .dot.hollow{background:var(--ink);border:1.5px solid #777;width:9px;height:9px;margin-left:-6px;top:-6px}
 #begin{position:absolute;inset:38px;border-radius:50%;border:0;background:var(--paper);color:#9a9a9a;font:400 11px var(--font-display);letter-spacing:.35em;text-indent:.35em;cursor:pointer;transition:transform .4s ease,color .3s}
@@ -40,12 +41,11 @@ body.locked{overflow:hidden}
 .intro-foot{display:flex;flex-direction:column;align-items:center;gap:10px;color:#9c9c9c}
 .intro-foot .brand{font-size:15px;font-weight:400;letter-spacing:.02em}
 .intro-foot a{font-size:10px;color:#777;text-decoration:none}
-@keyframes spin{to{transform:rotate(360deg)}}
 
 /* Loader */
 #loader{background:var(--ink)}
 #loader canvas{position:absolute;inset:0;width:100%;height:100%}
-#loadText{position:relative;font-size:10px;line-height:1.8;text-align:center;color:#aaa;letter-spacing:.22em;text-transform:uppercase;transition:opacity .4s}
+#loadText{position:relative;max-width:calc(100vw - 32px);font-size:10px;line-height:1.8;text-align:center;color:#aaa;letter-spacing:.22em;text-transform:uppercase;transition:opacity .4s}
 
 /* Scroll hint */
 #hint{background:var(--paper);flex-direction:column;gap:14px;color:#111;pointer-events:none}
@@ -71,6 +71,9 @@ body.locked{overflow:hidden}
 .end-cta{display:flex;flex-direction:column;align-items:center;gap:14px}
 .btn{font:400 10px var(--font-display);letter-spacing:.2em;text-transform:uppercase;color:#111;background:transparent;border:1px solid #999;padding:12px 18px;border-radius:2px;cursor:pointer;text-decoration:none}
 .btn:hover{background:#111;color:var(--paper)}
+.btn.pill{display:inline-flex;align-items:center;gap:12px;padding:13px 26px 13px 20px;border-radius:999px;border-color:rgba(0,0,0,.35);letter-spacing:.32em;transition:background .3s,color .3s,border-color .3s}
+.btn.pill:before{content:"";width:7px;height:7px;border-radius:50%;border:1px solid currentColor;flex:none}
+.btn.pill:hover:before{background:currentColor}
 .btn:focus-visible,.icon-btn:focus-visible{outline:1px solid currentColor;outline-offset:3px}
 .end-note{font-size:10px;color:#555;text-align:center;max-width:220px;line-height:1.6;margin:0}
 .icon-btn{background:none;border:0;color:inherit;cursor:pointer;font-size:18px;padding:6px 10px}
@@ -96,8 +99,13 @@ body.locked{overflow:hidden}
 
 @media (max-width:640px){
   .intro-row{flex-direction:column;gap:28px}
-  .end-title{flex-direction:column;align-items:center;gap:46vh;top:50%}
+  #bigTitle small{letter-spacing:.32em;text-indent:.32em}
+  /* ending: the title wraps the figure top and bottom; the call to action sits below in normal flow so nothing overlaps */
+  #ending{justify-content:space-between;padding:calc(16vh + env(safe-area-inset-top,0px)) 16px calc(4vh + env(safe-area-inset-bottom,0px))}
+  .end-title{position:static;transform:none;flex:1;flex-direction:column;align-items:center;justify-content:space-between;padding-bottom:26px}
+  .end-cta{gap:12px}
+  .end-note{max-width:260px}
 }
 @media (prefers-reduced-motion:reduce){
-  .orbit .spin,.mouse:before,.mouse:after,#sound i{animation:none}
+  .mouse:before,.mouse:after,#sound i{animation:none}
 }
