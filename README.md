@@ -57,4 +57,4 @@ Start with **[AGENTS.md](AGENTS.md)** (also the CLAUDE.md). Then read:
 
 ## Credits
 
-Inspired by the scroll-story format of "Through the Dark". All code, models and copy here are original. The About page credits PEACEMINUSONE as an inspiration; no official logos or brand assets are used. Check rights before any public or commercial release.
+Inspired by the scroll-story format of "Through the Dark". All code, models and copy here are original. The About page credits "Through the Dark" as an inspiration; no official logos or brand assets are used. Check rights before any public or commercial release.
